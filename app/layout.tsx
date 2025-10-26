@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 import "./globals.css"
 import { Playfair_Display } from "next/font/google"
 import { UserProvider } from "@/hooks/use-user"
+import { SubscriptionProvider } from "@/hooks/use-subscription"
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
@@ -30,6 +31,7 @@ export default function RootLayout({
       <body className={`${playfair.variable} antialiased`}>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
           <UserProvider>
+            <SubscriptionProvider>
           <Suspense
             fallback={
               <div className="min-h-screen bg-background flex items-center justify-center">
@@ -42,6 +44,7 @@ export default function RootLayout({
           >
             {children}
           </Suspense>
+          </SubscriptionProvider>
           </UserProvider>
         </ThemeProvider>
         <Analytics />
