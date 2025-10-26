@@ -26,6 +26,7 @@ export function QuickMeals() {
   const [isGenerating, setIsGenerating] = useState(false)
   const [recipes, setRecipes] = useState<Recipe[]>([])
   const [apiError, setApiError] = useState<string | null>(null)
+  const [saving, setSaving] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null)
   const cameraInputRef = useRef<HTMLInputElement>(null)
 
@@ -39,6 +40,24 @@ export function QuickMeals() {
       }
       reader.readAsDataURL(file)
     })
+  }
+
+  const handleSave = async () => {
+    const response = await fetch("/api/quick-meals-save", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        recipes_arr: recipes,
+      }),
+    })
+
+    if(!response.ok) {
+      setApiError("[error] Error in saving. Try later")
+    } 
+
+    setSaving(true);
   }
 
   const removeImage = (index: number) => {
@@ -274,10 +293,15 @@ export function QuickMeals() {
       {/* Recipe Results */}
       {recipes.length > 0 && (
         <div className="space-y-3">
-          <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-            <ChefHat className="h-4 w-4" />
-            Your Quick Recipes
-          </h3>
+         <div className="flex items-center justify-between mt-auto">
+  <h3 className="text-sm font-semibold text-foreground flex items-center my-auto">
+    <ChefHat className="h-4 w-4" />
+    Your Quick Recipes
+  </h3>
+  {saving ? <Button className="bg-gray-100 text-black border text-sm h-6 px-4 py-3 rounded-sm">Saved</Button> :
+  <Button className="bg-white text-black border text-sm h-6 px-4 py-3 hover:cursor-pointer rounded-sm hover:text-white" onClick={handleSave}>Save</Button>}
+</div>
+
           {recipes.map((recipe, index) => (
             <Card key={index} className="p-4 space-y-3">
               <div className="flex items-start justify-between">

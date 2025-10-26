@@ -120,7 +120,7 @@ export default function NutritionApp() {
 
   const handleNavigation = (page: ActivePage) => {
     setActivePage(page)
-    // Reset home state when navigating away
+    
     if (page !== "home") {
       handleReset()
     }
