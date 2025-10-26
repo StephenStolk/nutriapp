@@ -26,7 +26,7 @@ export default function SignInPage() {
         e.preventDefault();
         setLoading(true);
 
-        const supabase = await createClient();
+        const supabase = createClient();
 
         const { data, error} = await supabase.auth.signInWithPassword({
             email, password,
@@ -38,7 +38,7 @@ export default function SignInPage() {
             return;
         }
 
-        router.push(`/${data.user?.id}/nutrition`);
+        router.push("/pricestructure");
     }
 
     return(
