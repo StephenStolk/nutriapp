@@ -10,6 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Calendar, Clock, DollarSign, MapPin, ChefHat, Target, BookOpen, X } from "lucide-react"
 import type { JSX } from "react/jsx-runtime"
 import { useUser } from "@/hooks/use-user"
+import { useSubscription } from "@/hooks/use-subscription"
 
 interface MealPlan {
   day: string
@@ -138,6 +139,9 @@ export function MealPlanner() {
   const [selectedRecipe, setSelectedRecipe] = useState<{ meal: string; day: string } | null>(null)
   const [isLoadingRecipe, setIsLoadingRecipe] = useState(false)
   const [recipeDetails, setRecipeDetails] = useState<string>("")
+  const { plan } = useSubscription();
+
+  const canUse = plan?.is_active && plan?.remaining_uses && (plan.remaining_uses === null || plan.remaining_uses > 0);
 
   const generateMealPlan = async () => {
     setIsGenerating(true)
@@ -154,7 +158,7 @@ export function MealPlanner() {
         const data = await response.json()
         setMealPlan(data.mealPlan)
       } else {
-        // Fallback intelligent meal plan based on user preferences
+        
         const days = Number.parseInt(plannerData.planDuration) || 3
         const samplePlan = generateIntelligentFallbackPlan(days)
         setMealPlan(samplePlan)
@@ -543,7 +547,7 @@ Rich in fiber, vitamins, and minerals. Provides sustained energy and supports ov
 
           <Button
             onClick={generateMealPlan}
-            disabled={isGenerating || !plannerData.cuisinePreferences || !plannerData.planDuration}
+            disabled={!canUse || isGenerating || !plannerData.cuisinePreferences || !plannerData.planDuration}
             className="w-full h-9"
             size="sm"
           >
