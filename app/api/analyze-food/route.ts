@@ -1,15 +1,73 @@
 import { type NextRequest, NextResponse } from "next/server"
+import { createClient } from "@/lib/supabase/server"
+
 
 export async function POST(request: NextRequest) {
   try {
     if (!process.env.OPENROUTER_API_KEY) {
-      return NextResponse.json(
-        {
-          error: "OpenRouter API key not configured. Please add OPENROUTER_API_KEY to your environment variables.",
-          fallback: true,
-        },
-        { status: 400 },
-      )
+
+      
+    const fallbackData = {
+      calories: 250,
+      protein: 12,
+      carbs: 30,
+      fat: 8,
+      fiber: 4,
+      sugar: 3,
+      sodium: 400,
+      ingredients: [],
+      analysis:
+        "Analysis temporarily unavailable. These estimated values are based on typical meal portions. For accurate nutrition tracking, please try again or consult a nutritionist.",
+      recommendations: [
+        "Include a variety of colorful vegetables in your meals",
+        "Choose whole grains over refined carbohydrates when possible",
+        "Maintain consistent meal timing for better metabolism",
+        "Consider portion control to meet your daily calorie goals",
+      ],
+    }
+
+    const fallbackdata_supabase = {
+      calories: 250,
+      protein: 12,
+      carbs: 30,
+      fat: 8,
+      fiber: 4,
+      sugar: 3,
+      sodium: 400,
+      ingredients: [],
+      analysis:
+        "Analysis temporarily unavailable. These estimated values are based on typical meal portions. For accurate nutrition tracking, please try again or consult a nutritionist.",
+    }
+
+    const supabase = createClient();
+
+    const { data: {user}, error: userError} = await supabase.auth.getUser();
+    if(userError || !user) {
+       console.error("[error] No authenticated user:", userError);
+      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+    }
+
+    
+    const { error: insertError} = await supabase.from("food_logs").insert({
+      user_id: user.id,
+      meal_type: "breakfast",
+      ...fallbackdata_supabase,
+    });
+
+    if(insertError) {
+      console.error("[error] Supabase insert error", insertError);
+    } else {
+      console.log("[v0] Inserted food log successfully");
+    }
+
+    return NextResponse.json(fallbackData);
+      // return NextResponse.json(
+      //   {
+      //     error: "OpenRouter API key not configured. Please add OPENROUTER_API_KEY to your environment variables.",
+      //     fallback: true,
+      //   },
+      //   { status: 400 },
+      // )
     }
 
     const { image, sideImage, mealType, notes } = await request.json()
@@ -89,14 +147,19 @@ If you include markdown, do NOT use tables. No extra commentary outside JSON.`,
 
     const content = data.choices?.[0]?.message?.content
     if (!content) throw new Error("No response from AI model")
+
     let nutritionData: any
+
     try {
-      // try to find the largest JSON-looking block
+     
       const jsonMatch = content.match(/```json([\s\S]*?)```/i)?.[1] || content.match(/\{[\s\S]*\}/)?.[0]
+
       if (!jsonMatch) throw new Error("No JSON found in response")
       nutritionData = JSON.parse(jsonMatch)
+
     } catch (parseError) {
       console.log("[v0] JSON parse error, using fallback:", parseError)
+
       nutritionData = {
         calories: 200,
         protein: 8,
@@ -115,6 +178,14 @@ If you include markdown, do NOT use tables. No extra commentary outside JSON.`,
           "Consider consulting a nutritionist for personalized advice",
         ],
       }
+    };
+
+    const supabase = createClient();
+
+    const { data: {user}, error: userError} = await supabase.auth.getUser();
+    if(userError || !user) {
+       console.error("[error] No authenticated user:", userError);
+      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
     }
 
     if (!Array.isArray(nutritionData.ingredients)) {
@@ -122,13 +193,34 @@ If you include markdown, do NOT use tables. No extra commentary outside JSON.`,
       const extracted = extractIngredientsFromAnalysis(analysis)
       nutritionData.ingredients = extracted
     }
+    
+    const { error: insertError} = await supabase.from("food_logs").insert({
+      user_id: user.id,
+      meal_type: mealType,
+      calories: nutritionData.calories || 0,
+      protein: nutritionData.protein || 0,
+      carbs: nutritionData.carbs || 0,
+      fat: nutritionData.fat || 0,
+      fiber: nutritionData.fiber || 0,
+      sugar: nutritionData.sugar || 0,
+      sodium: nutritionData.sodium || 0,
+      ingredients: nutritionData.ingredients || [],
+      analysis: nutritionData.analysis || "",
+      notes,
+    });
+
+    if(insertError) {
+      console.error("[error] Supabase insert error", insertError);
+    } else {
+      console.log("[v0] Inserted food log successfully");
+    }
 
     console.log("[v0] Final nutrition data:", nutritionData)
     return NextResponse.json(nutritionData)
   } catch (error) {
-    console.error("[v0] Food analysis error:", error)
+    //console.error("[v0] Food analysis error:", error)
 
-    return NextResponse.json({
+    const fallbackData = {
       calories: 250,
       protein: 12,
       carbs: 30,
@@ -145,26 +237,52 @@ If you include markdown, do NOT use tables. No extra commentary outside JSON.`,
         "Maintain consistent meal timing for better metabolism",
         "Consider portion control to meet your daily calorie goals",
       ],
-    })
+    }
+
+    const supabase = createClient();
+
+    const { data: {user}, error: userError} = await supabase.auth.getUser();
+    if(userError || !user) {
+       console.error("[error] No authenticated user:", userError);
+      return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
+    }
+
+    
+    const { error: insertError} = await supabase.from("food_logs").insert({
+      user_id: user.id,
+      meal_type: "breakfast",
+      ...fallbackData,
+    });
+
+    if(insertError) {
+      console.error("[error] Supabase insert error", insertError);
+    } else {
+      console.log("[v0] Inserted food log successfully");
+    }
+
+    return NextResponse.json(fallbackData);
   }
 }
 
 function extractIngredientsFromAnalysis(analysis: string): string[] {
   if (!analysis) return []
   const lines = analysis.split("\n")
-  // Find a line that hints at "Ingredients", "Foods identified", etc.
+ 
   const start = lines.findIndex((l) => /(ingredients|foods? (identified|seen|included))/i.test(l))
   if (start === -1) return []
   const out: string[] = []
   for (let i = start + 1; i < lines.length; i++) {
     const t = lines[i].trim()
     if (!t) break
+
     if (t.startsWith("- ") || t.startsWith("* ") || t.startsWith("• ") || /^\d+\.\s/.test(t)) {
       const cleaned = t
         .replace(/^\d+\.\s/, "")
         .replace(/^[-*•]\s/, "")
         .trim()
+
       if (cleaned) out.push(cleaned)
+
     } else {
       break
     }
