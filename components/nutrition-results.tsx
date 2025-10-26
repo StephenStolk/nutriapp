@@ -30,8 +30,8 @@ interface NutritionResultsProps {
 }
 
 export function NutritionResults({ data, mealType, selectedImage }: NutritionResultsProps) {
-  const [isLogged, setIsLogged] = useState(false)
-  const [isLogging, setIsLogging] = useState(false)
+  const [isLogged, setIsLogged] = useState<boolean>(false)
+  const [isLogging, setIsLogging] = useState<boolean>(false)
 
   const macronutrients = [
     { name: "Protein", value: data.protein, unit: "g", color: "bg-primary", max: 50 },
@@ -49,15 +49,17 @@ export function NutritionResults({ data, mealType, selectedImage }: NutritionRes
     if (Array.isArray(data.ingredients) && data.ingredients.length > 0) return data.ingredients
     const lines = (data.analysis || "").split("\n")
     const start = lines.findIndex((l) => /(ingredients|foods? (identified|seen))/i.test(l))
+
     if (start === -1) return []
     const collected: string[] = []
     for (let i = start + 1; i < lines.length; i++) {
       const line = lines[i].trim()
       if (!line) break
-      // handle bullets and numbered lists without stripping twice
+     
       let cleaned = line
       if (/^\d+\.\s+/.test(cleaned)) cleaned = cleaned.replace(/^\d+\.\s+/, "")
       else if (/^[-*•]\s+/.test(cleaned)) cleaned = cleaned.replace(/^[-*•]\s+/, "")
+
       else break
       if (cleaned) collected.push(cleaned)
     }
@@ -113,11 +115,11 @@ export function NutritionResults({ data, mealType, selectedImage }: NutritionRes
 
   return (
     <div className="space-y-6">
-      {/* Calories + Dish card with ring */}
+      
       <Card className="p-6 bg-primary/5 border-primary/20 shadow-xl">
         <div className="flex items-center gap-4">
           <div className="relative">
-            {/* outer ring */}
+            
             <div
               className="w-24 h-24 rounded-full grid place-items-center"
               style={{
@@ -211,7 +213,7 @@ export function NutritionResults({ data, mealType, selectedImage }: NutritionRes
         </div>
       </Card>
 
-      {/* Micronutrients */}
+     
       <Card className="p-6 shadow-lg">
         <h3 className="text-base font-bold text-foreground mb-4 flex items-center">
           <div className="w-4 h-4 bg-accent rounded-full mr-2" />
@@ -238,10 +240,13 @@ export function NutritionResults({ data, mealType, selectedImage }: NutritionRes
             <div className="w-4 h-4 bg-primary rounded-full mr-2" />
             Identified Ingredients
           </h3>
+
           <div className="flex flex-wrap gap-2">
+
             {derivedIngredients.map((item, i) => (
               <Badge key={i} variant="secondary" className="text-xs rounded-full px-3 py-1">
                 {item}
+
               </Badge>
             ))}
           </div>
@@ -251,6 +256,7 @@ export function NutritionResults({ data, mealType, selectedImage }: NutritionRes
       {/* Analysis */}
       <Card className="p-6 bg-muted/10 shadow-lg">
         <h3 className="text-base font-bold text-foreground mb-3 flex items-center">
+
           <Zap className="w-4 h-4 text-primary mr-2" />
           AI Analysis
         </h3>
@@ -261,6 +267,7 @@ export function NutritionResults({ data, mealType, selectedImage }: NutritionRes
       <Card className="p-6 shadow-lg">
         <h3 className="text-base font-bold text-foreground mb-4 flex items-center">
           <div className="w-4 h-4 bg-primary rounded-full mr-2" />
+          
           Health Tips
         </h3>
         <div className="space-y-3">
