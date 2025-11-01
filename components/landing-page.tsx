@@ -87,7 +87,7 @@ export function LandingPage({ onStartJourney }: LandingPageProps) {
               <div className="w-7 h-7 bg-primary rounded-lg flex items-center justify-center">
                 <Apple className="w-4 h-4 text-white" />
               </div>
-              <span className="text-lg font-bold text-foreground">NutriScan</span>
+              <span className="text-lg font-bold text-foreground">Kalnut</span>
             </div>
             <div className="flex items-center">
               <Button onClick={onStartJourney} size="sm" className="bg-primary hover:bg-primary/90 text-sm px-4">
@@ -204,7 +204,7 @@ export function LandingPage({ onStartJourney }: LandingPageProps) {
       <section className="py-12 px-4">
         <div className="container mx-auto max-w-4xl">
           <div className="text-center space-y-3 mb-10">
-            <h2 className="text-xl md:text-2xl font-bold text-foreground">Why choose NutriScan?</h2>
+            <h2 className="text-xl md:text-2xl font-bold text-foreground">Why choose Kalnut?</h2>
           </div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -272,11 +272,11 @@ export function LandingPage({ onStartJourney }: LandingPageProps) {
                 <Apple className="w-4 h-4 text-white" />
               </div>
               <div>
-                <div className="text-sm font-semibold text-foreground">NutriScan</div>
+                <div className="text-sm font-semibold text-foreground">Kalnut</div>
                 <div className="text-xs text-muted-foreground">AI-Powered Nutrition Analysis</div>
               </div>
             </div>
-            <div className="text-xs text-muted-foreground">© 2025 NutriScan. Made with ❤️ for better health.</div>
+            <div className="text-xs text-muted-foreground">© 2025 Kalnut. Made with ❤️ for better health.</div>
           </div>
         </div>
       </footer>

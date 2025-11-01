@@ -6,9 +6,11 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Mic, ArrowLeft, Plus } from "lucide-react"
+import { useUser } from "@/hooks/use-user"
 
 type Entry = {
   id: string
+  user_id: string
   date: string // YYYY-MM-DD
   title: string
   body: string
@@ -34,6 +36,7 @@ declare global {
 }
 
 export function Journal({ onBack }: { onBack: () => void }) {
+  const { user,userId} = useUser();
   const [entries, setEntries] = useState<Entry[]>([])
   const [isEditorOpen, setIsEditorOpen] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -46,23 +49,15 @@ export function Journal({ onBack }: { onBack: () => void }) {
   const recognitionRef = useRef<any>(null)
 
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem("nutriscan-journal")
-      if (raw) {
-        const parsed = JSON.parse(raw) as Entry[]
-        const normalized = parsed.map((e: any) => ({
-          ...e,
-          date: e.date || new Date().toISOString().slice(0, 10),
-          title: e.title || "",
-          body: e.body || "",
-          audioDataUrl: e.audioDataUrl || undefined,
-        }))
-        setEntries(normalized)
-      }
-    } catch {
-      // ignore parse errors
-    }
-  }, [])
+    if (!userId) return;
+
+    (async () => {
+      const res = await fetch(`/api/journal?userId=${userId}`);
+      const data = await res.json();
+      if (res.ok) setEntries(data);
+      else console.error("Fetch failed:", data.error);
+    })();
+  }, [userId]);
 
   useEffect(() => {
     return () => {
@@ -76,7 +71,7 @@ export function Journal({ onBack }: { onBack: () => void }) {
   }, [])
 
   useEffect(() => {
-    localStorage.setItem("nutriscan-journal", JSON.stringify(entries))
+    localStorage.setItem("kalnut-journal", JSON.stringify(entries))
   }, [entries])
 
   const sorted = useMemo(() => {
@@ -183,42 +178,45 @@ export function Journal({ onBack }: { onBack: () => void }) {
     setVoiceError(null)
   }
 
-  const saveEntry = () => {
-    if (!title.trim() && !body.trim()) {
-      return
-    }
-    if (editingId) {
-      setEntries((prev) =>
-        prev.map((e) =>
-          e.id === editingId
-            ? {
-                ...e,
-                title: title.trim(),
-                body: body.trim(),
-                date: date || new Date().toISOString().slice(0, 10),
-                updatedAt: new Date().toISOString(),
-              }
-            : e,
-        ),
-      )
-    } else {
-      const now = new Date().toISOString()
-      const newEntry: Entry = {
-        id: `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-        date: date || now.slice(0, 10),
-        title: title.trim(),
-        body: body.trim(),
-        createdAt: now,
-        updatedAt: now,
-      }
-      setEntries((prev) => [newEntry, ...prev])
-    }
-    cancelEdit()
-  }
+  const saveEntry = async () => {
+    if (!userId) return console.error("No userId");
+    if (!title.trim() && !body.trim()) return;
 
-  const deleteEntry = (id: string) => {
-    setEntries((prev) => prev.filter((e) => e.id !== id))
-  }
+    const payload = {
+      userId,
+      id: editingId || undefined,
+      title: title.trim(),
+      body: body.trim(),
+      date,
+    };
+
+    const method = editingId ? "PUT" : "POST";
+    const res = await fetch("/api/journal", {
+      method,
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+      setEntries((prev) =>
+        editingId
+          ? prev.map((e) => (e.id === editingId ? data : e))
+          : [data, ...prev]
+      );
+
+    cancelEdit();
+    } else {
+      console.error("Save failed:", data.error);
+    }
+  };
+
+  const deleteEntry = async (id: string) => {
+    const res = await fetch(`/api/journal?id=${id}`, { method: "DELETE" });
+    if (res.ok) setEntries((prev) => prev.filter((e) => e.id !== id));
+  };
+
+  if (!userId) return <p>Loading user...</p>;
 
   return (
     <div className="min-h-screen bg-background text-foreground pb-28">

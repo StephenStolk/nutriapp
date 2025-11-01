@@ -18,6 +18,8 @@
         "name": "next"
       }
     ],
+    "baseUrl": ".", // ✅ Added this line
+    "ignoreDeprecations": "6.0",
     "paths": {
       "@/*": ["./*"]
     }

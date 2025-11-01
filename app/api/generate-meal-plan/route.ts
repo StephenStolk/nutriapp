@@ -85,7 +85,7 @@ console.log("User data:", user);
         Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
         "Content-Type": "application/json",
         "HTTP-Referer": process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
-        "X-Title": "NutriScan Meal Planner",
+        "X-Title": "Kalnut Meal Planner",
       },
       body: JSON.stringify({
         model: "mistralai/mistral-small-3.2-24b-instruct:free", 

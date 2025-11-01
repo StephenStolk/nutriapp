@@ -68,7 +68,7 @@ Make the recipes fun, easy to follow, and use Gen-Z language. Include cooking ti
       headers: {
         Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
         "HTTP-Referer": process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
-        "X-Title": "NutriScan Quick Meals",
+        "X-Title": "Kalnut Quick Meals",
         "Content-Type": "application/json",
       },
       body: JSON.stringify({

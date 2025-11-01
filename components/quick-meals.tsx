@@ -8,6 +8,9 @@ import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Camera, Upload, Sparkles, Clock, ChefHat, Heart, Zap, AlertCircle, Settings } from "lucide-react"
+import { useSubscription } from "@/hooks/use-subscription"
+// import { GridBackground } from "./landing-temporary/GridBackground"
+import { BentoGrid } from "./bentogrid"
 
 type FoodPreference = "healthy" | "comfort" | "cheat"
 type Recipe = {
@@ -64,6 +67,12 @@ export function QuickMeals() {
     setImages((prev) => prev.filter((_, i) => i !== index))
   }
 
+   const { plan, loading, refreshSubscription } = useSubscription();
+   console.log(plan);
+  
+  const canUseRecipeIdea = plan?.plan_name === "Pro Plan" ||
+    (plan?.plan_name === "Free" && !plan?.used_get_recipe);
+
   const handleGenerateRecipes = async () => {
     if (!ingredients.trim() && images.length === 0) return
     if (!preference) return
@@ -97,6 +106,21 @@ export function QuickMeals() {
       }
 
       setRecipes(data.recipes || [])
+
+      if(plan?.plan_name === "Free") {
+        await fetch("/api/mark-feature-used", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            feature: "used_get_recipe"
+          }),
+        });
+        await refreshSubscription();
+      }
+
+      
     } catch (error) {
       console.error("Recipe generation error:", error)
       if (!apiError) {
@@ -141,6 +165,7 @@ export function QuickMeals() {
   ]
 
   return (
+    <BentoGrid>
     <div className="space-y-4">
       <div className="text-center space-y-1">
         <h2 className="text-lg font-semibold text-foreground flex items-center justify-center gap-2">
@@ -256,34 +281,38 @@ export function QuickMeals() {
       </Card>
 
       {/* Preference Selection */}
-      <Card className="p-4 space-y-3">
-        <div className="flex items-center gap-2">
-          <Heart className="h-4 w-4 text-primary" />
-          <span className="text-sm font-medium">Food Vibe</span>
-        </div>
-        <div className="grid grid-cols-3 gap-2">
-          {preferences.map((pref) => {
-            const Icon = pref.icon
-            return (
-              <Button
-                key={pref.id}
-                variant={preference === pref.id ? "default" : "outline"}
-                size="sm"
-                onClick={() => setPreference(pref.id)}
-                className={`h-12 flex-col gap-1 ${preference === pref.id ? "" : pref.color}`}
-              >
-                <Icon className="h-3 w-3" />
-                <span className="text-xs">{pref.label}</span>
-              </Button>
-            )
-          })}
-        </div>
-      </Card>
+     <Card className="p-4 space-y-3">
+  <div className="flex items-center gap-2">
+    <Heart className="h-4 w-4 text-primary" />
+    <span className="text-sm font-medium">Food Vibe</span>
+  </div>
+  <div className="grid grid-cols-3 gap-2">
+    {preferences.map((pref) => {
+      const Icon = pref.icon
+      const isSelected = preference === pref.id
+
+      return (
+        <Button
+          key={pref.id}
+          onClick={() => setPreference(pref.id)}
+          size="sm"
+          className={`h-14 rounded-sm flex-col gap-1 bg-black/70 text-white hover:bg-black/80 ${
+            isSelected ? "ring-2 ring-primary bg-black" : ""
+          }`}
+        >
+          <Icon className="h-3 w-3" />
+          <span className="text-xs">{pref.label}</span>
+        </Button>
+      )
+    })}
+  </div>
+</Card>
+
 
       {/* Generate Button */}
       <Button
         onClick={handleGenerateRecipes}
-        disabled={isGenerating || (!ingredients.trim() && images.length === 0) || !preference}
+        disabled={!canUseRecipeIdea || isGenerating || (!ingredients.trim() && images.length === 0) || !preference}
         className="w-full h-10"
       >
         <Sparkles className="h-4 w-4 mr-2" />
@@ -351,5 +380,6 @@ export function QuickMeals() {
         </div>
       )}
     </div>
+    </BentoGrid>
   )
 }

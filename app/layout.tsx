@@ -3,10 +3,12 @@ import type { Metadata } from "next"
 import { Analytics } from "@vercel/analytics/next"
 import { Suspense } from "react"
 import { ThemeProvider } from "@/components/theme-provider"
+
 import "./globals.css"
 import { Playfair_Display } from "next/font/google"
 import { UserProvider } from "@/hooks/use-user"
 import { SubscriptionProvider } from "@/hooks/use-subscription"
+import Script from "next/script"
 
 const playfair = Playfair_Display({
   subsets: ["latin"],
@@ -43,6 +45,8 @@ export default function RootLayout({
             }
           >
             {children}
+
+            <Script src="https://checkout.razorpay.com/v1/checkout.js" />
           </Suspense>
           </SubscriptionProvider>
           </UserProvider>

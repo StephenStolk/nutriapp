@@ -23,7 +23,7 @@ export async function GET() {
   }
 
    const now = new Date();
-    const valid = data.is_active && (!data.valid_till || new Date(data.valid_till) > now);
+    const valid = data?.is_active && (!data.valid_till || new Date(data.valid_till) > now);
 
    return NextResponse.json({
     plan: valid ? data.plan_name : "Free",

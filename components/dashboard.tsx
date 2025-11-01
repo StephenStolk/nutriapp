@@ -35,6 +35,8 @@ import type { Session, User, SupabaseClient} from '@supabase/supabase-js';
 import type { ReactNode } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { useUser } from "@/hooks/use-user"
+import { useSubscription } from "@/hooks/use-subscription"
+import { useRouter } from "next/navigation"
 
 interface LoggedFood {
   id: string
@@ -102,7 +104,10 @@ export function Dashboard({ onAddFood }: DashboardProps) {
   const [isMeditationOpen, setIsMeditationOpen] = useState(false)
   const [isCalorieCalculatorOpen, setIsCalorieCalculatorOpen] = useState(false)
   const [historyFor, setHistoryFor] = useState<"breakfast" | "lunch" | "dinner" | "snacks" | null>(null)
+  const router = useRouter();
   const { user, userId, loading } = useUser();
+  const { plan } = useSubscription();
+
 
   const supabase = createClient();
   useEffect(() => {
@@ -171,8 +176,8 @@ export function Dashboard({ onAddFood }: DashboardProps) {
       } catch {}
     }
 
-    const savedGoal = localStorage.getItem("daily-calorie-goal");
-    if (savedGoal) setDailyGoal(Number.parseInt(savedGoal));
+    // const savedGoal = localStorage.getItem("daily-calorie-goal");
+    // if (savedGoal) setDailyGoal(Number.parseInt(savedGoal));
 
     const savedHabits = localStorage.getItem("habits");
     if (savedHabits) {
@@ -223,11 +228,34 @@ export function Dashboard({ onAddFood }: DashboardProps) {
   
   }, []);
 
+  useEffect(() => {
+    if(!userId) return;
+    const fetchGoal = async () => {
+      
+      const { data: goalRows, error} = await supabase.from("user_goals")
+      .select("*")
+      .eq("user_id", userId)
+      .order("effective_from", { ascending: false})
+      .limit(1);
+
+      if(error) {
+        console.error("Error fetching goal:", error);
+        return;
+      }
+
+      const currentGoal = goalRows?.[0]?.daily_goal ?? 2000;
+      setDailyGoal(currentGoal);
+    };
+    
+    fetchGoal();
+  }, [userId]);
+
   const today = new Date()
   const todayString = today.toDateString();
   const todayISO = new Date().toISOString().slice(0, 10);
 
   const todaysFoods = loggedFoods.filter((food) => {
+
     const foodDate = new Date(food.timestamp)
     return foodDate.toDateString() === todayString
   })
@@ -238,9 +266,13 @@ export function Dashboard({ onAddFood }: DashboardProps) {
 
   // Calculate totals
   const totalCalories = todaysFoods.reduce((sum, food) => sum + food.calories, 0)
+
   const totalProtein = todaysFoods.reduce((sum, food) => sum + food.protein, 0)
+
   const totalCarbs = todaysFoods.reduce((sum, food) => sum + food.carbs, 0)
+
   const totalFat = todaysFoods.reduce((sum, food) => sum + food.fat, 0)
+
   const remaining = Math.max(0, dailyGoal - totalCalories)
   const progressPercentage = Math.min((totalCalories / dailyGoal) * 100, 100)
 
@@ -449,7 +481,7 @@ export function Dashboard({ onAddFood }: DashboardProps) {
     const existing = Array.isArray(existingArr) && existingArr.length ? (existingArr[0] as HabitLog) : null;
 
     if (existing && existing.id) {
-      // toggle existing row
+     
       const { data: updatedData, error: updateErr } = await supabase
         .from("habit_logs")
         .update({ completed: !existing.completed })
@@ -473,7 +505,7 @@ export function Dashboard({ onAddFood }: DashboardProps) {
       return;
     }
 
-    // insert new log row
+
     const payload = {
       user_id: userId,
       habit_id: dbHabitId,
@@ -503,6 +535,7 @@ console.log("payload.user_id =", userId);
         .from("habit_logs")
         .upsert([payload])
         .select();
+
       console.log("upsert result:", { upserted, upsertErr });
       if (upsertErr) {
         console.error("upsert also failed", upsertErr);
@@ -516,16 +549,18 @@ console.log("payload.user_id =", userId);
       return;
     }
 
-    // Insert success path: inserted may be an array
+ 
     const newInserted = Array.isArray(inserted) ? inserted[0] : inserted;
     const newLog = newInserted as HabitLog;
     const updatedLogs = [...habitLogs, newLog];
+
     setHabitLogs(updatedLogs);
-    try { localStorage.setItem("habit-logs", JSON.stringify(updatedLogs)); } catch {}
+    try { localStorage.setItem("habit-logs", JSON.stringify(updatedLogs)); } 
+    catch {}
 
   } catch (err) {
     console.error("toggleHabit unexpected", err);
-    // as a last resort, local fallback
+ 
     try { toggleHabitLocalFallback(habitId); } catch {}
   }
 };
@@ -534,7 +569,8 @@ const toggleHabitLocalFallback = (habitId: string) => {
   try {
     const savedRaw = localStorage.getItem("habit-logs") || "[]";
     const saved = JSON.parse(savedRaw);
-    const legacyDate = new Date().toDateString(); 
+    const legacyDate = new Date().toDateString();
+
     const existing = saved.find((l: any) => l.habitId === habitId && l.date === legacyDate);
 
     let updated;
@@ -546,7 +582,7 @@ const toggleHabitLocalFallback = (habitId: string) => {
 
     localStorage.setItem("habit-logs", JSON.stringify(updated));
 
-    // normalize into DB-shaped logs (habit_id and YYYY-MM-DD date)
+
     const normalized = updated.map((l: any) => ({
       id: l.id,
       habit_id: l.habitId ?? l.habit_id,
@@ -563,10 +599,12 @@ const toggleHabitLocalFallback = (habitId: string) => {
 
   const isHabitCompleted = (habitId: string) => {
     const dblog = habitLogs.find((log) => log.habit_id === habitId && log.date === todayISO);
+
     if(dblog) return !!dblog.completed;
 
     try {
       const saved = JSON.parse(localStorage.getItem("habit-logs") || "[]");
+
       const legacy = saved.find((l: any) => (l.habitId === habitId || l.habit_id === habitId) && (l.date === new Date(l.toDateString() || l.date === todayISO)));
       return !!legacy?.completed;
     } catch {
@@ -603,12 +641,15 @@ const toggleHabitLocalFallback = (habitId: string) => {
       try {
         const savedHabits = JSON.parse(localStorage.getItem("habits") || "[]");
         const nextHabits = savedHabits.filter((h: any) => h.id !== habitId);
+
         localStorage.setItem("habits", JSON.stringify(nextHabits));
+
         setHabits(nextHabits);
 
         const savedLogs = JSON.parse(localStorage.getItem("habit-logs") || "[]");
         const nextLogs = savedLogs.filter((h: any) => h.habitId !== habitId && h.habit_id !== habitId);
         localStorage.setItem("habit-logs", JSON.stringify(nextLogs));
+
         setHabitLogs(nextLogs);
       } catch(err) {
         console.error("delete local habit err", err);
@@ -616,11 +657,22 @@ const toggleHabitLocalFallback = (habitId: string) => {
     }
   }
 
-  const handleGoalSave = () => {
-    const newGoal = Number.parseInt(tempGoal)
+  const handleGoalSave = async () => {
+    const newGoal = Number.parseInt(tempGoal);
+
     if (newGoal > 0) {
       setDailyGoal(newGoal)
-      localStorage.setItem("daily-calorie-goal", newGoal.toString())
+
+      localStorage.setItem("daily-calorie-goal", newGoal.toString());
+
+      if(user) {
+        await supabase.from("user_goals").insert({
+          user_id: userId,
+          daily_goal: newGoal,
+          effective_from: new Date().toISOString().slice(0,10),
+        });
+      }
+
     }
     setIsEditingGoal(false)
     setTempGoal("")
@@ -634,6 +686,10 @@ const toggleHabitLocalFallback = (habitId: string) => {
   const handleCalorieCalculatorSave = (calories: number) => {
     setDailyGoal(calories)
     localStorage.setItem("daily-calorie-goal", calories.toString())
+  }
+
+  const handleManageSubscription = () => {
+    router.push('/pricestructure')
   }
 
   return (
@@ -655,14 +711,15 @@ const toggleHabitLocalFallback = (habitId: string) => {
             variant="ghost"
             size="sm"
             onClick={() => setIsMeditationOpen(true)}
-            className="w-8 h-8 p-0 rounded-full bg-purple-100 hover:bg-purple-200 text-purple-600"
+            className="w-8 h-8 p-0 rounded-full bg-gray-200 hover:bg-black
+            hover:text-white text-purple-600"
           >
-            <Brain className="h-4 w-4" />
+            <Brain className="h-4 w-4 text-black" />
           </Button>
         </div>
       </div>
 
-      <Card className="p-4 bg-card shadow-sm border-0 rounded-xl">
+      <Card className="p-3 bg-card shadow-sm rounded-[5px]">
         <div className="flex items-center justify-between mb-4">
           <div className="text-center">
             <div className="text-xl font-bold text-foreground mb-1">{totalCalories.toLocaleString()}</div>
@@ -704,7 +761,7 @@ const toggleHabitLocalFallback = (habitId: string) => {
           </div>
         </div>
 
-        <div className="flex items-center justify-between mb-3 p-2 bg-muted/30 rounded-lg">
+        <div className="flex items-center justify-between mb-3 p-2 bg-muted/30 rounded-[5px]">
           <div className="flex items-center space-x-2">
             <Target className="h-3 w-3 text-primary" />
             <span className="text-xs font-medium text-foreground">Daily Goal</span>
@@ -786,15 +843,13 @@ const toggleHabitLocalFallback = (habitId: string) => {
         </div>
       </Card>
 
-      <Card className="p-3 shadow-sm border-0 rounded-xl bg-card">
+      <Card className="p-3 shadow-sm border-0 rounded-[5px] bg-card mb-12 mt-12">
         <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center space-x-2">
-            <div className="w-6 h-6 rounded-lg bg-primary/10 flex items-center justify-center">
-              <CheckCircle2 className="h-3 w-3 text-primary" />
-            </div>
-            <h3 className="text-sm font-semibold text-foreground">Daily Habits</h3>
+          <div className="flex items-center justify-center space-x-2">
+              <CheckCircle2 className="h-4 w-4 text-primary" />
+            <h3 className="text-sm font-semibold text-foreground mt-3">Daily Habits</h3>
           </div>
-          <Badge variant="secondary" className="text-xs px-2 py-0.5 bg-primary/10 text-primary border-primary/20">
+          <Badge variant="secondary" className="text-xs px-2 py-0.5 bg-primary/10 text-primary border-primary/20 rounded-[5px]">
             {completedHabitsToday}/{totalHabitsToday} completed
           </Badge>
         </div>
@@ -810,7 +865,7 @@ const toggleHabitLocalFallback = (habitId: string) => {
             </p>
             <Button
               onClick={() => setIsAddingHabit(true)}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-2 rounded-full font-medium"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-2 rounded-[5px] font-medium"
             >
               <Plus className="h-4 w-4 mr-2" />
               Add Your First Habit
@@ -886,9 +941,9 @@ const toggleHabitLocalFallback = (habitId: string) => {
         <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
           <Card className="w-full max-w-md p-6 bg-card">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">Add New Habit</h3>
-              <Button variant="ghost" size="sm" onClick={() => setIsAddingHabit(false)} className="w-8 h-8 p-0">
-                <X className="h-4 w-4" />
+              <h3 className="text-sm font-semibold">Add New Habit</h3>
+              <Button variant="ghost" size="sm" onClick={() => setIsAddingHabit(false)} className="mb-4">
+                <X className="w-2 h-2 mr-1" />
               </Button>
             </div>
             <div className="space-y-4">
@@ -897,12 +952,13 @@ const toggleHabitLocalFallback = (habitId: string) => {
                 value={newHabitName}
                 onChange={(e) => setNewHabitName(e.target.value)}
                 onKeyPress={(e) => e.key === "Enter" && addHabit()}
+                className="text-sm"
               />
               <div className="flex justify-end space-x-2">
-                <Button variant="outline" onClick={() => setIsAddingHabit(false)}>
+                <Button variant="outline" className="p-0 px-6 rounded-[5px]" onClick={() => setIsAddingHabit(false)}>
                   Cancel
                 </Button>
-                <Button onClick={addHabit} disabled={!newHabitName.trim()}>
+                <Button onClick={addHabit} className="p-0 px-4 rounded-[5px]" disabled={!newHabitName.trim()}>
                   Add Habit
                 </Button>
               </div>
@@ -911,7 +967,7 @@ const toggleHabitLocalFallback = (habitId: string) => {
         </div>
       )}
 
-      <div className="space-y-2">
+      <div className="space-y-2 dark:border dark:border-white/30 dark:rounded-[5px]">
         {Object.entries(mealGroups).map(([mealType, foods]) => {
           const Icon = getMealIcon(mealType)
           const mealCalories = getMealCalories(mealType as keyof typeof mealGroups)
@@ -920,7 +976,7 @@ const toggleHabitLocalFallback = (habitId: string) => {
           return (
             <Card
               key={mealType}
-              className="p-3 hover:shadow-md transition-all duration-300 border-0 rounded-xl bg-card"
+              className="p-3 hover:shadow-md transition-all duration-300 border-0 rounded-[5px] bg-card"
             >
               {/* Make header clickable to open history */}
               <div
@@ -935,7 +991,7 @@ const toggleHabitLocalFallback = (habitId: string) => {
                   <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
                     <Icon className="h-4 w-4 text-primary" />
                   </div>
-                  <div>
+                  <div className="px-2 pt-2">
                     <h3 className="text-sm font-semibold text-foreground capitalize">{mealType}</h3>
                     <p className="text-xs text-muted-foreground">
                       {mealCalories} / {mealGoal} Cal
@@ -1086,6 +1142,52 @@ const toggleHabitLocalFallback = (habitId: string) => {
           )}
         </div>
       )}
+
+      <div className="mt-8 border-t border-border/50 pt-4 pb-20 text-center">
+  {loading ? (
+    <p className="text-sm text-muted-foreground">Loading your plan...</p>
+  ) : (
+    <>
+      <p className="text-sm text-muted-foreground mt-8">
+        {plan?.plan_name === "Pro Plan" ? (
+          <>
+            🌟 You’re on the <span className="font-semibold text-primary">Pro Plan</span>.
+          </>
+        ) : (
+          <>
+            You’re on the Free Plan. <br/>
+            You have 1 trial for all service.
+          </>
+        )}
+      </p>
+
+      <div className="flex justify-center gap-3 mt-3">
+        {plan?.plan_name === "Free" ? (
+          <Button
+            onClick={handleManageSubscription}
+            className="rounded-none h-9 text-sm"
+          >
+            Upgrade Subscription
+          </Button>
+        ) : (
+          <Button
+            variant="outline"
+            onClick={() => window.location.href = "/manage-subscription"}
+            className="rounded-xl h-9 text-sm"
+          >
+            Manage Subscription
+          </Button>
+        )}
+      </div>
+
+      {plan?.valid_till && (
+        <p className="text-xs text-muted-foreground mt-2">
+          Valid till: {new Date(plan.valid_till).toLocaleDateString()}
+        </p>
+      )}
+    </>
+  )}
+</div>
 
       <MeditationTimer isOpen={isMeditationOpen} onClose={() => setIsMeditationOpen(false)} />
       <CalorieCalculatorModal

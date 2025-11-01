@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
         Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
         "Content-Type": "application/json",
         "HTTP-Referer": process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000",
-        "X-Title": "NutriScan Recipe Generator",
+        "X-Title": "Kalnut Recipe Generator",
       },
       body: JSON.stringify({
         model: "mistralai/mistral-small-3.2-24b-instruct:free", // Using more reliable model

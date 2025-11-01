@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Calendar, Clock, DollarSign, MapPin, ChefHat, Target, BookOpen, X } from "lucide-react"
+import { Calendar, Clock, DollarSign, MapPin, ChefHat, Target, BookOpen, X, Salad, Clock2Icon } from "lucide-react"
 import type { JSX } from "react/jsx-runtime"
 import { useUser } from "@/hooks/use-user"
 import { useSubscription } from "@/hooks/use-subscription"
@@ -139,10 +139,17 @@ export function MealPlanner() {
   const [selectedRecipe, setSelectedRecipe] = useState<{ meal: string; day: string } | null>(null)
   const [isLoadingRecipe, setIsLoadingRecipe] = useState(false)
   const [recipeDetails, setRecipeDetails] = useState<string>("")
-  const { plan } = useSubscription();
+  const { plan, loading, refreshSubscription } = useSubscription();
+  console.log(plan);
 
-  const canUse = plan?.is_active && plan?.remaining_uses && (plan.remaining_uses === null || plan.remaining_uses > 0);
+  const canUseMealPlanner =
+  plan?.plan_name === "Pro Plan" ||
+  (plan?.plan_name === "Free" && !plan?.used_meal_planner);
 
+  console.log(plan?.plan_name);
+  console.log(plan?.used_meal_planner);
+
+  
   const generateMealPlan = async () => {
     setIsGenerating(true)
 
@@ -163,7 +170,23 @@ export function MealPlanner() {
         const samplePlan = generateIntelligentFallbackPlan(days)
         setMealPlan(samplePlan)
       }
+
+
+
+      if(plan?.plan_name === "Free") {
+        await fetch("/api/mark-feature-used", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            feature: "used_meal_planner"
+          }),
+        });
+        await refreshSubscription();
+      }
     } catch (error) {
+
       console.error("Meal plan generation error:", error)
       // Fallback plan
       const days = Number.parseInt(plannerData.planDuration) || 3
@@ -457,7 +480,8 @@ Rich in fiber, vitamins, and minerals. Provides sustained energy and supports ov
 
             <div className="space-y-1">
               <Label htmlFor="dietLifestyle" className="text-xs font-medium flex items-center">
-                <span className="mr-1">🧠</span>
+                {/* <span className="mr-1"></span> */}
+                <Salad className="h-3 w-3 mr-1" />
                 Dietary Lifestyle/Preference
               </Label>
               <Select onValueChange={(value) => setPlannerData({ ...plannerData, dietLifestyle: value })}>
@@ -491,7 +515,7 @@ Rich in fiber, vitamins, and minerals. Provides sustained energy and supports ov
                   </SelectItem>
                 </SelectContent>
               </Select>
-              <p className="text-[11px] text-muted-foreground leading-snug">
+              <p className="text-[11px] text-muted-foreground leading-snug text-start pl-2 mt-2">
                 This helps tailor recipes, ingredients, and macros to your nutritional approach.
               </p>
             </div>
@@ -524,6 +548,7 @@ Rich in fiber, vitamins, and minerals. Provides sustained energy and supports ov
 
             <div className="space-y-1">
               <Label htmlFor="planDuration" className="text-xs font-medium">
+                <Clock2Icon className="h-3 w-3 mr-1"/>
                 Meal Plan Duration
               </Label>
               <Select onValueChange={(value) => setPlannerData({ ...plannerData, planDuration: value })}>
@@ -547,8 +572,8 @@ Rich in fiber, vitamins, and minerals. Provides sustained energy and supports ov
 
           <Button
             onClick={generateMealPlan}
-            disabled={!canUse || isGenerating || !plannerData.cuisinePreferences || !plannerData.planDuration}
-            className="w-full h-9"
+            disabled={!canUseMealPlanner || isGenerating || !plannerData.cuisinePreferences || !plannerData.planDuration}
+            className="w-full h-9 rounded-[5px]"
             size="sm"
           >
             <span className="text-sm">{isGenerating ? "Generating Plan..." : "Generate Meal Plan"}</span>

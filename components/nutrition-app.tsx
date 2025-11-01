@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Camera, Upload, RotateCcw } from "lucide-react"
@@ -15,6 +15,10 @@ import { Dashboard } from "@/components/dashboard"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import { BottomNav } from "@/components/bottom-nav"
 import { Journal } from "@/components/journal"
+import { useUser } from "@/hooks/use-user"
+import { useSubscription } from "@/hooks/use-subscription"
+import { createClient } from "@/lib/supabase/client"
+//import { createClient } from "@/lib/supabase/client"
 
 type MealType = "breakfast" | "lunch" | "dinner" | "snacks"
 type ActivePage = "home" | "dashboard" | "meal-planner" | "profile" | "quick-meals" | "todos" | "journal"
@@ -27,10 +31,45 @@ export default function NutritionApp() {
   const [activePage, setActivePage] = useState<ActivePage>("dashboard")
   const [sideImage, setSideImage] = useState<string | null>(null)
   const [notes, setNotes] = useState<string>("")
+
   const fileInputRef = useRef<HTMLInputElement>(null)
   const cameraInputRef = useRef<HTMLInputElement>(null)
   const sideFileRef = useRef<HTMLInputElement>(null)
   const sideCameraRef = useRef<HTMLInputElement>(null)
+
+    const supabase = createClient();
+  const { user, userId } = useUser();
+  const [shortName, setShortName] = useState<string | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+
+
+
+  useEffect(() => {
+
+    const fetchUserName = async () => {
+      if(!user) return;
+
+      const {data, error} = await supabase.from('profiles').select('username').eq('id', userId).single();
+
+      if (error) console.error("Error fetching username:", error);
+
+      let displayName: string;
+      if (data?.username) {
+        displayName = data.username.slice(0, 2).toUpperCase();
+      } else {
+        displayName = user.email?.split("@")[0].slice(0, 2).toUpperCase() ?? "";
+      }
+
+      setShortName(displayName);
+      setLoading(false);
+    };
+
+    fetchUserName();
+  }, [user, supabase])
+
+  if(loading) {
+    return <p>Loading...</p>
+  }
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -134,9 +173,9 @@ export default function NutritionApp() {
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-20 border-b border-border/50 bg-background/80 backdrop-blur-xl">
-        <div className="container mx-auto max-w-md px-4 py-3">
-          <div className="flex items-center justify-between">
-            <h1 className="text-xl font-bold text-foreground">NutriScan</h1>
+        <div className="m-auto w-full px-4 py-3">
+          <div className="flex items-center justify-between px-1">
+            <h1 className="text-xl font-bold text-foreground pt-3">Kalnut.</h1>
 
             <div className="flex items-center gap-2">
               {activePage === "home" && selectedImage && (
@@ -154,15 +193,16 @@ export default function NutritionApp() {
               {/* Profile avatar on the top-right */}
               <button
                 onClick={() => handleNavigation("profile")}
-                className="rounded-full ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                className="rounded-full ring-offset-background focus-visible:outline-none focus-visible:ring-ring focus-visible:ring-offset-2"
                 aria-label="Open profile"
                 title="Profile"
               >
                 <Avatar className="h-8 w-8">
-                  {/* Removed AvatarImage to avoid showing a placeholder wallpaper */}
-                  <AvatarFallback className="text-xs font-medium bg-muted text-foreground">NS</AvatarFallback>
+                  
+                  <AvatarFallback className="text-sm">{shortName}</AvatarFallback>
                 </Avatar>
               </button>
+
             </div>
           </div>
         </div>
@@ -355,12 +395,16 @@ export default function NutritionApp() {
                   <NutritionResults data={nutritionData} mealType={mealType!} selectedImage={selectedImage} />
                 )}
               </div>
+
+              
             )}
           </>
         )}
+
+
       </main>
 
-      <BottomNav activePage={activePage} onNavigate={handleNavigation} />
+      <BottomNav activePage={activePage as any} onNavigate={handleNavigation as unknown as (page: any) => void} />
     </div>
   )
 }

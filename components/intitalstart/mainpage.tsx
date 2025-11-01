@@ -4,13 +4,18 @@ import { SpiralAnimation } from '../spiral-animation'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '../ui/button'
+import { useUser } from '@/hooks/use-user'
 
 const MainPage = () => {
   const [startVisible, setStartVisible] = useState(false)
   const router = useRouter()
+  const { user, userId } = useUser();
   
   const navigateToPersonalSite = () => {
-    router.push('/signup')
+    if(!user){
+      router.push('/signup');
+    }
+    router.push(`/${userId}/nutrition`)
   }
 
   useEffect(() => {
@@ -34,7 +39,7 @@ const MainPage = () => {
         `}
       >
         <h1 className="text-white text-3xl md:text-4xl font-medium tracking-wide select-none">
-          Nutriscan
+          Kalnut.
         </h1>
       </div>
 
