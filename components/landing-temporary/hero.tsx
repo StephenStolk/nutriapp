@@ -1,6 +1,7 @@
 "use client";
 
 import { GridBackground } from "./GridBackground";
+import Link from "next/link";
 
 export default function Hero() {
   return (
@@ -34,15 +35,10 @@ export default function Hero() {
         </p>
 
         <div className="flex justify-center mb-8 animate-slide-up">
-          <a
-            href="https://v0-nutritionapp1-eta.vercel.app/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="px-8 py-3 bg-black text-white text-sm tracking-wide font-medium hover:bg-gray-900 transition-all duration-500 ease-out rounded-md"
-          >
-            TRY IT OUT
-          </a>
-        </div>
+  <Link href="/mainapp" className="px-8 py-3 bg-black text-white text-sm tracking-wide font-medium hover:bg-gray-900 transition-all duration-500 ease-out rounded-md">
+      TRY IT OUT
+  </Link>
+</div>
 
         <p className="text-xs tracking-widest text-gray-500 mb-12">
           OR{" "}
