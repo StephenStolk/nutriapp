@@ -106,22 +106,22 @@ export default function SignInPage() {
               </form>
             </CardContent>
 
-            <CardFooter className="flex justify-center">
-              <p className="text-sm text-gray-300">
-                Don’t have an account?{" "}
-                <a href="/signup" className="text-blue-400 hover:underline">
-                  Sign up
-                </a>
-              </p>
+           <CardFooter className="flex flex-col items-center space-y-2">
+  <p className="text-sm text-gray-300">
+    Don’t have an account?{" "}
+    <a href="/signup" className="text-blue-400 hover:underline">
+      Sign up
+    </a>
+  </p>
 
-              <p className="text-sm text-gray-300 text-center">
-  Forgot your password?{" "}
-  <a href="/forgot-password" className="text-blue-400 hover:underline">
-    Reset it
-  </a>
-</p>
+  <p className="text-sm text-gray-300 text-center flex">
+    <span>Forgot your password? </span>
+    <a href="/forgot-password" className="text-blue-400 hover:underline">
+      Reset it
+    </a>
+  </p>
+</CardFooter>
 
-            </CardFooter>
           </Card>
         </motion.div>
       </div>

@@ -1,7 +1,7 @@
 export default function TrustSection() {
   const testimonials = [
     {
-      quote: "Nutrgram completely changed how I track my nutrition. Finally, an app that understands Indian food!",
+      quote: "Kalnut completely changed how I track my nutrition. Finally, an app that understands Indian food!",
       source: "Priya M.",
     },
     {
@@ -39,7 +39,7 @@ export default function TrustSection() {
           Loved by thousands
         </h2>
         <p className="text-center text-sm text-gray-600 mb-16 md:mb-20 max-w-2xl mx-auto">
-          Join thousands of Indians who've transformed their nutrition journey with Nutrgram.
+          Join thousands of Indians who've transformed their nutrition journey with Kalnut.
         </p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8 mb-16 md:mb-20">

@@ -181,7 +181,7 @@ export default function BlogPost3() {
             <section>
               <h2 className="font-playfair text-2xl font-bold mt-8 mb-4">Start Your Journey</h2>
               <p>
-                Ready to track your meals and build healthy habits? Nutrgram helps you log your meals, track nutrition,
+                Ready to track your meals and build healthy habits? Kalnut helps you log your meals, track nutrition,
                 and get personalized recommendations.
               </p>
               <div className="mt-6">

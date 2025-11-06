@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { MeditationTimer } from "@/components/meditation-timer"
-import { CalorieCalculatorModal } from "@/components/calorie-calculator-modal"
+import CalorieCalculatorModal from "./calorie-calculator-modal"
 import {
   Plus,
   Coffee,
@@ -693,33 +693,33 @@ const toggleHabitLocalFallback = (habitId: string) => {
   }
 
   return (
-    <div className="space-y-3 animate-slide-up">
-      <div className="text-center space-y-1">
-        <div className="flex items-center justify-between">
-          <div></div>
-          <div>
-            <h1 className="text-lg font-bold text-foreground">Today</h1>
-            <p className="text-xs text-muted-foreground">
-              {today.toLocaleDateString("en-US", {
-                weekday: "long",
-                month: "long",
-                day: "numeric",
-              })}
-            </p>
-          </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setIsMeditationOpen(true)}
-            className="w-8 h-8 p-0 rounded-full bg-gray-200 hover:bg-black
-            hover:text-white text-purple-600"
-          >
-            <Brain className="h-4 w-4 text-black" />
-          </Button>
-        </div>
-      </div>
+    <div className="space-y-2 animate-slide-up">
+      <div className="text-start">
+  <div className="flex items-center justify-between">
+    <div className="leading-tight"> {/* 👈 reduces vertical spacing */}
+      <h1 className="text-lg font-bold text-foreground">Today</h1>
+      <p className="text-xs text-muted-foreground -mt-1"> {/* 👈 pulls date closer */}
+        {today.toLocaleDateString("en-US", {
+          weekday: "long",
+          month: "long",
+          day: "numeric",
+        })}
+      </p>
+    </div>
 
-      <Card className="p-3 bg-card shadow-sm rounded-[5px]">
+    <Button
+      variant="ghost"
+      size="sm"
+      onClick={() => setIsMeditationOpen(true)}
+      className="w-8 h-8 p-0 rounded-full bg-gray-200 hover:bg-black hover:text-white text-purple-600"
+    >
+      <Brain className="h-4 w-4 text-black" />
+    </Button>
+  </div>
+</div>
+
+
+      <Card className="p-3 bg-card shadow-sm rounded-[5px] pb-7">
         <div className="flex items-center justify-between mb-4">
           <div className="text-center">
             <div className="text-xl font-bold text-foreground mb-1">{totalCalories.toLocaleString()}</div>
@@ -797,7 +797,7 @@ const toggleHabitLocalFallback = (habitId: string) => {
             onClick={() => setIsCalorieCalculatorOpen(true)}
             className="text-xs text-primary hover:text-primary/80 underline underline-offset-2"
           >
-            Want to know how much calories you require per day? Click here
+            Check your daily calorie goal!
           </button>
         </div>
 
@@ -843,7 +843,7 @@ const toggleHabitLocalFallback = (habitId: string) => {
         </div>
       </Card>
 
-      <Card className="p-3 shadow-sm border-0 rounded-[5px] bg-card mb-12 mt-12">
+      <Card className="p-3 shadow-sm border-0 rounded-[5px] bg-card mb-2">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center justify-center space-x-2">
               <CheckCircle2 className="h-4 w-4 text-primary" />

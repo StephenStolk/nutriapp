@@ -206,7 +206,7 @@ export default function BlogPost2() {
             <section>
               <h2 className="font-playfair text-2xl font-bold mt-8 mb-4">Track Your Protein Easily</h2>
               <p>
-                Want to know exactly how much protein you're eating? Nutrgram helps you scan Indian foods and see
+                Want to know exactly how much protein you're eating? Kalnut helps you scan Indian foods and see
                 protein content, log your meals in seconds, track daily protein goals, and get high-protein meal
                 suggestions.
               </p>

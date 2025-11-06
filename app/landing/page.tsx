@@ -1,11 +1,11 @@
 "use client";
 
 import React from 'react'
-import { MainPage } from '@/components/intitalstart/mainpage';
+// import { MainPage } from '@/components/intitalstart/mainpage';
 import Home from './main/page';
 
 
-const HomePage = () => {
+const HomeScreen = () => {
   return (
     <>
     <Home/>
@@ -13,4 +13,4 @@ const HomePage = () => {
   )
 }
 
-export default HomePage
+export default HomeScreen

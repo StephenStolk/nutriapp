@@ -221,7 +221,7 @@ export default function BlogPost1() {
             <section>
               <h2 className="font-playfair text-2xl font-bold mt-8 mb-4">Take Action Today</h2>
               <p>
-                Ready to start tracking your Indian meals accurately? Nutrgram makes it easy to scan any Indian food and
+                Ready to start tracking your Indian meals accurately? Kalnut makes it easy to scan any Indian food and
                 see its nutrition, log your meals in seconds, get personalized meal plans for your budget, and build
                 healthy habits that last.
               </p>

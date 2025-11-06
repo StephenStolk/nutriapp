@@ -7,7 +7,7 @@ export default function Contact() {
         <div className="text-center mb-16">
           <h1 className="font-playfair text-4xl md:text-5xl font-bold mb-4 tracking-tight">Get in Touch</h1>
           <p className="text-gray-600 max-w-2xl mx-auto">
-            Have questions about Nutrgram? We'd love to hear from you. Reach out to us through any of the channels
+            Have questions about Kalnut? We'd love to hear from you. Reach out to us through any of the channels
             below.
           </p>
         </div>
@@ -20,10 +20,10 @@ export default function Contact() {
               <div>
                 <h3 className="text-xs tracking-widest font-bold mb-2 uppercase">Email</h3>
                 <a
-                  href="mailto:serversyncindia@gmail.com"
+                  href="mailto:kalnutcompany@gmail.com"
                   className="text-lg hover:text-gray-700 transition-all duration-500 ease-out"
                 >
-                  serversyncindia@gmail.com
+                  kalnutcompany@gmail.com
                 </a>
               </div>
 
@@ -60,7 +60,7 @@ export default function Contact() {
             <ul className="space-y-4 text-sm text-gray-700">
               <li className="flex gap-3">
                 <span className="font-bold">Feature Requests</span>
-                <span className="text-gray-600">Tell us what features you'd like to see in Nutrgram</span>
+                <span className="text-gray-600">Tell us what features you'd like to see in Kalnut</span>
               </li>
               <li className="flex gap-3">
                 <span className="font-bold">Bug Reports</span>
@@ -72,7 +72,7 @@ export default function Contact() {
               </li>
               <li className="flex gap-3">
                 <span className="font-bold">Feedback</span>
-                <span className="text-gray-600">Your feedback helps us improve Nutrgram</span>
+                <span className="text-gray-600">Your feedback helps us improve Kalnut</span>
               </li>
               <li className="flex gap-3">
                 <span className="font-bold">Support</span>
@@ -102,7 +102,7 @@ export default function Contact() {
               SUBMIT QUERY
             </a>
             <a
-              href="mailto:serversyncindia@gmail.com"
+              href="mailto:kalnutcompany@gmail.com"
               className="px-8 py-3 border border-black text-sm tracking-wide font-medium hover:bg-black hover:text-white transition-all duration-500 ease-out"
             >
               SEND EMAIL

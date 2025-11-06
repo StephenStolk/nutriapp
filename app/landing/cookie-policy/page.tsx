@@ -9,7 +9,7 @@ export default function CookiePolicy() {
             <h2 className="font-playfair text-2xl font-bold mt-8 mb-4">What Are Cookies</h2>
             <p>
               Cookies are small files that are stored on your browser or device. They help us remember information about
-              your visit to Nutrgram, such as your preferred language and other settings. This makes your next visit to
+              your visit to Kalnut, such as your preferred language and other settings. This makes your next visit to
               our site easier and the site more useful to you.
             </p>
           </section>
@@ -53,7 +53,7 @@ export default function CookiePolicy() {
 
           <section>
             <h2 className="font-playfair text-2xl font-bold mt-8 mb-4">Contact Us</h2>
-            <p>If you have questions about our Cookie Policy, please contact us at hello@nutrgram.com</p>
+            <p>If you have questions about our Cookie Policy, please contact us at kalnutcompany@gmail.com</p>
           </section>
         </div>
       </div>

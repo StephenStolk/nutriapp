@@ -8,7 +8,7 @@ export default function PrivacyPolicy() {
           <section>
             <h2 className="font-playfair text-2xl font-bold mt-8 mb-4">Introduction</h2>
             <p>
-              At Nutrgram, we are committed to protecting your privacy and ensuring you have a positive experience on
+              At Kalnut, we are committed to protecting your privacy and ensuring you have a positive experience on
               our platform. This Privacy Policy explains how we collect, use, disclose, and safeguard your information
               when you use our mobile application and website.
             </p>
@@ -30,7 +30,7 @@ export default function PrivacyPolicy() {
 
           <section>
             <h2 className="font-playfair text-2xl font-bold mt-8 mb-4">How We Use Your Information</h2>
-            <p>Nutrgram uses the information we collect in the following ways:</p>
+            <p>Kalnut uses the information we collect in the following ways:</p>
             <ul className="list-disc pl-6 space-y-2">
               <li>To provide, maintain, and improve our services</li>
               <li>To personalize your experience and deliver customized nutrition recommendations</li>
@@ -51,7 +51,7 @@ export default function PrivacyPolicy() {
 
           <section>
             <h2 className="font-playfair text-2xl font-bold mt-8 mb-4">Contact Us</h2>
-            <p>If you have questions about this Privacy Policy, please contact us at hello@nutrgram.com</p>
+            <p>If you have questions about this Privacy Policy, please contact us at kalnutcompany@gmail.com</p>
           </section>
         </div>
       </div>

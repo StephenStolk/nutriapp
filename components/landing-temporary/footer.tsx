@@ -7,7 +7,7 @@ export default function Footer() {
             Ready for a nutrition app that understands you?
           </h3>
           <p className="text-sm text-gray-400 mb-8 max-w-2xl mx-auto">
-            Experience Nutrgram today and discover how personalized nutrition feels when your app adapts to your
+            Experience Kalnut today and discover how personalized nutrition feels when your app adapts to your
             lifestyle and celebrates Indian cuisine.
           </p>
           <a
@@ -55,12 +55,12 @@ export default function Footer() {
                 </a>
               </li>
               <li>
-                <a href="/blog" className="hover:text-white transition-all duration-500 ease-out">
+                <a href="/landing/blog" className="hover:text-white transition-all duration-500 ease-out">
                   Blog
                 </a>
               </li>
               <li>
-                <a href="/contact" className="hover:text-white transition-all duration-500 ease-out">
+                <a href="/landing/contact" className="hover:text-white transition-all duration-500 ease-out">
                   Contact
                 </a>
               </li>
@@ -70,17 +70,17 @@ export default function Footer() {
             <h4 className="text-xs tracking-widest font-bold mb-4">LEGAL</h4>
             <ul className="space-y-2 text-xs text-gray-400">
               <li>
-                <a href="/privacy-policy" className="hover:text-white transition-all duration-500 ease-out">
+                <a href="/landing/privacy-policy" className="hover:text-white transition-all duration-500 ease-out">
                   Privacy Policy
                 </a>
               </li>
               <li>
-                <a href="/terms-of-service" className="hover:text-white transition-all duration-500 ease-out">
+                <a href="/landing/terms-of-service" className="hover:text-white transition-all duration-500 ease-out">
                   Terms of Service
                 </a>
               </li>
               <li>
-                <a href="/cookie-policy" className="hover:text-white transition-all duration-500 ease-out">
+                <a href="/landing/cookie-policy" className="hover:text-white transition-all duration-500 ease-out">
                   Cookie Policy
                 </a>
               </li>
@@ -125,9 +125,9 @@ export default function Footer() {
 
         <div className="border-t border-gray-800 pt-8">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-            <p className="text-xs text-gray-500">© 2025 Nutrgram. All rights reserved.</p>
+            <p className="text-xs text-gray-500">© 2025 Kalnut. All rights reserved.</p>
             <p className="text-xs text-gray-500">
-              <span className="font-semibold">Email:</span> serversyncindia@gmail.com
+              <span className="font-semibold">Email:</span> kalnutcompany@gmail.com
             </p>
           </div>
         </div>

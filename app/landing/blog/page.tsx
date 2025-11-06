@@ -37,7 +37,7 @@ export default function Blog() {
     <main className="min-h-screen bg-white">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
         <div className="text-center mb-16">
-          <h1 className="font-playfair text-4xl md:text-5xl font-bold mb-4 tracking-tight">Nutrgram Blog</h1>
+          <h1 className="font-playfair text-4xl md:text-5xl font-bold mb-4 tracking-tight">Kalnut Blog</h1>
           <p className="text-gray-600 max-w-2xl mx-auto">
             Discover insights, tips, and stories about nutrition, health, and building sustainable eating habits with
             Indian food.

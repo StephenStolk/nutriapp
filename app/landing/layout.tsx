@@ -7,7 +7,7 @@ const playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-playfa
 // const geist = Geist({ subsets: ["latin"], variable: "--font-geist" })
 
 export const metadata: Metadata = {
-  title: "Nutrgram - Your Food, Your Story",
+  title: "Kalnut - Your Food, Your Story",
   description:
     "AI-powered nutrition tracking that understands your lifestyle. Track meals, plan nutrition, and build healthy habits.",
   generator: "v0.app",
