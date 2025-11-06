@@ -319,64 +319,105 @@ export function QuickMeals() {
         <span className="text-sm">{isGenerating ? "Cooking up ideas..." : "Get Recipe Ideas"}</span>
       </Button>
 
-      {/* Recipe Results */}
-      {recipes.length > 0 && (
-        <div className="space-y-3">
-         <div className="flex items-center justify-between mt-auto">
-  <h3 className="text-sm font-semibold text-foreground flex items-center my-auto">
-    <ChefHat className="h-4 w-4" />
-    Your Quick Recipes
-  </h3>
-  {saving ? <Button className="bg-gray-100 text-black border text-sm h-6 px-4 py-3 rounded-sm">Saved</Button> :
-  <Button className="bg-white text-black border text-sm h-6 px-4 py-3 hover:cursor-pointer rounded-sm hover:text-white" onClick={handleSave}>Save</Button>}
-</div>
+  {recipes.length > 0 && (
+        <div className="space-y-4">
+          {/* Header */}
+          <div className="flex items-center justify-between pb-3 border-b border-gray-200">
+            <h3 className="text-sm font-semibold text-black tracking-tight">
+              Your Quick Recipes
+            </h3>
+            
+            {saving ? (
+              <Button 
+                disabled
+                className="bg-gray-100 text-gray-400 border border-gray-200 text-xs h-8 px-5 rounded-md cursor-not-allowed font-medium"
+              >
+                Saved
+              </Button>
+            ) : (
+              <Button 
+                variant="outline"
+                className="bg-white text-black border border-gray-300 text-xs h-8 px-5 rounded-md hover:bg-gray-50 transition-colors duration-200 font-medium"
+                onClick={handleSave}
+              >
+                Save All
+              </Button>
+            )}
+          </div>
 
-          {recipes.map((recipe, index) => (
-            <Card key={index} className="p-4 space-y-3">
-              <div className="flex items-start justify-between">
-                <h4 className="text-sm font-semibold text-foreground">{recipe.name}</h4>
-                <div className="flex gap-1">
-                  <Badge variant="secondary" className="text-xs">
-                    <Clock className="h-2 w-2 mr-1" />
-                    {recipe.cookTime}
-                  </Badge>
-                  <Badge variant="outline" className="text-xs">
-                    {recipe.difficulty}
-                  </Badge>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <div>
-                  <p className="text-xs font-medium text-foreground mb-1">Ingredients:</p>
-                  <div className="flex flex-wrap gap-1">
-                    {recipe.ingredients.map((ingredient, i) => (
-                      <Badge key={i} variant="secondary" className="text-xs">
-                        {ingredient}
-                      </Badge>
-                    ))}
+          {/* Recipe Cards */}
+          <div className="space-y-3">
+            {recipes.map((recipe, index) => (
+              <Card 
+                key={index} 
+                className="p-5 border border-gray-200 hover:border-gray-300 transition-colors duration-200 rounded-xs bg-white"
+              >
+                {/* Recipe Header */}
+                <div className="flex items-start justify-between mb-4 pb-3 border-b border-gray-100">
+                  <h4 className="text-sm font-semibold text-black leading-tight pr-2">
+                    {recipe.name}
+                  </h4>
+                  <div className="flex gap-2 flex-shrink-0">
+                    <Badge 
+                      variant="secondary" 
+                      className="text-xs bg-gray-100 text-gray-700 hover:bg-gray-100 px-2.5 py-1 rounded-md font-normal border-0"
+                    >
+                      {recipe.cookTime}
+                    </Badge>
+                    <Badge 
+                      variant="outline" 
+                      className="text-xs border-gray-300 text-gray-700 px-2.5 py-1 rounded-md font-normal"
+                    >
+                      {recipe.difficulty}
+                    </Badge>
                   </div>
                 </div>
 
-                <div>
-                  <p className="text-xs font-medium text-foreground mb-1">Instructions:</p>
-                  <ol className="text-xs text-muted-foreground space-y-1 pl-3">
-                    {recipe.instructions.map((step, i) => (
-                      <li key={i} className="list-decimal">
-                        {step}
-                      </li>
-                    ))}
-                  </ol>
-                </div>
-
-                {recipe.tips && (
-                  <div className="bg-primary/5 rounded-md p-2">
-                    <p className="text-xs text-primary font-medium">💡 Pro Tip: {recipe.tips}</p>
+                {/* Recipe Content */}
+                <div className="space-y-4">
+                  {/* Ingredients */}
+                  <div>
+                    <p className="text-xs font-semibold text-black mb-2.5 uppercase tracking-wider">
+                      Ingredients
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {recipe.ingredients.map((ingredient, i) => (
+                        <span
+                          key={i}
+                          className="text-xs bg-gray-50 text-gray-800 px-3 py-1.5 rounded-md border border-gray-200 font-medium"
+                        >
+                          {ingredient}
+                        </span>
+                      ))}
+                    </div>
                   </div>
-                )}
-              </div>
-            </Card>
-          ))}
+
+                  {/* Instructions */}
+                  <div>
+                    <p className="text-xs font-semibold text-black mb-2.5 uppercase tracking-wider">
+                      Instructions
+                    </p>
+                    <ol className="text-xs text-gray-700 space-y-2 pl-4">
+                      {recipe.instructions.map((step, i) => (
+                        <li key={i} className="list-decimal leading-relaxed">
+                          {step}
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
+
+                  {/* Pro Tip */}
+                  {recipe.tips && (
+                    <div className="bg-gray-50 border border-gray-200 rounded-md p-3 mt-3">
+                      <p className="text-xs text-gray-800 leading-relaxed">
+                        <span className="font-semibold text-black">Pro Tip:</span> {recipe.tips}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </Card>
+            ))}
+          </div>
         </div>
       )}
     </div>
