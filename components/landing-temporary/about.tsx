@@ -1,8 +1,11 @@
 export default function About() {
   return (
+    <>
+    <div className="w-full h-[2rem] bg-black" />
+
     <section id="about" className="py-20 md:py-32 bg-white">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 className="font-playfair text-4xl md:text-5xl font-bold text-center mb-8 tracking-tight">About Kalnut</h2>
+        <h2 className="font-playfair text-4xl md:text-5xl font-bold text-center tracking-tight">About Kalnut</h2>
 
         <div className="space-y-8 md:space-y-12">
           <div className="animate-fade-in">
@@ -49,5 +52,6 @@ export default function About() {
         </div>
       </div>
     </section>
+    </>
   )
 }

@@ -2,9 +2,12 @@
 
 import { GridBackground } from "./GridBackground";
 import Link from "next/link";
+import Header from "./header";
 
 export default function Hero() {
   return (
+    <>
+    <Header />
     <section className="relative w-full min-h-screen flex items-center justify-center overflow-hidden">
       {/* Grid Animated Background with darker beams */}
       <GridBackground
@@ -18,7 +21,7 @@ export default function Hero() {
           shadow: "shadow-[0_0_20px_rgba(16,185,129,0.15)]",
           speed: 5,
         }}
-        className="absolute inset-0"
+        className="absolute inset-0 z-0"
       />
 
       {/* Subtle gradient overlay */}
@@ -161,5 +164,6 @@ export default function Hero() {
         }
       `}</style>
     </section>
+    </>
   );
 }

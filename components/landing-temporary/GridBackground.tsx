@@ -87,10 +87,10 @@ function GridBackground({
 
   return (
     <motion.div
-      className={cn('relative w-full h-full overflow-hidden', background, className)}
-      style={gridStyle}
-      {...props}
-    >
+  className={cn('relative w-full h-full overflow-hidden', background, className)}
+  style={{ ...gridStyle, isolation: "isolate" }}
+  {...props}
+>
       {/* Moving Grid + Beams container */}
       <motion.div
         className={cn('absolute inset-0 w-full h-full', borderColor)}

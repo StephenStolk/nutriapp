@@ -17,7 +17,7 @@ export default function Home() {
       <HowItWorks />
       <About />
       {/* <TrustSection /> */}
-      <Footer />
+      {/* <Footer /> */}
     </main>
   )
 }
