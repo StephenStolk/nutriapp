@@ -164,17 +164,17 @@ export function Dashboard({ onAddFood }: DashboardProps) {
 
 
   useEffect(() => {
-    const saved = localStorage.getItem("logged-foods");
+    // const saved = localStorage.getItem("logged-foods");
 
-    if (saved) {
-      try {
-        const foods = JSON.parse(saved).map((food: any) => ({
-          ...food,
-          timestamp: new Date(food.timestamp),
-        }));
-        setLoggedFoods(foods);
-      } catch {}
-    }
+    // if (saved) {
+    //   try {
+    //     const foods = JSON.parse(saved).map((food: any) => ({
+    //       ...food,
+    //       timestamp: new Date(food.timestamp),
+    //     }));
+    //     setLoggedFoods(foods);
+    //   } catch {}
+    // }
 
     // const savedGoal = localStorage.getItem("daily-calorie-goal");
     // if (savedGoal) setDailyGoal(Number.parseInt(savedGoal));
@@ -227,6 +227,46 @@ export function Dashboard({ onAddFood }: DashboardProps) {
     }
   
   }, []);
+
+  useEffect(() => {
+  const fetchFoodLogs = async () => {
+    if (!userId) return; 
+    const supabase = createClient();
+
+    try {
+      const { data, error } = await supabase
+        .from("food_logs")
+        .select("id, meal_type, calories, protein, carbs, fat, created_at")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("Error fetching food logs:", error);
+        return;
+      }
+
+      if (data) {
+        const formatted = data.map((item) => ({
+          id: item.id,
+          name: `${item.meal_type.charAt(0).toUpperCase() + item.meal_type.slice(1)} meal`,
+          calories: Number(item.calories) || 0,
+          protein: Number(item.protein) || 0,
+          carbs: Number(item.carbs) || 0,
+          fat: Number(item.fat) || 0,
+          mealType: item.meal_type as "breakfast" | "lunch" | "dinner" | "snacks",
+          timestamp: new Date(item.created_at),
+        })) as LoggedFood[];
+
+        setLoggedFoods(formatted);
+      }
+    } catch (err) {
+      console.error("Unexpected error fetching food logs:", err);
+    }
+  };
+
+  fetchFoodLogs();
+}, [userId]);
+
 
   useEffect(() => {
     if(!userId) return;
