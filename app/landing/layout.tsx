@@ -23,9 +23,9 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${playfair.variable} font-sans antialiased`}>
         {children}
-        <Suspense fallback={null}>
+        {/* <Suspense fallback={null}>
           <Analytics />
-        </Suspense>
+        </Suspense> */}
       </body>
       {/* <Analytics /> */}
     </html>
