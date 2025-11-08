@@ -7,6 +7,9 @@ import { MealRecommendations } from "@/components/meal-recommendations"
 import { BookmarkPlus, Check, Flame, Zap } from "lucide-react"
 import { useState } from "react"
 import MarkdownRenderer from "@/components/markdown-renderer"
+import { useUser } from "@/hooks/use-user"
+import { useRouter } from "next/navigation"
+import { createClient } from "@/lib/supabase/client"
 
 type MealType = "breakfast" | "lunch" | "dinner" | "snacks"
 
@@ -21,6 +24,7 @@ interface NutritionData {
   analysis: string
   recommendations: string[]
   ingredients?: string[]
+  notes?: string
 }
 
 interface NutritionResultsProps {
@@ -74,38 +78,46 @@ export function NutritionResults({ data, mealType, selectedImage }: NutritionRes
   }[mealType]
   const ringPct = Math.min(100, Math.max(0, (data.calories / mealBudget) * 100))
 
+  const supabase = createClient();
+  const {user, userId} = useUser();
+  const router = useRouter();
   const handleLogFood = async () => {
+    if (!userId) {
+    console.error("User not logged in");
+    alert("Please sign in to log your food.");
+    router.push('/signin');
+    return;
+  }
     setIsLogging(true)
 
-    try {
-      // Create food entry
-      const foodEntry = {
-        id: Date.now().toString(),
-        name: `${mealType.charAt(0).toUpperCase() + mealType.slice(1)} meal`,
-        calories: data.calories,
-        protein: data.protein,
-        carbs: data.carbs,
-        fat: data.fat,
-        mealType: mealType,
-        timestamp: new Date(),
-        image: selectedImage,
-      }
+     try {
+    // Food entry data
+    const foodEntry = {
+      user_id: userId,
+      meal_type: mealType,
+      calories: data.calories,
+      protein: data.protein,
+      carbs: data.carbs,
+      fat: data.fat,
+      fiber: data.fiber ?? null,
+      sugar: data.sugar ?? null,
+      sodium: data.sodium ?? null,
+      ingredients: data.ingredients ?? [],
+      analysis: data.analysis ?? null,
+      notes: data.notes || null
+    };
 
-      // Get existing logged foods
-      const existingFoods = JSON.parse(localStorage.getItem("logged-foods") || "[]")
+    // Save to Supabase
+    const { error } = await supabase.from("food_logs").insert(foodEntry);
 
-      // Add new food entry
-      const updatedFoods = [...existingFoods, foodEntry]
+    if (error) throw error;
 
-      // Save to localStorage
-      localStorage.setItem("logged-foods", JSON.stringify(updatedFoods))
+    setIsLogged(true);
 
-      setIsLogged(true)
-
-      // Show success for 2 seconds
-      setTimeout(() => {
-        setIsLogged(false)
-      }, 2000)
+    // Show success for 2 seconds
+    setTimeout(() => {
+      setIsLogged(false);
+    }, 2000);
     } catch (error) {
       console.error("Error logging food:", error)
     } finally {
