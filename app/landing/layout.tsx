@@ -1,7 +1,8 @@
 import type React from "react"
 import type { Metadata } from "next"
 import { Playfair_Display } from "next/font/google"
-import { Analytics } from "@vercel/analytics/next"
+import { Analytics } from "@vercel/analytics/react"
+import { Suspense } from "react"
 
 const playfair = Playfair_Display({ subsets: ["latin"], variable: "--font-playfair" })
 // const geist = Geist({ subsets: ["latin"], variable: "--font-geist" })
@@ -22,8 +23,11 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${playfair.variable} font-sans antialiased`}>
         {children}
-        <Analytics />
+        <Suspense fallback={null}>
+          <Analytics />
+        </Suspense>
       </body>
+      {/* <Analytics /> */}
     </html>
   )
 }
