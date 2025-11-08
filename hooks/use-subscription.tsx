@@ -11,6 +11,7 @@ interface Subscription {
   used_meal_planner?: boolean;
   used_analyze_food?: boolean;
   used_get_recipe?: boolean;
+  last_used_analyze_food?: string | null;
 }
 
 interface SubscriptionContextType {
@@ -48,7 +49,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
 
       const { data, error } = await supabase
   .from("user_subscriptions")
-  .select("plan_name, is_active, valid_till, remaining_uses, used_meal_planner, used_analyze_food, used_get_recipe")
+  .select("plan_name, is_active, valid_till, remaining_uses, used_meal_planner, used_analyze_food, used_get_recipe, last_used_analyze_food")
   .eq("user_id", user.id)
   .single();
 
@@ -65,6 +66,7 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
           used_meal_planner: data.used_meal_planner ?? false,
           used_analyze_food: data.used_analyze_food ?? false,
           used_get_recipe: data.used_get_recipe ?? false,
+          last_used_analyze_food: data.last_used_analyze_food ?? null,
         });
       }
     } catch (err) {

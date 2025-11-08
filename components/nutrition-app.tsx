@@ -18,6 +18,7 @@ import { Journal } from "@/components/journal"
 import { useUser } from "@/hooks/use-user"
 import { useSubscription } from "@/hooks/use-subscription"
 import { createClient } from "@/lib/supabase/client"
+import { isSameDay } from "date-fns"
 //import { createClient } from "@/lib/supabase/client"
 
 type MealType = "breakfast" | "lunch" | "dinner" | "snacks"
@@ -100,53 +101,85 @@ export default function NutritionApp() {
     }
   }
 
-  const handleAnalyze = async () => {
-    if (!selectedImage || !mealType) return
+ const { plan, refreshSubscription } = useSubscription()
 
-    setIsAnalyzing(true)
+const canAnalyzeFood = (() => {
+  if (!plan) return false;
 
-    try {
-      const response = await fetch("/api/analyze-food", {
+  if (plan.plan_name === "Pro Plan") return true;
+
+  if (plan.plan_name === "Free") {
+    const last = plan.last_used_analyze_food ? new Date(plan.last_used_analyze_food) : null;
+
+    if (!last) return true; // never used
+    const ms24 = 24 * 60 * 60 * 1000;
+    const usedWithin24h = (Date.now() - last.getTime()) < ms24;
+    return !usedWithin24h;
+  }
+  return false;
+})();
+
+const handleAnalyze = async () => {
+  if (!selectedImage || !mealType) return
+  if (!canAnalyzeFood) {
+    console.log("You’ve already used this feature today. Try again tomorrow!")
+    return
+  }
+
+  setIsAnalyzing(true)
+
+  try {
+    const response = await fetch("/api/analyze-food", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        image: selectedImage,
+        sideImage,
+        mealType,
+        notes: notes?.trim() || undefined,
+      }),
+    })
+
+    if (!response.ok) throw new Error("Analysis failed")
+
+    const data = await response.json()
+
+    if (plan?.plan_name === "Free") {
+      await fetch("/api/mark-feature-used", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          image: selectedImage,
-          sideImage,
-          mealType,
-          notes: notes?.trim() || undefined,
+          feature: "used_analyze_food",
+          lastUsedColumn: "last_used_analyze_food",
         }),
       })
 
-      if (!response.ok) {
-        throw new Error("Analysis failed")
-      }
-
-      const data = await response.json()
-      setNutritionData(data)
-    } catch (error) {
-      console.error("Analysis error:", error)
-      // Fallback data in case of error
-      setNutritionData({
-        calories: 400,
-        protein: 22,
-        carbs: 35,
-        fat: 16,
-        fiber: 6,
-        sugar: 10,
-        sodium: 600,
-        analysis: "Unable to analyze the image at this time. Please try again later.",
-        recommendations: [
-          "Try to include a variety of colorful vegetables",
-          "Balance your meals with protein, carbs, and healthy fats",
-          "Stay hydrated throughout the day",
-        ],
-      })
-    } finally {
-      setIsAnalyzing(false)
+      await refreshSubscription()
     }
+
+    setNutritionData(data)
+  } catch (error) {
+    console.error("Analysis error:", error)
+    setNutritionData({
+      calories: 400,
+      protein: 22,
+      carbs: 35,
+      fat: 16,
+      fiber: 6,
+      sugar: 10,
+      sodium: 600,
+      analysis:
+        "Unable to analyze the image at this time. Please try again later.",
+      recommendations: [
+        "Try to include a variety of colorful vegetables",
+        "Balance your meals with protein, carbs, and healthy fats",
+        "Stay hydrated throughout the day",
+      ],
+    })
+  } finally {
+    setIsAnalyzing(false)
   }
+}
 
   const handleReset = () => {
     setSelectedImage(null)
@@ -169,7 +202,10 @@ export default function NutritionApp() {
     setActivePage("home")
     setMealType(mealType)
   }
+ 
 
+
+  
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-20 border-b border-border/50 bg-background/80 backdrop-blur-xl">
@@ -375,7 +411,7 @@ export default function NutritionApp() {
                 {!nutritionData && mealType && (
                   <Button
                     onClick={handleAnalyze}
-                    disabled={isAnalyzing}
+                    disabled={!canAnalyzeFood || isAnalyzing}
                     className="w-full h-12 md:h-14 text-base md:text-lg font-semibold bg-primary hover:bg-primary/90 shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl"
                     size="lg"
                   >

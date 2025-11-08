@@ -27,6 +27,7 @@ export default function RootLayout({
          <Header />
        <main className="relative z-0">
           {children}
+          {/* <Footer /> */}
         </main>
         {/* <Suspense fallback={null}>
           <Analytics />
