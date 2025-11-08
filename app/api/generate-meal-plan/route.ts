@@ -88,7 +88,7 @@ console.log("User data:", user);
         "X-Title": "Kalnut Meal Planner",
       },
       body: JSON.stringify({
-        model: "mistralai/mistral-small-3.2-24b-instruct:free", 
+        model: "meta-llama/llama-3.3-8b-instruct:free", 
         messages: [
           {
             role: "system",

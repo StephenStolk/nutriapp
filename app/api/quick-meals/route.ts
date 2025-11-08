@@ -72,7 +72,7 @@ Make the recipes fun, easy to follow, and use Gen-Z language. Include cooking ti
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemma-3-27b-it:free",
+        model: "google/gemini-2.0-flash-exp:free",
         messages: messages,
         temperature: 0.7,
         max_tokens: 5000,

@@ -1,3 +1,4 @@
+'use client'
 export default function TermsOfService() {
   return (
     <main className="min-h-screen bg-white">

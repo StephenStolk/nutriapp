@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "qwen/qwen2.5-vl-32b-instruct:free",
+        model: "google/gemini-2.0-flash-exp:free",
         messages: [
           {
             role: "user",
