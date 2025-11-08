@@ -1,5 +1,7 @@
 "use client"
 
+import Link from "next/link"
+
 export default function BlogPost1() {
   return (
     <main className="min-h-screen bg-white">
@@ -226,14 +228,12 @@ export default function BlogPost1() {
                 healthy habits that last.
               </p>
               <div className="mt-6">
-                <a
-                  href="https://v0-nutritionapp1-eta.vercel.app/"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-block px-8 py-3 bg-black text-white text-sm tracking-wide font-medium hover:bg-gray-800 transition-all duration-500 ease-out"
-                >
-                  TRY IT OUT
-                </a>
+                <Link
+  href="/mainapp"
+  className="inline-block px-8 py-3 bg-black text-white text-sm tracking-wide font-medium hover:bg-gray-800 transition-all duration-500 ease-out"
+>
+  TRY IT OUT
+</Link>
               </div>
             </section>
           </div>

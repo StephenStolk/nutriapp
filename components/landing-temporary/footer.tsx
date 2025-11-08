@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export default function Footer() {
   return (
     <footer className="bg-black text-white border-t border-gray-800">
@@ -10,14 +12,12 @@ export default function Footer() {
             Experience Kalnut today and discover how personalized nutrition feels when your app adapts to your
             lifestyle and celebrates Indian cuisine.
           </p>
-          <a
-            href="https://v0-nutritionapp1-eta.vercel.app/"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-block px-8 py-3 bg-white text-black text-sm tracking-wide font-medium hover:bg-gray-200 transition-all duration-500 ease-out"
-          >
-            TRY IT OUT
-          </a>
+          <Link
+  href="/mainapp"
+  className="inline-block px-6 py-3 bg-white text-black text-sm tracking-wide font-medium hover:bg-gray-200 transition-all duration-500 ease-out rounded-xs"
+>
+  TRY IT OUT
+</Link>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
