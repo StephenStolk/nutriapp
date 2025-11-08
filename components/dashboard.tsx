@@ -1173,7 +1173,7 @@ const toggleHabitLocalFallback = (habitId: string) => {
           <Button
             variant="outline"
             onClick={() => window.location.href = "/manage-subscription"}
-            className="rounded-xl h-9 text-sm"
+            className="rounded-none h-9 text-sm"
           >
             Manage Subscription
           </Button>
