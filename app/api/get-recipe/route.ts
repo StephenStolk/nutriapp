@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
         "X-Title": "Kalnut Recipe Generator",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.0-flash-exp:free", // Using more reliable model
+        model: "nvidia/nemotron-nano-12b-v2-vl:free", // Using more reliable model
         messages: [
           {
             role: "system",
