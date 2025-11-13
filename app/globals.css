@@ -123,9 +123,9 @@
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
     margin: 0;
     padding: 0;
+    box-sizing: border-box;
   }
 
   body {
@@ -173,8 +173,8 @@
     p { @apply text-sm; }
   }
 
-  /* Subtle card shadow */
-  .card { box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-radius: var(--radius-lg); }
+  /* Subtle card shadow
+  .card { box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-radius: var(--radius-lg); } */
 
   /* Custom scrollbar */
   ::-webkit-scrollbar { width: 4px; }
@@ -221,3 +221,8 @@
     animation: gridMove 60s linear infinite; /* 60s = very slow drift */
   }
 }
+
+.container {
+  @apply max-w-none p-0 m-0;
+}
+

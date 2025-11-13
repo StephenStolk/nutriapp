@@ -208,7 +208,7 @@ const handleAnalyze = async () => {
   
   return (
     <div className="min-h-screen bg-background">
-      <header className="sticky top-0 z-20 border-b border-border/50 bg-background/80 backdrop-blur-xl">
+      <header className="sticky top-0 z-20 bg-background/80 backdrop-blur-xl">
         <div className="m-auto w-full px-4 py-3">
           <div className="flex items-center justify-between px-1">
             <h1 className="text-xl font-bold text-foreground pt-3">Kalnut.</h1>

@@ -39,6 +39,23 @@ export default function SignInPage() {
     router.push("/pricestructure");
   };
 
+  const handleGoogleSignIn = async () => {
+  const supabase = createClient();
+
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: `${window.location.origin}/auth/callback`, 
+    },
+
+  });
+
+  if (error) {
+    console.error("Google Sign-in error:", error);
+  }
+};
+
+
   return (
     <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-black text-white">
       {/* Animated floating background - visible on all screens */}
@@ -104,6 +121,42 @@ export default function SignInPage() {
                   {loading ? "Signing in..." : "Sign In"}
                 </Button>
               </form>
+
+              <div className="my-4 flex items-center">
+  <div className="flex-1 border-t border-white/20"></div>
+  <span className="mx-3 text-gray-400 text-sm">or</span>
+  <div className="flex-1 border-t border-white/20"></div>
+</div>
+
+<Button
+  onClick={handleGoogleSignIn}
+  className="w-full flex items-center justify-center gap-2 bg-[#4285F4] text-white hover:bg-[#357ae8]"
+>
+  <svg
+    className="w-5 h-5"
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 48 48"
+  >
+    <path
+      fill="#EA4335"
+      d="M24 9.5c3.18 0 5.37 1.38 6.61 2.54l4.84-4.84C32.38 4.25 28.48 2.5 24 2.5 14.82 2.5 7.3 8.92 4.74 17.36l5.67 4.4C11.58 14.79 17.26 9.5 24 9.5z"
+    />
+    <path
+      fill="#34A853"
+      d="M46.1 24.28c0-1.64-.14-3.18-.39-4.68H24v9h12.61c-.54 2.86-2.14 5.28-4.61 6.91l7.1 5.5c4.15-3.83 7-9.48 7-16.73z"
+    />
+    <path
+      fill="#4A90E2"
+      d="M9.41 28.22c-1.04-3.11-1.04-6.44 0-9.55L3.74 14.27C1.44 18.91.5 23.88.5 29s.94 10.09 3.24 14.73l5.67-4.46z"
+    />
+    <path
+      fill="#FBBC05"
+      d="M24 46c5.48 0 10.07-1.81 13.43-4.94l-7.1-5.5c-1.96 1.33-4.46 2.15-6.33 2.15-5.89 0-10.87-3.98-12.67-9.44l-5.67 4.46C7.3 39.08 14.82 46 24 46z"
+    />
+  </svg>
+  Continue with Google
+</Button>
+
             </CardContent>
 
            <CardFooter className="flex flex-col items-center space-y-2">

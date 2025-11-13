@@ -759,7 +759,7 @@ const toggleHabitLocalFallback = (habitId: string) => {
 </div>
 
 
-      <Card className="p-3 bg-card shadow-sm rounded-[5px] pb-7">
+      <Card className="p-3 pb-7">
         <div className="flex items-center justify-between mb-4">
           <div className="text-center">
             <div className="text-xl font-bold text-foreground mb-1">{totalCalories.toLocaleString()}</div>
