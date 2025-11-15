@@ -42,7 +42,7 @@ export default function HowItWorks() {
   };
 
   return (
-    <section id="how-it-works" className="w-full py-20 lg:py-40 bg-white">
+    <section id="how-it-works" className="w-full py-20 lg:py-40 bg-white px-4 md:px-24">
       <div className="container mx-auto px-6">
         {/* Header */}
         <motion.div
@@ -50,12 +50,12 @@ export default function HowItWorks() {
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, ease: "easeOut" }}
           viewport={{ once: true }}
-          className="flex flex-col items-start gap-4 text-left mb-16"
+          className="flex flex-col items-start gap-4 text-left mb-2"
         >
-          <span className="inline-flex items-center px-3 py-1 text-sm font-medium border border-gray-200 rounded-full">
+          <span className="inline-flex items-center px-3 py-1 text-sm font-medium border border-gray-200 rounded-full bg-gray-100 text-black/80">
             How It Works
           </span>
-          <h2 className="text-3xl md:text-5xl font-semibold tracking-tight">
+          <h2 className="text-3xl md:text-5xl font-semibold tracking-tight text-black/80">
             Understand your nutrition
           </h2>
           <p className="text-base md:text-lg max-w-2xl text-gray-700 leading-relaxed">
@@ -83,7 +83,7 @@ export default function HowItWorks() {
             >
               <div>{feature.icon}</div>
               <div className="flex flex-col mt-16">
-                <h3 className="text-xl font-semibold mb-1">{feature.title}</h3>
+                <h3 className="text-xl font-semibold mb-1 text-black/80">{feature.title}</h3>
                 <p className="text-gray-700 text-sm leading-relaxed">
                   {feature.description}
                 </p>

@@ -1,9 +1,9 @@
-'use client'
+
 export default function TermsOfService() {
   return (
     <main className="min-h-screen bg-white">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
-        <h1 className="font-playfair text-4xl md:text-5xl font-bold mb-8 tracking-tight">Terms of Service</h1>
+        <h1 className="font-playfair text-4xl md:text-5xl font-bold mb-8 tracking-tight text-black/80">Terms of Service</h1>
 
         <div className="prose prose-sm max-w-none text-gray-700 space-y-6">
           <section>

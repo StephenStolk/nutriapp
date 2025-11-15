@@ -22,19 +22,10 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
-      <body className={`${playfair.variable} font-sans antialiased`}>
-         <Header />
-       <main className="relative z-0">
-          {children}
-          {/* <Footer /> */}
-        </main>
-        {/* <Suspense fallback={null}>
-          <Analytics />
-        </Suspense> */}
-        <Footer />
-      </body>
-      {/* <Analytics /> */}
-    </html>
+    <div className={`${playfair.variable} font-sans antialiased`}>
+      <Header />
+      <main className="relative z-0">{children}</main>
+      <Footer />
+    </div>
   )
 }
