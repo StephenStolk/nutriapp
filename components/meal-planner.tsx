@@ -469,7 +469,7 @@ Rich in fiber, vitamins, and minerals. Provides sustained energy and supports ov
               </Label>
               <Select onValueChange={(value) => setPlannerData({ ...plannerData, dietLifestyle: value })}>
                 <SelectTrigger className="text-xs h-8">
-                  <SelectValue placeholder="Select a lifestyle (e.g., Keto, Vegan, Mediterranean)" />
+                  <SelectValue placeholder="Select a lifestyle (e.g., Keto, Vegan)" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="balanced" className="text-xs">

@@ -120,7 +120,7 @@ export default function About() {
       <p className="text-sm text-gray-500 font-medium">Founder & CEO</p>
 
       <p className="text-sm md:text-base text-gray-600 leading-relaxed mt-4 text-justify">
-        Engineer, published author, and founder of Gallant, Aditya believes 
+        Engineer, published author, and founder of Kalnut, Aditya believes 
         in using technology and storytelling to transform how people approach 
         health. He leads Kalnut’s vision for creating a seamless, intuitive 
         nutrition experience powered by AI and thoughtful design.

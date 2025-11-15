@@ -760,8 +760,8 @@ export function Dashboard({ onAddFood }: DashboardProps) {
         </div>
       </div>
 
-      <Card className="p-3 pb-7">
-        <div className="flex items-center justify-between mb-4">
+      <Card className="p-1 pb-7">
+        <div className="p-2 rounded-[5px] flex items-center justify-between mb-4">
           <div className="text-center">
             <div className="text-xl font-bold text-foreground mb-1">{totalCalories.toLocaleString()}</div>
             <div className="text-xs text-muted-foreground font-medium">Eaten</div>
@@ -812,7 +812,7 @@ export function Dashboard({ onAddFood }: DashboardProps) {
 
   {/* Right Section */}
   {isEditingGoal ? (
-    <div className="flex items-center space-x-2">
+    <div className="flex items-center space-x-1">
 
       <Input
         type="number"
@@ -859,7 +859,7 @@ export function Dashboard({ onAddFood }: DashboardProps) {
 </div>
 
 
-        <div className="text-center py-2">
+        <div className="text-center py-2 bg-[#c9fa5f]/10 rounded-[5px] mb-4">
           <button
             onClick={() => setIsCalorieCalculatorOpen(true)}
             className="text-xs text-primary hover:text-primary/80"
@@ -1064,7 +1064,7 @@ export function Dashboard({ onAddFood }: DashboardProps) {
           return (
             <Card
               key={mealType}
-              className="p-3 hover:shadow-md transition-all duration-300 border-0 rounded-[5px] bg-card"
+              className="p-3 hover:shadow-md transition-all duration-300 border-0 rounded-[5px] bg-card bg-[#c9fa5f]/10"
             >
               {/* Make header clickable to open history */}
               <div
