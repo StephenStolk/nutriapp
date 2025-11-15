@@ -57,7 +57,7 @@ export default function SignInPage() {
 
 
   return (
-    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-black text-white">
+    <main className="w-full relative flex items-center justify-center min-h-screen bg-black text-white overflow-hidden">
       {/* Animated floating background - visible on all screens */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <FloatingPaths position={1} />
@@ -65,7 +65,8 @@ export default function SignInPage() {
       </div>
 
       {/* Content */}
-      <div className="relative z-[2] flex flex-col items-center justify-center w-full p-4">
+      <div className="relative z-[2] flex flex-col items-center justify-center w-full">
+        <h1 className="text-3xl mb-12">Kalnut</h1>
 
         <motion.div
           initial={{ opacity: 0, y: 24 }}
@@ -75,7 +76,7 @@ export default function SignInPage() {
         >
           <Card className="w-full border border-white/10 bg-white/6 backdrop-blur-md shadow-2xl text-white">
             <CardHeader>
-              <CardTitle className="text-2xl text-center font-semibold text-white">
+              <CardTitle className="text-xl text-center font-semibold text-white">
                 Welcome Back
               </CardTitle>
               <CardDescription className="text-center text-gray-300">
@@ -96,7 +97,7 @@ export default function SignInPage() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="bg-white text-black placeholder-gray-500"
+                    className="placeholder-gray-500 focus:ring-2 focus:ring-white"
                   />
                 </div>
                 <div className="space-y-2">
@@ -110,13 +111,13 @@ export default function SignInPage() {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    className="bg-white text-black placeholder-gray-500"
+                    className="placeholder-gray-500 focus:ring-2 focus:ring-white"
                   />
                 </div>
                 <Button
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-white text-black font-medium hover:bg-gray-200"
+                  className="w-full bg-white text-black font-semibold hover:bg-gray-200 transition-all duration-300 rounded-[5px] mt-12"
                 >
                   {loading ? "Signing in..." : "Sign In"}
                 </Button>
@@ -130,7 +131,7 @@ export default function SignInPage() {
 
 <Button
   onClick={handleGoogleSignIn}
-  className="w-full flex items-center justify-center gap-2 bg-[#4285F4] text-white hover:bg-[#357ae8]"
+  className="w-full flex items-center justify-center gap-2 bg-[#4285F4] text-white hover:bg-[#357ae8] rounded-[5px]"
 >
   <svg
     className="w-5 h-5"

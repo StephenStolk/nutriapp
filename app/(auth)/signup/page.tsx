@@ -65,7 +65,7 @@ export default function SignUpPage() {
 
 
   return (
-    <main className="relative flex items-center justify-center min-h-screen bg-black text-white overflow-hidden px-4">
+    <main className="w-full relative flex items-center justify-center min-h-screen bg-black text-white overflow-hidden">
       {/* Animated background */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <FloatingPaths position={1} />
@@ -73,15 +73,17 @@ export default function SignUpPage() {
       </div>
 
       {/* Content */}
+
       <motion.div
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
         className="relative z-[2] w-full max-w-lg"
       >
-        <Card className="w-full border border-white/15 bg-white/5 backdrop-blur-lg shadow-2xl rounded-2xl px-6 py-4">
+        <h1 className="text-3xl mb-12 text-center">Kalnut</h1>
+        <Card className="w-full border border-white/15 bg-white/5 backdrop-blur-lg shadow-2xl rounded-[5px] py-4">
           <CardHeader className="space-y-1 text-center">
-            <CardTitle className="text-2xl font-bold tracking-tight text-white">
+            <CardTitle className="text-xl font-bold tracking-tight text-white">
               Create Account
             </CardTitle>
             <CardDescription className="text-gray-300 text-base text-md">
@@ -99,7 +101,7 @@ export default function SignUpPage() {
                   id="email"
                   type="email"
                   placeholder="you@example.com"
-                  className="bg-white text-black placeholder-gray-500 focus:ring-2 focus:ring-white"
+                  className="placeholder-gray-500 focus:ring-2 focus:ring-white"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -114,7 +116,7 @@ export default function SignUpPage() {
                   id="password"
                   type="password"
                   placeholder="••••••••"
-                  className="bg-white text-black placeholder-gray-500 focus:ring-2 focus:ring-white"
+                  className="placeholder-gray-500 focus:ring-2 focus:ring-white"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -125,7 +127,7 @@ export default function SignUpPage() {
                 <Button
                   type="submit"
                   disabled={loading}
-                  className="w-full bg-white text-black font-semibold hover:bg-gray-200 transition-all duration-300"
+                  className="w-full bg-white text-black font-semibold hover:bg-gray-200 transition-all duration-300 rounded-[5px] mt-12"
                 >
                   {loading ? "Signing up..." : "Sign Up"}
                 </Button>
@@ -140,7 +142,7 @@ export default function SignUpPage() {
 
 <Button
   onClick={handleGoogleSignUp}
-  className="w-full flex items-center justify-center gap-2 bg-[#4285F4] text-white hover:bg-[#357ae8]"
+  className="w-full flex items-center justify-center gap-2 bg-[#4285F4] rounded-[5px] text-white hover:bg-[#357ae8]"
 >
   <svg
     className="w-5 h-5"
