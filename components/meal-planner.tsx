@@ -347,7 +347,7 @@ Rich in fiber, vitamins, and minerals. Provides sustained energy and supports ov
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 px-4">
       <div className="text-center space-y-1">
         <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
           <Calendar className="h-6 w-6 text-primary" />

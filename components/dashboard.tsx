@@ -730,7 +730,7 @@ export function Dashboard({ onAddFood }: DashboardProps) {
   }
 
   return (
-    <div className="space-y-2 animate-slide-up">
+    <div className="space-y-2 animate-slide-up px-4">
       <div className="text-start">
         <div className="flex items-center justify-between">
           <div className="leading-tight">
@@ -1350,7 +1350,7 @@ export function Dashboard({ onAddFood }: DashboardProps) {
 
             <div className="flex justify-center gap-3 mt-3">
               {plan?.plan_name === "Free" ? (
-                <Button onClick={handleManageSubscription} className="rounded-none h-9 text-sm">
+                <Button onClick={handleManageSubscription} className="rounded-[5px] h-9 text-sm">
                   Upgrade Subscription
                 </Button>
               ) : (

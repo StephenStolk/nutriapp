@@ -209,7 +209,7 @@ export default function NutritionApp() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background px-2">
       <header className="sticky top-0 z-20 bg-background/80 backdrop-blur-xl">
         <div className="m-auto w-full px-4 py-3">
           <div className="flex items-center justify-between px-1">

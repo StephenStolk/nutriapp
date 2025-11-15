@@ -215,7 +215,7 @@ export function QuickMeals() {
 
   return (
     <BentoGrid>
-      <div className="space-y-4">
+      <div className="space-y-2 px-4">
         {/* Header with Title */}
         <div className="text-center space-y-1 mt-2">
           <h2 className="text-md font-semibold text-foreground flex items-center justify-center gap-2">
@@ -286,7 +286,7 @@ export function QuickMeals() {
             )}
 
             {/* Image Upload Section */}
-            <Card className="p-4 space-y-3">
+            <Card className="p-4 space-y-1">
               <div className="flex items-center gap-2">
                 <Camera className="h-4 w-4 text-primary" />
                 <span className="text-sm font-medium">Show Your Ingredients</span>
@@ -360,7 +360,7 @@ export function QuickMeals() {
             </Card>
 
             {/* Text Input Section */}
-            <Card className="p-4 space-y-3">
+            <Card className="p-4 space-y-1">
               <div className="flex items-center gap-2">
                 <ChefHat className="h-4 w-4 text-primary" />
                 <span className="text-sm font-medium">List Your Ingredients</span>
@@ -374,7 +374,7 @@ export function QuickMeals() {
             </Card>
 
             {/* Preference Selection */}
-            <Card className="p-4 space-y-3">
+            <Card className="p-4 space-y-1">
               <div className="flex items-center gap-2">
                 <Heart className="h-4 w-4 text-primary" />
                 <span className="text-sm font-medium">Food Vibe</span>

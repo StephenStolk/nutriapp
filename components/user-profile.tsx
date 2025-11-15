@@ -126,12 +126,12 @@ export function UserProfile() {
         </p>
       </div>
 
-      <Card className="p-4">
+      {/* <Card className="p-4">
         <div className="space-y-2">
           <Label className="text-sm font-medium">Appearance</Label>
           <ThemeToggle />
         </div>
-      </Card>
+      </Card> */}
 
       <Card className="p-6 space-y-4 border">
         {[

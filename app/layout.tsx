@@ -31,7 +31,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${playfair.variable} antialiased`}>
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
+        <ThemeProvider attribute="class" defaultTheme="dark" enableSystem disableTransitionOnChange>
           <UserProvider>
             <SubscriptionProvider>
           <Suspense
@@ -44,7 +44,11 @@ export default function RootLayout({
               </div>
             }
           >
-            {children}
+            
+         
+                  {children}
+               
+        
 
             <Script src="https://checkout.razorpay.com/v1/checkout.js" />
           </Suspense>
