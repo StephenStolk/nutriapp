@@ -119,7 +119,7 @@ export default function About() {
       <h4 className="font-semibold text-xl text-gray-900">Aditya Kumar Jha</h4>
       <p className="text-sm text-gray-500 font-medium">Founder & CEO</p>
 
-      <p className="text-sm md:text-base text-gray-600 leading-relaxed mt-4">
+      <p className="text-sm md:text-base text-gray-600 leading-relaxed mt-4 text-justify">
         Engineer, published author, and founder of Gallant, Aditya believes 
         in using technology and storytelling to transform how people approach 
         health. He leads Kalnut’s vision for creating a seamless, intuitive 
@@ -160,7 +160,7 @@ export default function About() {
       <h4 className="font-semibold text-xl text-gray-900">Shikhar Burman</h4>
       <p className="text-sm text-gray-500 font-medium">Co-Founder & CTO</p>
 
-      <p className="text-sm md:text-base text-gray-600 leading-relaxed mt-4">
+      <p className="text-sm md:text-base text-gray-600 leading-relaxed mt-4 text-justify">
         AI specialist and engineer, Shikhar brings Kalnut’s core technology 
         to life. With a focus on reliability, speed, and intelligence, he 
         ensures the platform stays precise and scalable for every user—from 
