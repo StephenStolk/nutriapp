@@ -2,7 +2,7 @@ export default function About() {
   return (
     <section
       id="about"
-      className="py-20 md:py-32 bg-gradient-to-b from-white to-gray-50"
+      className="py-20 md:py-32"
     >
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         <h2 className="font-playfair text-md sm:text-2xl md:text-2xl text-start mb-8 md:mb-10 tracking-tight text-gray-900">
