@@ -40,7 +40,9 @@ export function BottomNav({
                   onClick={() => onNavigate(item.id)}
                   className={cn(
                     "relative flex h-10 w-10 items-center justify-center rounded-xl transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                    isActive ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground",
+                    isActive
+      ? "bg-[#c9fa5f] text-black"
+      : "text-white bg-transparent",
                   )}
                   aria-label={item.label}
                   aria-current={isActive ? "page" : undefined}
@@ -75,7 +77,9 @@ export function BottomNav({
                   onClick={() => onNavigate(item.id)}
                   className={cn(
                     "relative flex h-10 w-10 items-center justify-center rounded-xl transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                    isActive ? "bg-primary/10 text-primary" : "text-muted-foreground hover:text-foreground",
+                    isActive
+      ? "bg-[#c9fa5f] text-black"
+      : "text-white bg-transparent",
                   )}
                   aria-label={item.label}
                   aria-current={isActive ? "page" : undefined}

@@ -9,7 +9,6 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Calendar, Clock, DollarSign, MapPin, ChefHat, Target, BookOpen, X, Salad, Clock2Icon } from "lucide-react"
 import type { JSX } from "react/jsx-runtime"
-import { useUser } from "@/hooks/use-user"
 import { useSubscription } from "@/hooks/use-subscription"
 
 interface MealPlan {
@@ -118,9 +117,7 @@ const parseMarkdownToJSX = (markdown: string) => {
   return elements
 }
 
-
 export function MealPlanner() {
-  
   const [plannerData, setPlannerData] = useState({
     state: "",
     budget: "",
@@ -139,17 +136,14 @@ export function MealPlanner() {
   const [selectedRecipe, setSelectedRecipe] = useState<{ meal: string; day: string } | null>(null)
   const [isLoadingRecipe, setIsLoadingRecipe] = useState(false)
   const [recipeDetails, setRecipeDetails] = useState<string>("")
-  const { plan, loading, refreshSubscription } = useSubscription();
-  console.log(plan);
+  const { plan, loading, refreshSubscription } = useSubscription()
+  console.log(plan)
 
-  const canUseMealPlanner =
-  plan?.plan_name === "Pro Plan" ||
-  (plan?.plan_name === "Free" && !plan?.used_meal_planner);
+  const canUseMealPlanner = plan?.plan_name === "Pro Plan" || (plan?.plan_name === "Free" && !plan?.used_meal_planner)
 
-  console.log(plan?.plan_name);
-  console.log(plan?.used_meal_planner);
+  console.log(plan?.plan_name)
+  console.log(plan?.used_meal_planner)
 
-  
   const generateMealPlan = async () => {
     setIsGenerating(true)
 
@@ -165,30 +159,25 @@ export function MealPlanner() {
         const data = await response.json()
         setMealPlan(data.mealPlan)
       } else {
-        
         const days = Number.parseInt(plannerData.planDuration) || 3
         const samplePlan = generateIntelligentFallbackPlan(days)
         setMealPlan(samplePlan)
       }
 
-
-
-      if(plan?.plan_name === "Free") {
+      if (plan?.plan_name === "Free") {
         await fetch("/api/mark-feature-used", {
           method: "POST",
           headers: {
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            feature: "used_meal_planner"
+            feature: "used_meal_planner",
           }),
-        });
-        await refreshSubscription();
+        })
+        await refreshSubscription()
       }
     } catch (error) {
-
       console.error("Meal plan generation error:", error)
-      // Fallback plan
       const days = Number.parseInt(plannerData.planDuration) || 3
       const samplePlan = generateIntelligentFallbackPlan(days)
       setMealPlan(samplePlan)
@@ -205,7 +194,6 @@ export function MealPlanner() {
     const isMediterranean = cuisineType.includes("mediterranean")
     const isMexican = cuisineType.includes("mexican")
 
-    // helpers to enforce lifestyle constraints
     const ensureDiet = (name: string) => {
       if (diet === "vegan") return `${name} (vegan)`
       if (diet === "vegetarian") return `${name} (veg)`
@@ -222,7 +210,6 @@ export function MealPlanner() {
       let dayPlan: MealPlan
 
       if (isIndian) {
-        // Indian templates with diet adjustments
         const indianBreakfast =
           diet === "keto"
             ? "Masala Omelette with Paneer"
@@ -269,7 +256,6 @@ export function MealPlanner() {
           dinner: { name: ensureDiet(d), calories: 360, description: "Satiating yet light" },
         }
       } else {
-        // Global/default templates with lifestyle tweak
         const b =
           diet === "keto"
             ? "Scrambled Eggs with Avocado"
@@ -322,7 +308,6 @@ export function MealPlanner() {
         const data = await response.json()
         setRecipeDetails(data.recipe)
       } else {
-        // Fallback detailed recipe
         setRecipeDetails(generateDetailedRecipe(mealName))
       }
     } catch (error) {
@@ -334,7 +319,6 @@ export function MealPlanner() {
   }
 
   const generateDetailedRecipe = (mealName: string): string => {
-    // This would be replaced with actual AI-generated recipes
     return `**${mealName} Recipe**
 
 **Cooking Time:** 25-30 minutes
@@ -368,15 +352,15 @@ Rich in fiber, vitamins, and minerals. Provides sustained energy and supports ov
         <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto">
           <Calendar className="h-6 w-6 text-primary" />
         </div>
-        <h2 className="text-lg font-semibold text-foreground">Meal Planner</h2>
-        <p className="text-xs text-muted-foreground px-2">Get personalized meal plans based on your preferences</p>
+        <h2 className="text-md font-semibold text-foreground">Meal Planner</h2>
+        <p className="text-sm text-muted-foreground px-2">Get personalized meal plans based on your preferences</p>
       </div>
 
       {!mealPlan.length ? (
         <Card className="p-4 space-y-3">
           <div className="grid grid-cols-1 gap-3">
             <div className="space-y-1">
-              <Label htmlFor="state" className="text-xs font-medium flex items-center">
+              <Label htmlFor="state" className="text-sm font-medium flex items-center">
                 <MapPin className="h-3 w-3 mr-1" />
                 State/Region
               </Label>
@@ -385,12 +369,12 @@ Rich in fiber, vitamins, and minerals. Provides sustained energy and supports ov
                 value={plannerData.state}
                 onChange={(e) => setPlannerData({ ...plannerData, state: e.target.value })}
                 placeholder="e.g., Maharashtra, California"
-                className="text-xs h-8"
+                className="text-sm h-8"
               />
             </div>
 
             <div className="space-y-1">
-              <Label htmlFor="budget" className="text-xs font-medium flex items-center">
+              <Label htmlFor="budget" className="text-sm font-medium flex items-center">
                 <DollarSign className="h-3 w-3 mr-1" />
                 Budget (per day)
               </Label>
@@ -413,7 +397,7 @@ Rich in fiber, vitamins, and minerals. Provides sustained energy and supports ov
             </div>
 
             <div className="space-y-1">
-              <Label htmlFor="cookingTime" className="text-xs font-medium flex items-center">
+              <Label htmlFor="cookingTime" className="text-sm font-medium flex items-center">
                 <Clock className="h-3 w-3 mr-1" />
                 Available Cooking Time
               </Label>
@@ -439,7 +423,7 @@ Rich in fiber, vitamins, and minerals. Provides sustained energy and supports ov
             </div>
 
             <div className="space-y-1">
-              <Label htmlFor="lifestyleInfo" className="text-xs font-medium">
+              <Label htmlFor="lifestyleInfo" className="text-sm font-medium">
                 Lifestyle Information
               </Label>
               <Textarea
@@ -452,7 +436,7 @@ Rich in fiber, vitamins, and minerals. Provides sustained energy and supports ov
             </div>
 
             <div className="space-y-1">
-              <Label htmlFor="availableIngredients" className="text-xs font-medium">
+              <Label htmlFor="availableIngredients" className="text-sm font-medium">
                 Available Ingredients
               </Label>
               <Textarea
@@ -465,7 +449,7 @@ Rich in fiber, vitamins, and minerals. Provides sustained energy and supports ov
             </div>
 
             <div className="space-y-1">
-              <Label htmlFor="cuisinePreferences" className="text-xs font-medium flex items-center">
+              <Label htmlFor="cuisinePreferences" className="text-sm font-medium flex items-center">
                 <ChefHat className="h-3 w-3 mr-1" />
                 Cuisine Preferences
               </Label>
@@ -479,8 +463,7 @@ Rich in fiber, vitamins, and minerals. Provides sustained energy and supports ov
             </div>
 
             <div className="space-y-1">
-              <Label htmlFor="dietLifestyle" className="text-xs font-medium flex items-center">
-                {/* <span className="mr-1"></span> */}
+              <Label htmlFor="dietLifestyle" className="text-sm font-medium flex items-center">
                 <Salad className="h-3 w-3 mr-1" />
                 Dietary Lifestyle/Preference
               </Label>
@@ -521,7 +504,7 @@ Rich in fiber, vitamins, and minerals. Provides sustained energy and supports ov
             </div>
 
             <div className="space-y-1">
-              <Label htmlFor="healthGoal" className="text-xs font-medium flex items-center">
+              <Label htmlFor="healthGoal" className="text-sm font-medium flex items-center">
                 <Target className="h-3 w-3 mr-1" />
                 Health Goal
               </Label>
@@ -547,8 +530,8 @@ Rich in fiber, vitamins, and minerals. Provides sustained energy and supports ov
             </div>
 
             <div className="space-y-1">
-              <Label htmlFor="planDuration" className="text-xs font-medium">
-                <Clock2Icon className="h-3 w-3 mr-1"/>
+              <Label htmlFor="planDuration" className="text-sm font-medium">
+                <Clock2Icon className="h-3 w-3 mr-1" />
                 Meal Plan Duration
               </Label>
               <Select onValueChange={(value) => setPlannerData({ ...plannerData, planDuration: value })}>
@@ -572,15 +555,17 @@ Rich in fiber, vitamins, and minerals. Provides sustained energy and supports ov
 
           <Button
             onClick={generateMealPlan}
-            disabled={!canUseMealPlanner || isGenerating || !plannerData.cuisinePreferences || !plannerData.planDuration}
-            className="w-full h-9 rounded-[5px]"
+            disabled={
+              !canUseMealPlanner || isGenerating || !plannerData.cuisinePreferences || !plannerData.planDuration
+            }
+            className="w-1/2 h-10 mb-20 bg-[#c9fa5f] text-black hover:bg-[#b8e954] font-semibold rounded-[5px] flex mx-auto text-sm"
             size="sm"
           >
             <span className="text-sm">{isGenerating ? "Generating Plan..." : "Generate Meal Plan"}</span>
           </Button>
         </Card>
       ) : (
-        <div className="space-y-3">
+        <div className="space-y-3 pb-20">
           <div className="flex items-center justify-between">
             <h3 className="text-base font-semibold text-foreground">Your Personalized Meal Plan</h3>
             <Button variant="outline" size="sm" onClick={() => setMealPlan([])} className="h-7 text-xs">
@@ -620,7 +605,7 @@ Rich in fiber, vitamins, and minerals. Provides sustained energy and supports ov
           ))}
 
           {selectedRecipe && (
-            <Card className="p-3">
+            <Card className="p-3 pb-20">
               <div className="flex items-center justify-between mb-2">
                 <h4 className="font-semibold text-sm text-foreground">Recipe Details</h4>
                 <Button variant="ghost" size="sm" onClick={() => setSelectedRecipe(null)} className="p-1 h-6 w-6">

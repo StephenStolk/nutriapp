@@ -250,17 +250,17 @@ export function TodoList({ onOpenJournal }: { onOpenJournal?: () => void }) {
   return (
     <div className="min-h-screen bg-background text-foreground pb-28">
       <div className="px-3 pt-3 pb-2">
-        <h1 className="text-2xl font-light mb-1 text-balance">My Day</h1>
-        <p className="text-muted-foreground text-xs">{getCurrentDate()}</p>
+        <h1 className="text-md font-light mb-1 text-balance">My Day</h1>
+        <p className="text-muted-foreground text-sm">{getCurrentDate()}</p>
         {onOpenJournal && (
           <div className="mt-2">
             <button
               onClick={onOpenJournal}
-              className="h-8 px-3 text-xs rounded-md border bg-background hover:bg-muted transition-colors"
+              className="h-10 text-center m-auto px-3 text-sm rounded-[5px] border bg-background hover:bg-muted transition-colors"
               aria-label="Open Journal"
               title="Open Journal"
             >
-              Journal MyDay
+              Journal My Day
             </button>
           </div>
         )}
@@ -426,11 +426,11 @@ export function TodoList({ onOpenJournal }: { onOpenJournal?: () => void }) {
         </div>
       )}
 
-      <div className="fixed inset-x-3 bottom-24 mx-auto max-w-md bg-background border-t p-3 rounded-xl shadow-sm">
+      <div className="fixed inset-x-3 bottom-24 mx-auto max-w-md bg-background border-t p-3 rounded-[5px] shadow-sm">
         {!isAddingTodo ? (
           <button
             onClick={() => setIsAddingTodo(true)}
-            className="w-full bg-muted border-none p-3 rounded-lg flex items-center gap-2.5 hover:bg-muted/80 transition-colors"
+            className="w-full bg-muted border-none p-3 rounded-[5px] flex items-center gap-2.5 hover:bg-muted/80 transition-colors"
             aria-label="Add a task"
           >
             <Plus className="h-4 w-4" />
@@ -451,13 +451,13 @@ export function TodoList({ onOpenJournal }: { onOpenJournal?: () => void }) {
                 type="date"
                 value={newDueDate}
                 onChange={(e) => setNewDueDate(e.target.value)}
-                className="h-8 rounded-md border bg-background px-2 text-xs"
+                className="h-8 rounded-[5px] border bg-background px-2 text-xs"
                 aria-label="Due date"
               />
               <select
                 value={newPriority}
                 onChange={(e) => setNewPriority(e.target.value as any)}
-                className="h-8 rounded-md border bg-background px-2 text-xs"
+                className="h-8 rounded-[5px] border bg-background px-2 text-xs"
                 aria-label="Priority"
               >
                 <option value="low">Low priority</option>
@@ -468,20 +468,20 @@ export function TodoList({ onOpenJournal }: { onOpenJournal?: () => void }) {
                 placeholder="tags (comma separated)"
                 value={newTags}
                 onChange={(e) => setNewTags(e.target.value)}
-                className="h-8 rounded-md border bg-background px-2 text-xs col-span-2"
+                className="h-8 rounded-[5px] border bg-background px-2 text-xs col-span-2"
                 aria-label="Tags"
               />
               <input
                 placeholder="project/list"
                 value={newProject}
                 onChange={(e) => setNewProject(e.target.value)}
-                className="h-8 rounded-md border bg-background px-2 text-xs col-span-2"
+                className="h-8 rounded-[5px] border bg-background px-2 text-xs col-span-2"
                 aria-label="Project"
               />
               <select
                 value={newRecurring}
                 onChange={(e) => setNewRecurring(e.target.value as any)}
-                className="h-8 rounded-md border bg-background px-2 text-xs"
+                className="h-8 rounded-[5px] border bg-background px-2 text-xs"
                 aria-label="Recurring"
               >
                 <option value="none">No repeat</option>
@@ -502,7 +502,7 @@ export function TodoList({ onOpenJournal }: { onOpenJournal?: () => void }) {
               )}
             </div>
             <div className="flex gap-2">
-              <Button onClick={addTodo} size="sm" className="flex-1 h-8 text-xs">
+              <Button onClick={addTodo} size="sm" className="flex-1 h-8 text-sm rounded-[5px]">
                 Add Task
               </Button>
               <Button
@@ -518,7 +518,7 @@ export function TodoList({ onOpenJournal }: { onOpenJournal?: () => void }) {
                   setNewRecurring("none")
                   setNewIntervalDays(2)
                 }}
-                className="flex-1 h-8 text-xs"
+                className="flex-1 h-8 text-sm rounded-[5px]"
               >
                 Cancel
               </Button>

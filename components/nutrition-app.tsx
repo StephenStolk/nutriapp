@@ -18,11 +18,24 @@ import { Journal } from "@/components/journal"
 import { useUser } from "@/hooks/use-user"
 import { useSubscription } from "@/hooks/use-subscription"
 import { createClient } from "@/lib/supabase/client"
-import { isSameDay } from "date-fns"
-//import { createClient } from "@/lib/supabase/client"
+import { StepsTracker } from "@/components/steps-tracker"
+import { WaterTracker } from "./water-tracker"
+import { ExerciseTracker } from "./exercise-tracker"
+import { WeightGoalPlanner } from "./weight-goal-planner"
 
 type MealType = "breakfast" | "lunch" | "dinner" | "snacks"
-type ActivePage = "home" | "dashboard" | "meal-planner" | "profile" | "quick-meals" | "todos" | "journal"
+type ActivePage =
+  | "home"
+  | "dashboard"
+  | "meal-planner"
+  | "profile"
+  | "quick-meals"
+  | "todos"
+  | "journal"
+  | "steps"
+  | "water"
+  | "exercise"
+  | "weight-goal"
 
 export default function NutritionApp() {
   const [selectedImage, setSelectedImage] = useState<string | null>(null)
@@ -38,39 +51,50 @@ export default function NutritionApp() {
   const sideFileRef = useRef<HTMLInputElement>(null)
   const sideCameraRef = useRef<HTMLInputElement>(null)
 
-    const supabase = createClient();
-  const { user, userId } = useUser();
-  const [shortName, setShortName] = useState<string | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const supabase = createClient()
+  const { user, userId } = useUser()
+  const [shortName, setShortName] = useState<string | null>(null)
+  const [loading, setLoading] = useState<boolean>(true)
 
-
+  const { plan, refreshSubscription } = useSubscription()
 
   useEffect(() => {
-
     const fetchUserName = async () => {
-      if(!user) return;
+      if (!user) return
 
-      const {data, error} = await supabase.from('profiles').select('username').eq('id', userId).single();
+      const { data, error } = await supabase.from("profiles").select("username").eq("id", userId).single()
 
-      if (error) console.error("Error fetching username:", error);
+      if (error) console.error("Error fetching username:", error)
 
-      let displayName: string;
+      let displayName: string
       if (data?.username) {
-        displayName = data.username.slice(0, 2).toUpperCase();
+        displayName = data.username.slice(0, 2).toUpperCase()
       } else {
-        displayName = user.email?.split("@")[0].slice(0, 2).toUpperCase() ?? "";
+        displayName = user.email?.split("@")[0].slice(0, 2).toUpperCase() ?? ""
       }
 
-      setShortName(displayName);
-      setLoading(false);
-    };
+      setShortName(displayName)
+      setLoading(false)
+    }
 
-    fetchUserName();
+    fetchUserName()
   }, [user, supabase])
 
-  if(loading) {
-    return <p>Loading...</p>
-  }
+  const canAnalyzeFood = (() => {
+    if (!plan) return false
+
+    if (plan.plan_name === "Pro Plan") return true
+
+    if (plan.plan_name === "Free") {
+      const last = plan.last_used_analyze_food ? new Date(plan.last_used_analyze_food) : null
+
+      if (!last) return true // never used
+      const ms24 = 24 * 60 * 60 * 1000
+      const usedWithin24h = Date.now() - last.getTime() < ms24
+      return !usedWithin24h
+    }
+    return false
+  })()
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -101,85 +125,66 @@ export default function NutritionApp() {
     }
   }
 
- const { plan, refreshSubscription } = useSubscription()
+  const handleAnalyze = async () => {
+    if (!selectedImage || !mealType) return
+    if (!canAnalyzeFood) {
+      console.log("You’ve already used this feature today. Try again tomorrow!")
+      return
+    }
 
-const canAnalyzeFood = (() => {
-  if (!plan) return false;
+    setIsAnalyzing(true)
 
-  if (plan.plan_name === "Pro Plan") return true;
-
-  if (plan.plan_name === "Free") {
-    const last = plan.last_used_analyze_food ? new Date(plan.last_used_analyze_food) : null;
-
-    if (!last) return true; // never used
-    const ms24 = 24 * 60 * 60 * 1000;
-    const usedWithin24h = (Date.now() - last.getTime()) < ms24;
-    return !usedWithin24h;
-  }
-  return false;
-})();
-
-const handleAnalyze = async () => {
-  if (!selectedImage || !mealType) return
-  if (!canAnalyzeFood) {
-    console.log("You’ve already used this feature today. Try again tomorrow!")
-    return
-  }
-
-  setIsAnalyzing(true)
-
-  try {
-    const response = await fetch("/api/analyze-food", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        image: selectedImage,
-        sideImage,
-        mealType,
-        notes: notes?.trim() || undefined,
-      }),
-    })
-
-    if (!response.ok) throw new Error("Analysis failed")
-
-    const data = await response.json()
-
-    if (plan?.plan_name === "Free") {
-      await fetch("/api/mark-feature-used", {
+    try {
+      const response = await fetch("/api/analyze-food", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          feature: "used_analyze_food",
-          lastUsedColumn: "last_used_analyze_food",
+          image: selectedImage,
+          sideImage,
+          mealType,
+          notes: notes?.trim() || undefined,
         }),
       })
 
-      await refreshSubscription()
-    }
+      if (!response.ok) throw new Error("Analysis failed")
 
-    setNutritionData(data)
-  } catch (error) {
-    console.error("Analysis error:", error)
-    setNutritionData({
-      calories: 400,
-      protein: 22,
-      carbs: 35,
-      fat: 16,
-      fiber: 6,
-      sugar: 10,
-      sodium: 600,
-      analysis:
-        "Unable to analyze the image at this time. Please try again later.",
-      recommendations: [
-        "Try to include a variety of colorful vegetables",
-        "Balance your meals with protein, carbs, and healthy fats",
-        "Stay hydrated throughout the day",
-      ],
-    })
-  } finally {
-    setIsAnalyzing(false)
+      const data = await response.json()
+
+      if (plan?.plan_name === "Free") {
+        await fetch("/api/mark-feature-used", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            feature: "used_analyze_food",
+            lastUsedColumn: "last_used_analyze_food",
+          }),
+        })
+
+        await refreshSubscription()
+      }
+
+      setNutritionData(data)
+    } catch (error) {
+      console.error("Analysis error:", error)
+      setNutritionData({
+        calories: 400,
+        protein: 22,
+        carbs: 35,
+        fat: 16,
+        fiber: 6,
+        sugar: 10,
+        sodium: 600,
+        analysis: "Unable to analyze the image at this time. Please try again later.",
+        recommendations: [
+          "Try to include a variety of colorful vegetables",
+          "Balance your meals with protein, carbs, and healthy fats",
+          "Stay hydrated throughout the day",
+        ],
+      })
+    } finally {
+      setIsAnalyzing(false)
+    }
   }
-}
 
   const handleReset = () => {
     setSelectedImage(null)
@@ -192,7 +197,7 @@ const handleAnalyze = async () => {
 
   const handleNavigation = (page: ActivePage) => {
     setActivePage(page)
-    
+
     if (page !== "home") {
       handleReset()
     }
@@ -202,10 +207,7 @@ const handleAnalyze = async () => {
     setActivePage("home")
     setMealType(mealType)
   }
- 
 
-
-  
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-20 bg-background/80 backdrop-blur-xl">
@@ -234,46 +236,48 @@ const handleAnalyze = async () => {
                 title="Profile"
               >
                 <Avatar className="h-8 w-8">
-                  
                   <AvatarFallback className="text-sm">{shortName}</AvatarFallback>
                 </Avatar>
               </button>
-
             </div>
           </div>
         </div>
       </header>
 
-      <main className="container mx-auto max-w-md px-4 py-4 md:py-6 pb-28">
+      <main className="container mx-auto w-full max-w-md px-4 py-4 md:py-6 pb-36">
         {activePage === "profile" && <UserProfile />}
         {activePage === "dashboard" && <Dashboard onAddFood={handleAddFoodFromDashboard} />}
         {activePage === "meal-planner" && <MealPlanner />}
         {activePage === "quick-meals" && <QuickMeals />}
         {activePage === "todos" && <TodoList onOpenJournal={() => setActivePage("journal")} />}
         {activePage === "journal" && <Journal onBack={() => setActivePage("todos")} />}
+        {activePage === "steps" && <StepsTracker />}
+        {activePage === "water" && <WaterTracker />}
+        {activePage === "exercise" && <ExerciseTracker />}
+        {activePage === "weight-goal" && <WeightGoalPlanner />}
 
         {activePage === "home" && (
           <>
             {!selectedImage ? (
-              <div className="space-y-6 md:space-y-8 animate-slide-up">
-                <div className="text-center space-y-2 md:space-y-3">
-                  <h2 className="text-xl md:text-2xl font-bold text-foreground">Analyze Your Food</h2>
+              <div className="space-y-6 md:space-y-8 animate-slide-up pb-20">
+                <div className="text-center space-y-2 md:space-y-3 mt-1">
+                  <h2 className="text-md md:text-2xl font-bold text-foreground">Analyze Your Food</h2>
                   <p className="text-sm md:text-base text-muted-foreground leading-relaxed px-1 md:px-2">
                     Take a photo or upload an image of your meal to get instant nutritional insights and track your
                     daily intake
                   </p>
                 </div>
 
-                <Card className="relative overflow-hidden border-2 border-dashed border-primary/30 hover:border-primary/50 transition-all duration-300 rounded-3xl">
+                <Card className="relative overflow-hidden border-2 border-dashed border-primary/30 hover:border-primary/50 transition-all duration-300 rounded-[5px]">
                   <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-accent/5" />
                   <div className="relative p-6 md:p-10">
                     <div className="flex flex-col items-center space-y-5 md:space-y-6">
-                      <div className="w-16 h-16 md:w-20 md:h-20 rounded-3xl bg-primary flex items-center justify-center shadow-xl">
-                        <Camera className="h-8 w-8 md:h-10 md:w-10 text-white" />
+                      <div className="w-12 h-12 md:w-20 md:h-20 rounded-[5px] bg-[#c9fa5f] flex items-center justify-center shadow-xl">
+                        <Camera className="h-5 w-5 md:h-10 md:w-10 text-black" />
                       </div>
 
                       <div className="text-center space-y-1.5 md:space-y-2">
-                        <h3 className="text-lg md:text-xl font-semibold text-foreground">Capture or Upload</h3>
+                        <h3 className="text-md md:text-xl font-semibold text-foreground">Capture or Upload</h3>
                         <p className="text-sm md:text-base text-muted-foreground">
                           Get instant nutritional analysis powered by AI
                         </p>
@@ -282,7 +286,7 @@ const handleAnalyze = async () => {
                       <div className="flex flex-col w-full space-y-3 md:space-y-4 pt-2 md:pt-4">
                         <Button
                           onClick={handleCameraCapture}
-                          className="w-full h-12 md:h-14 text-base md:text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl"
+                          className="flex mx-auto justify-center w-1/2 h-10 md:h-14 text-base md:text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 rounded-[5px]"
                           size="lg"
                         >
                           <Camera className="h-5 w-5 md:h-6 md:w-6 mr-3" />
@@ -292,7 +296,7 @@ const handleAnalyze = async () => {
                         <Button
                           onClick={handleFileSelect}
                           variant="outline"
-                          className="w-full h-12 md:h-14 text-base md:text-lg font-semibold border-2 hover:bg-primary/5 transition-all duration-300 rounded-2xl bg-transparent"
+                          className="flex mx-auto w-1/2 h-10 md:h-14 text-base md:text-lg font-semibold border-2 hover:bg-primary/5 transition-all duration-300 rounded-[5px] bg-transparent"
                           size="lg"
                         >
                           <Upload className="h-5 w-5 md:h-6 md:w-6 mr-3" />
@@ -303,26 +307,24 @@ const handleAnalyze = async () => {
                   </div>
                 </Card>
 
-                <Card className="p-5 md:p-6 bg-gradient-to-r from-primary/5 to-accent/5 border-primary/10 rounded-2xl">
+                <Card className="p-5 md:p-6 bg-gradient-to-r from-primary/5 to-accent/5 border-primary/10 rounded-[5px]">
                   <div className="space-y-3 md:space-y-4">
                     <h4 className="text-sm md:text-base font-semibold text-foreground">Optional: Improve accuracy</h4>
                     <div className="grid grid-cols-1 gap-3">
-                      
                       <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 min-w-0">
                         <Button
                           onClick={() => sideCameraRef.current?.click()}
-                          variant="secondary"
-                          className="w-full sm:flex-1 rounded-2xl h-10 md:h-12 text-sm md:text-base whitespace-nowrap"
+                          variant="default"
+                          className="w-full h-10 sm:flex-1 rounded-[5px] h-10 md:h-12 text-sm md:text-base whitespace-nowrap"
                         >
-                          <Camera className="h-4 w-4 md:h-5 md:w-5 mr-2" />
-                          
+                          <Camera className="h-5 w-5 md:h-5 md:w-5 mr-2" />
                           <span className="md:hidden">Add Side</span>
                           <span className="hidden md:inline">Add Side View</span>
                         </Button>
                         <Button
                           onClick={() => sideFileRef.current?.click()}
                           variant="outline"
-                          className="w-full sm:flex-1 rounded-2xl h-10 md:h-12 text-sm md:text-base whitespace-nowrap"
+                          className="w-full sm:flex-1 rounded-[5px] h-10 md:h-12 text-sm md:text-base whitespace-nowrap"
                         >
                           <Upload className="h-4 w-4 md:h-5 md:w-5 mr-2" />
                           <span className="md:hidden">Upload</span>
@@ -333,7 +335,7 @@ const handleAnalyze = async () => {
                         value={notes}
                         onChange={(e) => setNotes(e.target.value)}
                         rows={2}
-                        className="w-full rounded-xl bg-background border p-2.5 md:p-3 text-sm"
+                        className="w-full rounded-[5px] bg-background border border-gray-800 p-2.5 md:p-3 text-sm"
                         placeholder="Optional notes: e.g., 'chicken, white rice, avocado; ~1 tbsp olive oil'"
                       />
                       {sideImage && (
@@ -341,7 +343,7 @@ const handleAnalyze = async () => {
                           <img
                             src={sideImage || "/placeholder.svg"}
                             alt="Side view"
-                            className="h-14 w-14 md:h-16 md:w-16 rounded-xl object-cover border"
+                            className="h-14 w-14 md:h-16 md:w-16 rounded-[5px] object-cover border"
                           />
                           <span className="text-xs md:text-sm text-muted-foreground">Side view added</span>
                         </div>
@@ -350,11 +352,11 @@ const handleAnalyze = async () => {
                   </div>
                 </Card>
 
-                <Card className="p-5 md:p-6 bg-gradient-to-r from-primary/5 to-accent/5 border-primary/10 rounded-2xl">
+                <Card className="p-5 md:p-6 bg-gradient-to-r from-primary/5 to-accent/5 border-primary/10 rounded-[5px]">
                   <div className="flex items-start space-x-3 md:space-x-4">
-                    <div className="w-9 h-9 md:w-10 md:h-10 rounded-2xl bg-primary/20 flex items-center justify-center flex-shrink-0">
-                      <span className="text-base md:text-lg">💡</span>
-                    </div>
+                    {/* <div className="w-9 h-9 md:w-10 md:h-10 rounded-2xl bg-primary/20 flex items-center justify-center flex-shrink-0">
+                      <span className="text-base md:text-lg">T</span>
+                    </div> */}
                     <div>
                       <h4 className="text-sm md:text-base font-semibold text-foreground mb-1.5 md:mb-2">Pro Tips</h4>
                       <ul className="text-sm md:text-base text-muted-foreground space-y-1 leading-relaxed">
@@ -393,7 +395,7 @@ const handleAnalyze = async () => {
                 <input ref={sideFileRef} type="file" accept="image/*" onChange={handleSideUpload} className="hidden" />
               </div>
             ) : (
-              <div className="space-y-5 md:space-y-6 animate-slide-up">
+              <div className="space-y-5 md:space-y-6 animate-slide-up pb-20">
                 <Card className="overflow-hidden shadow-xl rounded-3xl border-0">
                   <div className="aspect-square relative">
                     <img
@@ -412,7 +414,7 @@ const handleAnalyze = async () => {
                   <Button
                     onClick={handleAnalyze}
                     disabled={!canAnalyzeFood || isAnalyzing}
-                    className="w-full h-12 md:h-14 text-base md:text-lg font-semibold bg-primary hover:bg-primary/90 shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl"
+                    className="w-full h-12 md:h-14 text-base md:text-lg font-semibold bg-primary hover:bg-primary/90 shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl mb-20"
                     size="lg"
                   >
                     {isAnalyzing ? (
@@ -431,13 +433,9 @@ const handleAnalyze = async () => {
                   <NutritionResults data={nutritionData} mealType={mealType!} selectedImage={selectedImage} />
                 )}
               </div>
-
-              
             )}
           </>
         )}
-
-
       </main>
 
       <BottomNav activePage={activePage as any} onNavigate={handleNavigation as unknown as (page: any) => void} />
