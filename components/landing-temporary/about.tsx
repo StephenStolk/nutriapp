@@ -130,7 +130,7 @@ export default function About() {
         href="https://www.linkedin.com/in/aditya-kumar-jha-b0b669252"
         target="_blank"
         rel="noopener noreferrer"
-        className="inline-flex items-center gap-2 text-white bg-gray-900 px-4 py-2 rounded-lg text-sm font-medium mt-5 hover:bg-black transition-colors"
+        className="inline-flex items-center gap-2 text-white bg-gray-900 px-4 py-2 rounded-[5px] text-sm font-medium mt-5 hover:bg-black transition-colors"
       >
         Connect on LinkedIn
         <svg
@@ -171,7 +171,7 @@ export default function About() {
         href="https://www.linkedin.com/in/shikharburman/"
         target="_blank"
         rel="noopener noreferrer"
-        className="inline-flex items-center gap-2 text-white bg-gray-900 px-4 py-2 rounded-lg text-sm font-medium mt-5 hover:bg-black transition-colors"
+        className="inline-flex items-center gap-2 text-white bg-gray-900 px-4 py-2 rounded-[5px] text-sm font-medium mt-5 hover:bg-black transition-colors"
       >
         Connect on LinkedIn
         <svg
