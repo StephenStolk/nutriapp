@@ -730,7 +730,7 @@ export function Dashboard({ onAddFood }: DashboardProps) {
   }
 
   return (
-    <div className="space-y-2 animate-slide-up px-4">
+    <div className="space-y-2 animate-slide-up px-2">
       <div className="text-start">
         <div className="flex items-center justify-between">
           <div className="leading-tight">

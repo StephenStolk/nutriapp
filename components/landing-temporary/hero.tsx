@@ -39,14 +39,14 @@ export default function Hero() {
           </div> */}
 
           {/* Main Heading */}
-          <h1 className="font-playfair text-6xl md:text-8xl lg:text-9xl font-bold tracking-tight animate-fade-in">
+          <h1 className="font-playfair text-5xl md:text-8xl lg:text-9xl font-bold tracking-tight animate-fade-in mt-4">
             <span className="bg-gradient-to-br from-neutral-900 via-neutral-800 to-neutral-600 bg-clip-text text-transparent">
               Kalnut
             </span>
           </h1>
 
           {/* Subheading */}
-          <p className="text-lg md:text-xl lg:text-2xl text-neutral-600 font-light leading-relaxed max-w-3xl mx-auto animate-slide-up">
+          <p className="text-md md:text-xl lg:text-2xl text-neutral-600 font-light leading-relaxed max-w-3xl mx-auto animate-slide-up">
             Decipher the mystery of your health through{" "}
             <span className="text-neutral-900 font-medium">AI-powered insights</span>{" "}
             and personalized nutrition guidance

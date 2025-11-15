@@ -88,32 +88,73 @@ function Feature({
     <div
       className={cn(
         "group relative border-b border-r border-neutral-800 py-12 px-8 flex flex-col justify-start items-start overflow-hidden",
-        "transition-all duration-500 hover:bg-white/5"
+        "transition-all duration-500 hover:bg-white/5",
+        "group-[.hover]:bg-white/5"
       )}
+      onTouchStart={(e) => e.currentTarget.classList.add("hover")}
+      onTouchEnd={(e) => e.currentTarget.classList.remove("hover")}
       style={{
         animation: `fadeInUp 0.6s ease-out ${index * 0.1}s both`,
       }}
     >
-      {/* Animated background shimmer on hover */}
-      <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-gradient-to-t from-white/10 via-transparent to-transparent pointer-events-none" />
+      {/* Background shimmer */}
+      <div
+        className="
+          absolute inset-0 opacity-0 
+          group-hover:opacity-100 
+          group-[.hover]:opacity-100 
+          transition-opacity duration-500 
+          bg-gradient-to-t from-white/10 via-transparent to-transparent 
+          pointer-events-none
+        "
+      />
 
       {/* Icon */}
-      <div className="mb-5 text-gray-400 group-hover:text-white transform group-hover:-translate-y-1 transition-all duration-500 ease-out">
+      <div
+        className="
+          mb-5 text-gray-400 
+          group-hover:text-white group-[.hover]:text-white
+          transform 
+          group-hover:-translate-y-1 group-[.hover]:-translate-y-1
+          transition-all duration-500 ease-out
+        "
+      >
         {icon}
       </div>
 
       {/* Title */}
-      <h3 className="text-lg font-semibold mb-3 text-white transform group-hover:-translate-y-1 group-hover:text-gray-100 transition-all duration-500 ease-out">
+      <h3
+        className="
+          text-lg font-semibold mb-3 text-white
+          group-hover:text-gray-100 group-[.hover]:text-gray-100
+          transform 
+          group-hover:-translate-y-1 group-[.hover]:-translate-y-1
+          transition-all duration-500 ease-out
+        "
+      >
         {title}
       </h3>
 
       {/* Description */}
-      <p className="text-sm text-gray-400 leading-relaxed group-hover:text-gray-200 transition-all duration-500 ease-out">
+      <p
+        className="
+          text-sm text-gray-400 leading-relaxed
+          group-hover:text-gray-200 group-[.hover]:text-gray-200
+          transition-all duration-500 ease-out
+        "
+      >
         {description}
       </p>
 
-      {/* Subtle underline animation */}
-      <span className="absolute left-8 bottom-8 w-0 group-hover:w-12 h-[1px] bg-white transition-all duration-500 ease-out" />
+      {/* Underline */}
+      <span
+        className="
+          absolute left-8 bottom-8 w-0 
+          group-hover:w-12 group-[.hover]:w-12
+          h-[1px] bg-white 
+          transition-all duration-500 ease-out
+        "
+      />
     </div>
   );
 }
