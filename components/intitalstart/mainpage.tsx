@@ -10,8 +10,11 @@ const MainPage = () => {
   const [startVisible, setStartVisible] = useState(false)
   const router = useRouter()
   const { user, userId } = useUser();
+  const [message, setMessage] = useState('');
   
   const navigateToPersonalSite = () => {
+    setMessage("Setting up the user");
+
     if(!user){
       router.push('/signup');
     }
@@ -25,6 +28,12 @@ const MainPage = () => {
 
   return (
     <div className="fixed inset-0 w-full h-full overflow-hidden bg-black">
+       {message && (
+        <div className="absolute top-15 w-full text-center py-3 backdrop-blur-md text-white text-sm font-medium z-50 ">
+          {message}
+        </div>
+      )}
+
       {/* Spiral background animation */}
       <div className="absolute inset-0">
         <SpiralAnimation />
@@ -38,7 +47,7 @@ const MainPage = () => {
           ${startVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}
         `}
       >
-        <h1 className="text-white text-3xl md:text-4xl font-medium tracking-wide select-none">
+        <h1 className="text-white text-4xl md:text-4xl font-medium tracking-wide select-none">
           Kalnut.
         </h1>
       </div>

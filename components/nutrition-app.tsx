@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/card"
 import { Camera, Upload, RotateCcw } from "lucide-react"
 import { MealCategorization } from "@/components/meal-categorization"
 import { NutritionResults } from "@/components/nutrition-results"
-import { MealPlanner } from "@/components/meal-planner"
+import { MealPlannerEnhanced } from "./meal-planner"
 import { UserProfile } from "@/components/user-profile"
 import { QuickMeals } from "@/components/quick-meals"
 import { TodoList } from "@/components/todo-list"
@@ -247,7 +247,7 @@ export default function NutritionApp() {
       <main className="container mx-auto w-full max-w-md px-4 py-4 md:py-6 pb-36">
         {activePage === "profile" && <UserProfile />}
         {activePage === "dashboard" && <Dashboard onAddFood={handleAddFoodFromDashboard} />}
-        {activePage === "meal-planner" && <MealPlanner />}
+        {activePage === "meal-planner" && <MealPlannerEnhanced />}
         {activePage === "quick-meals" && <QuickMeals />}
         {activePage === "todos" && <TodoList onOpenJournal={() => setActivePage("journal")} />}
         {activePage === "journal" && <Journal onBack={() => setActivePage("todos")} />}

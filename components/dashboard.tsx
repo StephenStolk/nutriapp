@@ -14,6 +14,7 @@ import { useUser } from "@/hooks/use-user"
 import { useSubscription } from "@/hooks/use-subscription"
 import { useRouter } from 'next/navigation'
 import { InsightsTracker } from "./insights-tracker"
+import { PlantStreak } from "./plant-streak"
 
 interface LoggedFood {
   id: string
@@ -282,6 +283,8 @@ export function Dashboard({ onAddFood }: DashboardProps) {
     }
   }, [loggedFoods, habitLogs])
 
+
+
   const today = new Date()
   const todayString = today.toDateString()
   const todayISO = new Date().toISOString().slice(0, 10)
@@ -306,6 +309,11 @@ export function Dashboard({ onAddFood }: DashboardProps) {
 
   const remaining = Math.max(0, dailyGoal - totalCalories)
   const progressPercentage = Math.min((totalCalories / dailyGoal) * 100, 100)
+
+
+  // Check if user is on target today
+const isCaloriesOnTarget = totalCalories >= dailyGoal * 0.8 && totalCalories <= dailyGoal * 1.2
+const areHabitsComplete = totalHabitsToday > 0 && completedHabitsToday === totalHabitsToday
 
   // Group foods by meal type
   const mealGroups = {
@@ -1064,11 +1072,11 @@ export function Dashboard({ onAddFood }: DashboardProps) {
           return (
             <Card
               key={mealType}
-              className="p-3 hover:shadow-md transition-all duration-300 border-0 rounded-[5px] bg-card bg-[#c9fa5f]/10"
+              className="p-1 hover:shadow-md transition-all duration-300 border-0 rounded-[5px] bg-card"
             >
               {/* Make header clickable to open history */}
               <div
-                className="flex items-center justify-between cursor-pointer"
+                className="flex items-center justify-between cursor-pointer py-1 px-2 border border-dotted border-white/10 rounded-[5px]"
                 onClick={() => setHistoryFor(mealType as any)}
                 role="button"
                 tabIndex={0}
@@ -1204,6 +1212,14 @@ export function Dashboard({ onAddFood }: DashboardProps) {
         </Card>
       )}
 
+              {/* After the main Card with progress circle */}
+<PlantStreak 
+  habitsCompleted={areHabitsComplete}
+  caloriesOnTarget={isCaloriesOnTarget}
+  totalHabits={totalHabitsToday}
+  completedHabits={completedHabitsToday}
+/>
+
 
       {habits.length > 0 && (
   <Card className="p-4 shadow-sm border-0 rounded-xl bg-card">
@@ -1296,6 +1312,7 @@ export function Dashboard({ onAddFood }: DashboardProps) {
   </Card>
 )}
       <InsightsTracker loggedFoods={loggedFoods} dailyGoal={dailyGoal} />
+
 
 
       {(todaysFoods.length > 0 || habits.length > 0) && (
