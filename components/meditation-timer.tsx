@@ -181,7 +181,7 @@ export function MeditationTimer({ isOpen, onClose }: MeditationTimerProps) {
 
           <Button
             onClick={startMeditation}
-            className="bg-white/20 hover:bg-white/30 text-white border border-white/30 px-12 py-4 rounded-full text-lg font-medium mt-8"
+            className="bg-white/20 hover:bg-white/30 text-white border border-white/30 px-12 py-4 rounded-[5px] text-lg font-medium mt-8"
           >
             Start Meditation
           </Button>

@@ -303,13 +303,13 @@ export default function CalorieCalculatorModal({ isOpen, onClose, onSave }: Calo
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 z-50 bg-background">
+    <div className="fixed inset-0 z-50 bg-background mt-24 px-3">
       <div className="h-full overflow-y-auto">
         <div className="p-4 space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <Calculator className="h-4 w-4 text-primary" />
-              <h3 className="text-base font-semibold">Calorie Calculator</h3>
+              <h3 className="text-base font-semibold mt-4">Calorie Calculator</h3>
             </div>
             <Button variant="ghost" size="sm" onClick={handleClose} className="w-8 h-8 p-0">
               <X className="h-4 w-4" />
@@ -443,7 +443,7 @@ export default function CalorieCalculatorModal({ isOpen, onClose, onSave }: Calo
                 </div>
               </div>
 
-              <Button onClick={calculateCalories} disabled={!isFormValid} className="w-full h-10" size="default">
+              <Button onClick={calculateCalories} disabled={!isFormValid} className="w-full h-10 rounded-[5px]" size="default">
                 <Calculator className="h-4 w-4 mr-2" />
                 <span className="text-sm">Calculate My Daily Calories</span>
               </Button>
