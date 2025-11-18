@@ -17,68 +17,139 @@ import { createClient } from "@/lib/supabase/client"
 import { useUser } from "@/hooks/use-user"
 import { useSubscription } from "@/hooks/use-subscription"
 
+type IconProps = {
+  className?: string;
+};
+
+const WeightLossIcon = ({ className = "" }: IconProps) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    strokeWidth={2}
+    stroke="white"
+    className="w-5 h-5"
+  >
+    <path d="M12 3v18M21 12H3" />
+  </svg>
+);
+
+const MuscleGainIcon = ({ className = "" }: IconProps) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    strokeWidth={2}
+    stroke="white"
+    className="w-5 h-5"
+  >
+    <path d="M6 14V10m12 4V10M4 12h16" />
+  </svg>
+);
+
+const ActiveLifestyleIcon = ({ className = "" }: IconProps) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    strokeWidth={2}
+    stroke="white"
+    className="w-5 h-5"
+  >
+    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+  </svg>
+);
+
+const PollutionDefenseIcon = ({ className = "" }: IconProps) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    strokeWidth={2}
+    stroke="white"
+    className="w-5 h-5"
+  >
+    <path d="M3 12h18M4 6h16M5 18h14" />
+  </svg>
+);
+
+const HairLossIcon = ({ className = "" }: IconProps) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    strokeWidth={2}
+    stroke="white"
+    className="w-5 h-5"
+  >
+    <path d="M12 2c4 2 6 6 6 10s-2 8-6 8-6-4-6-8 2-8 6-10z" />
+  </svg>
+);
+
+const HairHealthIcon = ({ className = "" }: IconProps) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    strokeWidth={2}
+    stroke="white"
+    className="w-5 h-5"
+  >
+    <path d="M12 2s4 4 4 10-2 10-4 10-4-4-4-10 4-10 4-10z" />
+  </svg>
+);
+
+
 const PLANNER_CATEGORIES = [
   {
     id: "weight-loss",
     name: "Weight Loss",
-    icon: TrendingDown,
+    icon: WeightLossIcon,
     gradient: "from-card to-card",
     borderColor: "border-[#c9fa5f]/20",
-    iconColor: "text-orange-500",
     description: "Sustainable calorie deficit with balanced nutrition",
-    emoji: "🔥",
   },
   {
     id: "muscle-gain",
     name: "Muscle Gain",
-    icon: Dumbbell,
+    icon: MuscleGainIcon,
     gradient: "from-card to-card",
     borderColor: "border-[#c9fa5f]/20",
-    iconColor: "text-blue-500",
     description: "High-protein meals for muscle building",
-    emoji: "💪",
   },
   {
     id: "active-lifestyle",
     name: "Active Lifestyle",
-    icon: Heart,
+    icon: ActiveLifestyleIcon,
     gradient: "from-card to-card",
     borderColor: "border-[#c9fa5f]/20",
-    iconColor: "text-green-500",
     description: "Energy-optimized meals for active days",
-    emoji: "⚡",
   },
   {
     id: "pollution-defense",
     name: "Pollution Defense",
-    icon: Wind,
+    icon: PollutionDefenseIcon,
     gradient: "from-card to-card",
     borderColor: "border-[#c9fa5f]/20",
-    iconColor: "text-cyan-500",
     description: "Antioxidant-rich foods for urban living",
-    emoji: "🌿",
   },
   {
     id: "hair-loss",
     name: "Hair Loss Prevention",
-    icon: Sparkles,
+    icon: HairLossIcon,
     gradient: "from-card to-card",
     borderColor: "border-[#c9fa5f]/20",
-    iconColor: "text-amber-500",
     description: "Biotin & protein-rich meals for hair strength",
-    emoji: "💇",
   },
   {
     id: "hair-health",
     name: "Hair Growth & Shine",
-    icon: Sparkles,
+    icon: HairHealthIcon,
     gradient: "from-card to-card",
     borderColor: "border-[#c9fa5f]/20",
-    iconColor: "text-pink-500",
     description: "Nutrient-dense meals for healthy, shiny hair",
-    emoji: "✨",
   },
-]
+];
 
 const QUESTIONS = [
   {
@@ -208,37 +279,115 @@ export function MealPlannerEnhanced() {
   const [savedPlans, setSavedPlans] = useState<any[]>([])
   const [isGenerating, setIsGenerating] = useState(false)
   const [selectedRecipe, setSelectedRecipe] = useState<any>(null)
+  const [ongoingPlans, setOngoingPlans] = useState<any[]>([]);
+  const [showOngoing, setShowOngoing] = useState<boolean>(false)
+  const [showOngoingScreen, setShowOngoingScreen] = useState(false)
 
   const canUseMealPlanner = plan?.plan_name === "Pro Plan" || (plan?.plan_name === "Free" && !plan?.used_meal_planner)
 
-  useEffect(() => {
-    if (userId && showSaved) {
-      loadSavedPlans()
+  const loadOngoingPlans = async () => {
+  try {
+    const { data, error } = await supabase
+      .from("generated_meal_plans")
+      .select("*, user_meal_planner_inputs(*)")
+      .eq("user_id", userId)
+      .gte("day", `Day 1`) // Filter for plans that haven't been completed
+      .order("created_at", { ascending: false })
+
+    if (!error && data) {
+      // Group by input_id and filter for active plans
+      const grouped = data.reduce((acc: any, plan: any) => {
+        const key = plan.input_id
+        if (!acc[key]) {
+          acc[key] = {
+            plans: [],
+            inputData: plan.user_meal_planner_inputs,
+            created_at: plan.created_at
+          }
+        }
+        acc[key].plans.push(plan)
+        return acc
+      }, {})
+
+      // Convert to array and add metadata
+      const ongoingArray = Object.entries(grouped).map(([inputId, data]: any) => {
+        const totalDays = parseInt(data.inputData.plan_duration)
+        const currentDay = data.plans.length
+        return {
+          inputId,
+          plans: data.plans,
+          inputData: data.inputData,
+          created_at: data.created_at,
+          totalDays,
+          currentDay,
+          isActive: currentDay < totalDays
+        }
+      }).filter(plan => plan.isActive)
+
+      setOngoingPlans(ongoingArray)
     }
-  }, [userId, showSaved])
-
-  const loadSavedPlans = async () => {
-    try {
-      const { data, error } = await supabase
-        .from("generated_meal_plans")
-        .select("*, user_meal_planner_inputs(*)")
-        .eq("user_id", userId)
-        .order("created_at", { ascending: false })
-
-      if (!error && data) {
-        const grouped = data.reduce((acc: any, plan: any) => {
-          const key = plan.input_id
-          if (!acc[key]) acc[key] = []
-          acc[key].push(plan)
-          return acc
-        }, {})
-
-        setSavedPlans(Object.values(grouped))
-      }
-    } catch (err) {
-      console.error("Error loading saved plans:", err)
-    }
+  } catch (err) {
+    console.error("Error loading ongoing plans:", err)
   }
+}
+
+const loadSavedPlans = async () => {
+  try {
+    const { data, error } = await supabase
+      .from("generated_meal_plans")
+      .select("*, user_meal_planner_inputs(*)")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
+
+    if (!error && data) {
+      const grouped = data.reduce((acc: any, plan: any) => {
+        const key = plan.input_id
+        if (!acc[key]) {
+          acc[key] = {
+            plans: [],
+            inputData: plan.user_meal_planner_inputs,
+            created_at: plan.created_at // Use created_at from the plan itself
+          }
+        }
+        acc[key].plans.push(plan)
+        return acc
+      }, {})
+
+      const savedArray = Object.values(grouped).map((group: any) => ({
+        plans: group.plans,
+        inputData: group.inputData,
+        created_at: group.created_at
+      }))
+
+      setSavedPlans(savedArray)
+    }
+  } catch (err) {
+    console.error("Error loading saved plans:", err)
+  }
+}
+
+  useEffect(() => {
+  if (userId) {
+    loadOngoingPlans()
+    loadSavedPlans()
+  }
+}, [userId])
+
+const removePlan = async (inputId: string) => {
+  try {
+    await supabase
+      .from("generated_meal_plans")
+      .delete()
+      .eq("input_id", inputId)
+    
+    await loadOngoingPlans()
+    await loadSavedPlans()
+  } catch (err) {
+    console.error("Error removing plan:", err)
+  }
+}
+
+   
 
   const handleCategorySelect = (categoryId: string) => {
     setSelectedCategory(categoryId)
@@ -326,6 +475,8 @@ export function MealPlannerEnhanced() {
       setGeneratedPlan(mealPlan)
       setView("generated")
 
+      await loadOngoingPlans()
+
       if (plan?.plan_name === "Free") {
         await fetch("/api/mark-feature-used", {
           method: "POST",
@@ -360,74 +511,213 @@ export function MealPlannerEnhanced() {
   return (
     <div className="space-y-4 px-2 pb-20">
       {/* Header */}
-      <div className="text-center space-y-2">
-        <div className="w-14 h-14 rounded-2xl bg-[#c9fa5f]/20 flex items-center justify-center mx-auto border-2 border-[#c9fa5f]/30">
-          <Calendar className="h-7 w-7 text-[#c9fa5f]" />
+      <div className="text-center space-y-1">
+        <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto">
+          <Calendar className="h-6 w-6 text-[#c9fa5f]" />
         </div>
-        <h2 className="text-xl font-bold text-foreground">Meal Planner</h2>
+        <h2 className="text-md font-bold text-foreground">Meal Planner</h2>
         <p className="text-sm text-muted-foreground px-4">
           Personalized nutrition plans for your goals
         </p>
       </div>
 
-      {/* Toggle: Generated vs Saved */}
-      {(generatedPlan.length > 0 || savedPlans.length > 0) && view === "generated" && (
-        <div className="flex gap-2 p-1.5 bg-muted/30 rounded-xl border border-border/50">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setShowSaved(false)}
-            className={`flex-1 h-10 rounded-lg transition-all duration-200 ${
-              !showSaved
-                ? "bg-[#c9fa5f] text-black hover:bg-[#b8e954] shadow-sm font-semibold"
-                : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-            }`}
-          >
-            <Flame className="h-4 w-4 mr-2" />
-            Current Plan
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              setShowSaved(true)
-              loadSavedPlans()
-            }}
-            className={`flex-1 h-10 rounded-lg transition-all duration-200 ${
-              showSaved
-                ? "bg-[#c9fa5f] text-black hover:bg-[#b8e954] shadow-sm font-semibold"
-                : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
-            }`}
-          >
-            <BookOpen className="h-4 w-4 mr-2" />
-            Saved ({savedPlans.length})
-          </Button>
-        </div>
-      )}
+     {/* Dedicated Ongoing Plans Screen */}
+{showOngoingScreen && (
+  <div className="space-y-4 animate-in fade-in duration-300">
+    {/* Header with Back Button */}
+    <div className="flex items-center gap-3">
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => setShowOngoingScreen(false)}
+        className="h-9 w-9 p-0"
+      >
+        <ChevronLeft className="h-5 w-5" />
+      </Button>
+      <div className="flex-1">
+        <h3 className="text-md font-bold text-foreground mt-2 ">Ongoing Plans</h3>
+        <p className="text-sm text-muted-foreground">Your active meal plans</p>
+      </div>
+    </div>
 
+    {/* Ongoing Plans List */}
+    <div className="space-y-3">
+      {ongoingPlans.length === 0 ? (
+        <Card className="p-8 text-center bg-card border-border/50">
+          <div className="w-16 h-16 rounded-2xl bg-[#c9fa5f]/10 flex items-center justify-center mx-auto mb-3">
+            <Flame className="h-8 w-8 text-[#c9fa5f]" />
+          </div>
+          <p className="text-sm font-semibold text-foreground mb-1">No ongoing plans</p>
+          <p className="text-xs text-muted-foreground">Create a new meal plan to get started</p>
+        </Card>
+      ) : (
+        ongoingPlans.map((planGroup, index) => {
+          const category = PLANNER_CATEGORIES.find(c => c.id === planGroup.inputData.health_goal)
+          const progress = (planGroup.currentDay / planGroup.totalDays) * 100
+          
+          return (
+            <Card key={index} className="p-1 bg-card border-2 border-[#c9fa5f]/20">
+              {/* Plan Header */}
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="text-md ml-2">
+  {category?.icon ? <category.icon /> : "🍽️"}
+</div>
+                  <div>
+                    <h4 className="font-bold text-base text-foreground mb-0.5 mt-4">
+                      {category?.name || "Meal Plan"}
+                    </h4>
+                    <p className="text-xs text-muted-foreground">
+                      Started {new Date(planGroup.created_at).toLocaleDateString('en-US', { 
+                        month: 'short', 
+                        day: 'numeric'
+                      })}
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={async () => {
+                    if (confirm('Remove this plan?')) {
+                      await removePlan(planGroup.inputId)
+                    }
+                  }}
+                  className="h-8 w-8 p-0 hover:bg-red-500/10"
+                >
+                  <X className="h-4 w-4 text-white" />
+                </Button>
+              </div>
+
+              {/* Progress Section */}
+              <div className="mb-4 p-3 bg-[#c9fa5f]/5 py-4 rounded-[5px] border border-border/30">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-semibold text-foreground">Progress</span>
+                  <span className="text-sm font-bold text-white">
+                    Day {planGroup.currentDay} / {planGroup.totalDays}
+                  </span>
+                </div>
+                <div className="relative h-2.5 bg-muted rounded-full overflow-hidden">
+                  <div
+                    className="absolute top-0 left-0 h-full bg-[#c9fa5f] transition-all duration-500 rounded-full"
+                    style={{ width: `${progress}%` }}
+                  />
+                </div>
+              </div>
+
+              {/* Plan Details */}
+              <div className="space-y-2 mb-4">
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div className="flex items-center gap-2 p-2 bg-muted/20 rounded-lg">
+                    <DollarSign className="h-3.5 w-3.5 text-[#c9fa5f]" />
+                    <span className="text-muted-foreground text-sm">Budget: {planGroup.inputData.budget}</span>
+                  </div>
+                  <div className="flex items-center gap-2 p-2 bg-muted/20 rounded-[5px]">
+                    <Clock className="h-3.5 w-3.5 text-[#c9fa5f]" />
+                    <span className="text-muted-foreground text-sm">{planGroup.inputData.cooking_time}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Today's Meals Preview */}
+              <div className="space-y-2 mb-4">
+                <h5 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                  Current Day Meals
+                </h5>
+                {planGroup.plans.slice(0, 1).map((day: any) => (
+                  <div key={day.id} className="space-y-1.5">
+                    {[
+                      { icon: "🌅", label: "Breakfast", meal: day.breakfast },
+                      { icon: "☀️", label: "Lunch", meal: day.lunch },
+                      { icon: "🌙", label: "Dinner", meal: day.dinner }
+                    ].map(({ icon, label, meal }) => (
+                      <div key={label} className="flex items-center px-5 bg-[#c9fa5f]/10 rounded-[5px] border border-border/30">
+                        {/* <span className="text-xl">{icon}</span> */}
+                        <div className="flex-1 min-w-0">
+                          <p className="text-xs text-muted-foreground mb-0.5 pt-3">{label}</p>
+                          <p className="text-sm font-semibold text-foreground truncate">{meal.name}</p>
+                        </div>
+                        <span className="text-xs font-bold text-[#c9fa5f] whitespace-nowrap">
+                          {meal.calories} cal
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                ))}
+              </div>
+
+              {/* View Full Plan Button */}
+              <Button
+                onClick={() => {
+                  setGeneratedPlan(planGroup.plans)
+                  setSelectedCategory(planGroup.inputData.health_goal)
+                  setView("generated")
+                  setShowOngoingScreen(false)
+                }}
+                className="w-full h-10 bg-[#c9fa5f] text-black hover:bg-[#b8e954] font-semibold rounded-[5px]"
+              >
+                View Full Plan
+                <ChevronRight className="h-4 w-4 ml-2" />
+              </Button>
+            </Card>
+          )
+        })
+      )}
+    </div>
+  </div>
+)}
+
+
+{/* Action Buttons for Ongoing and Saved */}
+{view === "categories" && !showSaved && (
+  <div className="grid grid-cols-2 gap-3 flex gap-2 p-1 bg-muted/30 rounded-[5px] border border-border/50 border border-dotted border-white/10 rounded-[5px]">
+    {ongoingPlans.length > 0 && (
+      <Button
+        onClick={() => setShowOngoingScreen(true)}
+        className="h-12 bg-transparent text-white rounded-[5px]"
+      >
+        <Flame className="h-4 w-4 mr-2" />
+        Ongoing ({ongoingPlans.length})
+      </Button>
+    )}
+    {savedPlans.length > 0 && (
+      <Button
+        onClick={() => setShowSaved(true)}
+        className="h-12 bg-[#c9fa5f]/10 text-white rounded-[5px]"
+      >
+        <BookOpen className="h-4 w-4 mr-2" />
+        Saved ({savedPlans.length})
+      </Button>
+    )}
+  </div>
+)}
       {/* Categories View */}
-      {view === "categories" && (
+      {view === "categories" && !showOngoingScreen && !showSaved && (
         <div className="space-y-3 animate-in fade-in duration-300">
           <p className="text-sm text-center text-muted-foreground px-4">
             Choose your wellness goal
           </p>
-          <div className="grid grid-cols-1 gap-3">
+          <div className="grid grid-cols-1">
             {PLANNER_CATEGORIES.map((cat) => {
               const CategoryIcon = cat.icon
               return (
                 <Card
                   key={cat.id}
-                  className={`p-4 cursor-pointer border-2 ${cat.borderColor} bg-card hover:border-[#c9fa5f] hover:shadow-lg transition-all duration-300`}
+                  className={`p-2 cursor-pointer border-2 ${cat.borderColor} bg-card hover:border-[#c9fa5f] hover:shadow-lg transition-all duration-300`}
                   onClick={() => handleCategorySelect(cat.id)}
                 >
-                  <div className="flex items-center gap-4">
-                    <div className="text-4xl">{cat.emoji}</div>
+                  <div className="flex h-24 items-center gap-2 border border-white/5 rounded-[5px] p-2 bg-gray-700/5">
+                   <div className="text-md text-white ml-1">
+  {cat.icon ? <cat.icon /> : null}
+</div>
+
                     <div className="flex-1">
-                      <h3 className="text-base font-bold text-foreground mb-1 flex items-center gap-2">
+                      <h3 className="text-base font-bold text-foreground mb-1 mt-4 flex items-center gap-2 ml-2">
                         {cat.name}
-                        <CategoryIcon className={`h-4 w-4 ${cat.iconColor}`} />
+                       {/* <cat.icon className="h-4 w-4 text-white" /> */}
+
                       </h3>
-                      <p className="text-xs text-muted-foreground leading-relaxed">{cat.description}</p>
+                      <p className="text-xs text-muted-foreground leading-relaxed ml-2">{cat.description}</p>
                     </div>
                     <ChevronRight className="h-5 w-5 text-[#c9fa5f]" />
                   </div>
@@ -438,6 +728,9 @@ export function MealPlannerEnhanced() {
         </div>
       )}
 
+      {/* Ongoing Plans View */}
+
+
       {/* Questions View */}
       {view === "questions" && category && (
         <div className="space-y-4 animate-in fade-in duration-300">
@@ -446,7 +739,10 @@ export function MealPlannerEnhanced() {
             <div className="space-y-3">
               <div className="flex items-center justify-between text-sm">
                 <span className="font-semibold text-foreground flex items-center gap-2">
-                  <span className="text-2xl">{category.emoji}</span>
+                 <span className="text-2xl">
+  {category.icon ? <category.icon className="h-6 w-6" /> : null}
+</span>
+
                   {category.name}
                 </span>
                 <span className="text-muted-foreground text-xs">
@@ -561,7 +857,7 @@ export function MealPlannerEnhanced() {
       {view === "generated" && !showSaved && generatedPlan.length > 0 && (
         <div className="space-y-3 animate-in fade-in duration-300">
           <div className="flex items-center justify-between px-1">
-            <h3 className="text-base font-semibold text-foreground">Your {category?.name} Plan</h3>
+            <h3 className="text-base font-semibold text-foreground mt-2">Your {category?.name} Plan</h3>
             <Button
               variant="outline"
               size="sm"
@@ -580,7 +876,7 @@ export function MealPlannerEnhanced() {
                   planDuration: "",
                 })
               }}
-              className="h-8 text-xs"
+              className="h-8 text-xs bg-[#c9fa5f] rounded-[5px] text-black"
             >
               New Plan
             </Button>
@@ -598,11 +894,11 @@ export function MealPlannerEnhanced() {
                   { label: "Lunch", meal: day.lunch, icon: "☀️" },
                   { label: "Dinner", meal: day.dinner, icon: "🌙" },
                 ].map(({ label, meal, icon }) => (
-                  <div key={label} className="flex items-center gap-3 p-3 bg-muted/30 rounded-xl border border-border/30">
-                    <div className="text-2xl">{icon}</div>
+                  <div key={label} className="flex items-center gap-3 p-2 bg-muted/30 rounded-[5px] border border-border/30">
+                    <div className="text-md">{icon}</div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between mb-0.5 gap-2">
-                        <h5 className="font-semibold text-sm text-foreground truncate">{meal.name}</h5>
+                        <h5 className="font-semibold text-sm pt-3 text-foreground truncate">{meal.name}</h5>
                         <span className="text-xs text-muted-foreground font-bold whitespace-nowrap">{meal.calories} cal</span>
                       </div>
                       <p className="text-xs text-muted-foreground">{meal.description}</p>
@@ -624,64 +920,112 @@ export function MealPlannerEnhanced() {
       )}
 
       {/* Saved Plans View */}
-      {view === "generated" && showSaved && (
-        <div className="space-y-3 animate-in fade-in duration-300">
-          {savedPlans.length === 0 ? (
-            <Card className="p-8 text-center bg-card border-border/50">
-              <div className="w-16 h-16 rounded-2xl bg-[#c9fa5f]/10 flex items-center justify-center mx-auto mb-3">
-                <BookOpen className="h-8 w-8 text-[#c9fa5f]" />
-              </div>
-              <p className="text-sm font-semibold text-foreground mb-1">No saved plans yet</p>
-              <p className="text-xs text-muted-foreground">Generate your first meal plan to get started</p>
-            </Card>
-          ) : (
-            savedPlans.map((planGroup, index) => (
-              <Card key={index} className="p-4 bg-card border border-border/50">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="text-xs text-muted-foreground">
-                    Created {new Date(planGroup[0].created_at).toLocaleDateString('en-US', { 
-                      month: 'short', 
-                      day: 'numeric',
-                      year: 'numeric'
-                    })}
+     {/* Saved Plans View */}
+{view === "categories" && showSaved && !showOngoingScreen && (
+  <div className="space-y-4 animate-in fade-in duration-300">
+    {/* Header with Back Button */}
+    <div className="flex items-center gap-3">
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => setShowSaved(false)}
+        className="h-9 w-9 p-0"
+      >
+        <ChevronLeft className="h-5 w-5" />
+      </Button>
+      <div className="flex-1">
+        <h3 className="text-md font-bold text-foreground mt-2">Saved Plans</h3>
+        <p className="text-sm text-muted-foreground">Your meal plan history</p>
+      </div>
+    </div>
+
+    <div className="space-y-3">
+      {savedPlans.length === 0 ? (
+        <Card className="p-8 text-center bg-card border-border/50">
+          <div className="w-16 h-16 rounded-2xl bg-[#c9fa5f]/10 flex items-center justify-center mx-auto mb-3">
+            <BookOpen className="h-8 w-8 text-[#c9fa5f]" />
+          </div>
+          <p className="text-sm font-semibold text-foreground mb-1">No saved plans yet</p>
+          <p className="text-xs text-muted-foreground">Generate your first meal plan to get started</p>
+        </Card>
+      ) : (
+        savedPlans.map((planGroup: any, index: number) => {
+          const category = PLANNER_CATEGORIES.find(c => c.id === planGroup.inputData?.health_goal)
+          
+          return (
+            <Card key={index} className="p-4 bg-card border border-border/50 rounded-[5px] bg-[#1a1a1a]/50">
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  {/* to be checked */}
+                  <span className="text-2xl"></span>
+                  <div>
+                    <h4 className="font-semibold text-sm text-foreground mb-0.5">
+                      {category?.name || "Meal Plan"}
+                    </h4>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-muted-foreground">
+                        {new Date(planGroup.created_at).toLocaleDateString('en-US', { 
+                          month: 'short', 
+                          day: 'numeric',
+                          year: 'numeric'
+                        })}
+                      </span>
+                      <Badge className="bg-transparent text-[#c9fa5f] text-xs h-5 rounded-[5px]">
+                        {planGroup.plans.length} days
+                      </Badge>
+                    </div>
                   </div>
-                  <Badge className="bg-[#c9fa5f]/20 text-[#c9fa5f] border-[#c9fa5f]/30 text-xs">
-                    {planGroup.length} days
-                  </Badge>
                 </div>
-                
-                <div className="space-y-3">
-                  {planGroup.slice(0, 2).map((day: any, dayIndex: number) => (
-                    <div key={dayIndex} className="border-l-2 border-[#c9fa5f]/30 pl-3">
-                      <h4 className="font-semibold text-sm text-foreground mb-2">{day.day}</h4>
-                      <div className="space-y-1 text-xs text-muted-foreground">
-                        <div className="flex items-center gap-2">
-                          <span>🌅</span>
-                          <span>{day.breakfast.name}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span>☀️</span>
-                          <span>{day.lunch.name}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <span>🌙</span>
-                          <span>{day.dinner.name}</span>
-                        </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setGeneratedPlan(planGroup.plans)
+                    setSelectedCategory(planGroup.inputData?.health_goal)
+                    setView("generated")
+                    setShowSaved(false)
+                  }}
+                  className="h-8 px-3 text-xs bg-[#c9fa5f] text-black rounded-[5px]"
+                >
+                  View
+                </Button>
+              </div>
+              
+              <div className="space-y-3">
+                {planGroup.plans.slice(0, 2).map((day: any, dayIndex: number) => (
+                  <div key={dayIndex} className="border-l-2 border-[#c9fa5f] pl-3">
+                    <h5 className="font-semibold text-xs text-foreground mb-1.5">{day.day}</h5>
+                    <div className="space-y-1 text-xs text-muted-foreground">
+                      <div className="flex items-center gap-2">
+                        <span>Breakfast:</span>
+                        <span className="truncate">{day.breakfast.name}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span>Lunch:</span>
+                        <span className="truncate">{day.lunch.name}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span>Dinner:</span>
+                        <span className="truncate">{day.dinner.name}</span>
                       </div>
                     </div>
-                  ))}
-                  
-                  {planGroup.length > 2 && (
-                    <div className="text-xs text-center text-muted-foreground pt-2 border-t border-border/30">
-                      +{planGroup.length - 2} more days
-                    </div>
-                  )}
-                </div>
-              </Card>
-            ))
-          )}
-        </div>
+                  </div>
+                ))}
+                
+                {planGroup.plans.length > 2 && (
+                  <div className="text-xs text-center text-muted-foreground pt-2 border-t border-border/30">
+                    +{planGroup.plans.length - 2} more days
+                  </div>
+                )}
+              </div>
+            </Card>
+          )
+        })
       )}
+    </div>
+  </div>
+)}
+
 
       {/* Recipe Modal */}
       {selectedRecipe && (
@@ -705,7 +1049,7 @@ export function MealPlannerEnhanced() {
                 <p className="text-sm text-muted-foreground">{selectedRecipe.day}</p>
               </div>
 
-              <div className="bg-muted/30 rounded-xl p-4 border border-border/30">
+              <div className="bg-[#c9fa5f]/10 rounded-[5px] p-4 border border-border/30">
                 <h5 className="font-semibold text-sm text-foreground mb-2">Cooking Time</h5>
                 <p className="text-sm text-muted-foreground">25-30 minutes</p>
               </div>
@@ -780,7 +1124,7 @@ export function MealPlannerEnhanced() {
                 </ol>
               </div>
 
-              <div className="bg-[#c9fa5f]/10 rounded-xl p-4 border border-[#c9fa5f]/20">
+              <div className="bg-[#c9fa5f]/10 rounded-[5px] p-4 border border-[#c9fa5f]/20">
                 <h5 className="font-semibold text-sm text-foreground mb-2">Nutritional Benefits</h5>
                 <p className="text-sm text-muted-foreground leading-relaxed">
                   Rich in fiber, vitamins, and minerals. Provides sustained energy and supports overall health.
