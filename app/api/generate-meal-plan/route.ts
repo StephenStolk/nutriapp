@@ -19,20 +19,20 @@ export async function POST(request: NextRequest) {
       planDuration,
     } = body
 
-    console.log("[v0] Generating meal plan with preferences:", {
-      cuisinePreferences,
-      healthGoal,
-      planDuration,
-      state,
-    })
+    // console.log("[v0] Generating meal plan with preferences:", {
+    //   cuisinePreferences,
+    //   healthGoal,
+    //   planDuration,
+    //   state,
+    // })
 
     const supabase = createClient();
 
     const { data: { user}, error: userError,} = await supabase.auth.getUser();
 
     console.log("User error:", userError);
-console.log("User data:", user);
-    console.log("Authenticated user:", user);
+// console.log("User data:", user);
+    // console.log("Authenticated user:", user);
 
 
     if(userError || !user) {
@@ -137,7 +137,7 @@ Follow the dietary rules strictly and keep dishes authentic for ${cuisinePrefere
       }),
     })
 
-    console.log("[v0] OpenRouter response status:", response.status)
+    // console.log("[v0] OpenRouter response status:", response.status)
 
     if (!response.ok) {
       const errorText = await response.text()
@@ -146,7 +146,7 @@ Follow the dietary rules strictly and keep dishes authentic for ${cuisinePrefere
     }
 
     const data = await response.json()
-    console.log("[v0] OpenRouter response received successfully")
+    // console.log("[v0] OpenRouter response received successfully")
 
     const content = data.choices?.[0]?.message?.content
     if (!content) {
@@ -160,7 +160,7 @@ Follow the dietary rules strictly and keep dishes authentic for ${cuisinePrefere
       const jsonString = jsonMatch ? jsonMatch[0] : content
       mealPlanData = JSON.parse(jsonString)
     } catch (parseError) {
-      console.log("[v0] JSON parse error, creating fallback meal plan")
+      // console.log("[v0] JSON parse error, creating fallback meal plan")
       mealPlanData = {
         mealPlan: Array.from({ length: Number.parseInt(planDuration) || 3 }, (_, i) => {
           const diet = (dietLifestyle || "").toLowerCase()
@@ -214,7 +214,7 @@ Follow the dietary rules strictly and keep dishes authentic for ${cuisinePrefere
         const { error: plansError} = await supabase.from("generated_meal_plans").insert(rows);
 
          if (plansError) {
-        console.log("Failed to save generated meal plans in table:", plansError);
+        // console.log("Failed to save generated meal plans in table:", plansError);
         
       }
       }

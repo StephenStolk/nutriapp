@@ -99,7 +99,7 @@ export function QuickMeals() {
   }
 
   const { plan, loading, refreshSubscription } = useSubscription()
-  console.log(plan)
+  // console.log(plan)
 
   const canUseRecipeIdea = plan?.plan_name === "Pro Plan" || (plan?.plan_name === "Free" && !plan?.used_get_recipe)
 

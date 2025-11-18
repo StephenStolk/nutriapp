@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json()
     const { mealName, cuisinePreferences, cookingTime } = body
 
-    console.log("[v0] Generating recipe for:", mealName)
+    // console.log("[v0] Generating recipe for:", mealName)
 
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
@@ -62,16 +62,16 @@ export async function POST(request: NextRequest) {
       }),
     })
 
-    console.log("[v0] Recipe API response status:", response.status)
+    // console.log("[v0] Recipe API response status:", response.status)
 
     if (!response.ok) {
       const errorText = await response.text()
-      console.log("[v0] OpenRouter API error details:", errorText)
+      // console.log("[v0] OpenRouter API error details:", errorText)
       throw new Error(`OpenRouter API error: ${response.status} - ${errorText}`)
     }
 
     const data = await response.json()
-    console.log("[v0] Recipe generated successfully")
+    // console.log("[v0] Recipe generated successfully")
 
     const recipe = data.choices[0]?.message?.content
     if (!recipe) {

@@ -443,7 +443,7 @@ const areHabitsComplete = totalHabitsToday > 0 && completedHabitsToday === total
   }
 
   const toggleHabit = async (habitId: string) => {
-    console.log("toggleHabit called for", { habitId, userId })
+    // console.log("toggleHabit called for", { habitId, userId })
     const isLocalBuiltIn = typeof habitId === "string" && habitId.startsWith("builtin-")
 
     try {
@@ -469,7 +469,7 @@ const areHabitsComplete = totalHabitsToday > 0 && completedHabitsToday === total
           color: local?.color ?? "bg-primary",
         }
 
-        console.log("creating DB habit for builtin:", payloadHabit)
+        // console.log("creating DB habit for builtin:", payloadHabit)
 
         const { data: created, error: createErr } = await supabase
           .from("habits")
@@ -477,7 +477,7 @@ const areHabitsComplete = totalHabitsToday > 0 && completedHabitsToday === total
           .select()
           .single()
 
-        console.log("create habit result:", { created, createErr })
+        // console.log("create habit result:", { created, createErr })
         if (createErr) {
           return toggleHabitLocalFallback(habitId)
         }
@@ -503,7 +503,7 @@ const areHabitsComplete = totalHabitsToday > 0 && completedHabitsToday === total
       }
 
       if (!userId) {
-        console.log("no userId — using local fallback")
+        // console.log("no userId — using local fallback")
         return toggleHabitLocalFallback(habitId)
       }
 
@@ -517,7 +517,7 @@ const areHabitsComplete = totalHabitsToday > 0 && completedHabitsToday === total
         .eq("date", theDate)
         .limit(1)
 
-      console.log("select habit_log result:", { existingArr, selectErr })
+      // console.log("select habit_log result:", { existingArr, selectErr })
 
       if (selectErr) {
         console.error("select habit_logs error", selectErr)
@@ -558,19 +558,19 @@ const areHabitsComplete = totalHabitsToday > 0 && completedHabitsToday === total
       }
 
       const { data: authData } = await supabase.auth.getUser()
-      console.log("auth.uid() =", authData?.user?.id)
-      console.log("payload.user_id =", userId)
+      // console.log("auth.uid() =", authData?.user?.id)
+      // console.log("payload.user_id =", userId)
 
-      console.log("inserting habit_log payload:", payload)
+      // console.log("inserting habit_log payload:", payload)
       const { data: inserted, error: insertErr } = await supabase.from("habit_logs").insert([payload]).select()
 
-      console.log("insert result:", { inserted, insertErr })
+      // console.log("insert result:", { inserted, insertErr })
 
       if (insertErr) {
         console.warn("insertErr — trying upsert", insertErr)
         const { data: upserted, error: upsertErr } = await supabase.from("habit_logs").upsert([payload]).select()
 
-        console.log("upsert result:", { upserted, upsertErr })
+        // console.log("upsert result:", { upserted, upsertErr })
         if (upsertErr) {
           console.error("upsert also failed", upsertErr)
           return

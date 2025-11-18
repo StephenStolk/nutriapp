@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
     if(insertError) {
       console.error("[error] Supabase insert error", insertError);
     } else {
-      console.log("[v0] Inserted food log successfully");
+      // console.log("[v0] Inserted food log successfully");
     }
 
     return NextResponse.json(fallbackData);
@@ -76,8 +76,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Image and meal type are required" }, { status: 400 })
     }
 
-    console.log("[v0] Starting food analysis for meal type:", mealType)
-    console.log("[v0] Image data length:", image.length)
+    // console.log("[v0] Starting food analysis for meal type:", mealType)
+    // console.log("[v0] Image data length:", image.length)
 
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
@@ -134,7 +134,7 @@ If you include markdown, do NOT use tables. No extra commentary outside JSON.`,
       }),
     })
 
-    console.log("[v0] OpenRouter response status:", response.status)
+    // console.log("[v0] OpenRouter response status:", response.status)
 
     if (!response.ok) {
       const errorText = await response.text()
@@ -143,7 +143,7 @@ If you include markdown, do NOT use tables. No extra commentary outside JSON.`,
     }
 
     const data = await response.json()
-    console.log("[v0] OpenRouter response data:", data)
+    // console.log("[v0] OpenRouter response data:", data)
 
     const content = data.choices?.[0]?.message?.content
     if (!content) throw new Error("No response from AI model")
@@ -212,10 +212,10 @@ If you include markdown, do NOT use tables. No extra commentary outside JSON.`,
     if(insertError) {
       console.error("[error] Supabase insert error", insertError);
     } else {
-      console.log("[v0] Inserted food log successfully");
+      // console.log("[v0] Inserted food log successfully");
     }
 
-    console.log("[v0] Final nutrition data:", nutritionData)
+    // console.log("[v0] Final nutrition data:", nutritionData)
     return NextResponse.json(nutritionData)
   } catch (error) {
     //console.error("[v0] Food analysis error:", error)
@@ -257,7 +257,7 @@ If you include markdown, do NOT use tables. No extra commentary outside JSON.`,
     if(insertError) {
       console.error("[error] Supabase insert error", insertError);
     } else {
-      console.log("[v0] Inserted food log successfully");
+      // console.log("[v0] Inserted food log successfully");
     }
 
     return NextResponse.json(fallbackData);
