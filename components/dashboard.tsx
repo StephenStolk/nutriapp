@@ -900,7 +900,7 @@ const areHabitsComplete = totalHabitsToday > 0 && completedHabitsToday === total
           </div>
 
           <div className="relative">
-            <svg className="w-24 h-24 transform -rotate-90" viewBox="0 0 120 120">
+            <svg className="w-28 h-28 transform -rotate-90" viewBox="0 0 120 120">
               <circle
                 cx="60"
                 cy="60"
@@ -908,7 +908,7 @@ const areHabitsComplete = totalHabitsToday > 0 && completedHabitsToday === total
                 stroke="currentColor"
                 strokeWidth="6"
                 fill="none"
-                className="text-muted/20"
+                className="text-muted/30"
               />
               <circle
                 cx="60"
