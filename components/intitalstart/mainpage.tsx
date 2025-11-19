@@ -18,7 +18,7 @@ const MainPage = () => {
     if(!user){
       router.push('/signup');
     }
-    router.push(`/${userId}/nutrition`)
+    router.replace(`/${userId}/nutrition`)
   }
 
   useEffect(() => {

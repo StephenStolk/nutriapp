@@ -443,7 +443,7 @@ export default function CalorieCalculatorModal({ isOpen, onClose, onSave }: Calo
                 </div>
               </div>
 
-              <Button onClick={calculateCalories} disabled={!isFormValid} className="w-full h-10 rounded-[5px]" size="default">
+              <Button onClick={calculateCalories} disabled={!isFormValid} className="w-full h-10 rounded-[5px] mb-8" size="default">
                 <Calculator className="h-4 w-4 mr-2" />
                 <span className="text-sm">Calculate My Daily Calories</span>
               </Button>
@@ -451,7 +451,7 @@ export default function CalorieCalculatorModal({ isOpen, onClose, onSave }: Calo
           ) : (
             <div className="space-y-4">
               {/* Main Result */}
-              <div className="text-center space-y-2 p-4 bg-primary/5 rounded-lg">
+              <div className="text-center space-y-2 p-4 bg-primary/5 rounded-[5px]">
                 <h4 className="text-base font-semibold text-foreground">Your Daily Calorie Target</h4>
                 <div className="text-2xl font-bold text-primary">{result.goalCalories} kcal</div>
                 <div className="text-xs text-muted-foreground">
@@ -477,17 +477,17 @@ export default function CalorieCalculatorModal({ isOpen, onClose, onSave }: Calo
                 </div>
 
                 <div className="grid grid-cols-3 gap-2">
-                  <div className="text-center p-2 bg-blue-50 rounded">
+                  <div className="text-center rounded-[5px] bg-gradient-to-br from-[#c9fa5f]/10 via-[#c9fa5f]/5 to-transparent border-2 border-[#c9fa5f]/10 hover:border-[#c9fa5f]/60 transition-all backdrop-blur-sm p-2 ">
                     <div className="text-xs text-muted-foreground">Protein</div>
                     <div className="text-sm font-semibold">{result.macros.protein.grams}g</div>
                     <div className="text-xs text-muted-foreground">{result.macros.protein.calories} kcal</div>
                   </div>
-                  <div className="text-center p-2 bg-green-50 rounded">
+                  <div className="text-center p-2 rounded-[5px] bg-gradient-to-br from-[#c9fa5f]/10 via-[#c9fa5f]/5 to-transparent border-2 border-[#c9fa5f]/10 hover:border-[#c9fa5f]/60 transition-all backdrop-blur-sm">
                     <div className="text-xs text-muted-foreground">Carbs</div>
                     <div className="text-sm font-semibold">{result.macros.carbs.grams}g</div>
                     <div className="text-xs text-muted-foreground">{result.macros.carbs.calories} kcal</div>
                   </div>
-                  <div className="text-center p-2 bg-orange-50 rounded">
+                  <div className="text-center p-2 rounded-[5px] bg-gradient-to-br from-[#c9fa5f]/10 via-[#c9fa5f]/5 to-transparent border-2 border-[#c9fa5f]/10 hover:border-[#c9fa5f]/60 transition-all backdrop-blur-sm">
                     <div className="text-xs text-muted-foreground">Fat</div>
                     <div className="text-sm font-semibold">{result.macros.fat.grams}g</div>
                     <div className="text-xs text-muted-foreground">{result.macros.fat.calories} kcal</div>
@@ -525,16 +525,16 @@ export default function CalorieCalculatorModal({ isOpen, onClose, onSave }: Calo
 
               {/* Action Buttons */}
               <div className="flex flex-col space-y-2 pt-2">
-                <Button onClick={handleSave} className="w-full h-9" size="default">
+                <Button onClick={handleSave} className="w-full h-9 rounded-[5px]" size="default">
                   <span className="text-sm">Use This Goal</span>
                 </Button>
-                <Button variant="outline" onClick={() => setResult(null)} className="w-full h-9" size="default">
+                <Button variant="outline" onClick={() => setResult(null)} className="w-full h-9 rounded-[5px]" size="default">
                   <span className="text-sm">Recalculate</span>
                 </Button>
               </div>
 
               {/* Call to Action */}
-              <div className="text-center p-3 bg-primary/5 rounded-lg">
+              <div className="text-center p-3 bg-[#c9fa5f]/10 rounded-[5px] mb-8">
                 <p className="text-xs text-muted-foreground">
                   Want a personalized meal plan that matches this breakdown?
                 </p>

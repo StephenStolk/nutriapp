@@ -509,7 +509,7 @@ const removePlan = async (inputId: string) => {
   const category = PLANNER_CATEGORIES.find(c => c.id === selectedCategory)
 
   return (
-    <div className="space-y-4 px-2 pb-20">
+    <div className="space-y-4 px-1 pb-20">
       {/* Header */}
       <div className="text-center space-y-1">
         <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto">
@@ -706,7 +706,13 @@ const removePlan = async (inputId: string) => {
                   className={`p-2 cursor-pointer border-2 ${cat.borderColor} bg-card hover:border-[#c9fa5f] hover:shadow-lg transition-all duration-300`}
                   onClick={() => handleCategorySelect(cat.id)}
                 >
-                  <div className="flex h-24 items-center gap-2 border border-white/5 rounded-[5px] p-2 bg-gray-700/5">
+                  <div className=" flex h-24 items-center gap-1 p-2
+    rounded-[5px]
+    bg-gradient-to-br from-[#c9fa5f]/10 via-[#c9fa5f]/5 to-transparent
+    border-2 border-[#c9fa5f]/10
+    backdrop-blur-sm
+    transition-all
+    hover:border-[#c9fa5f]/60">
                    <div className="text-md text-white ml-1">
   {cat.icon ? <cat.icon /> : null}
 </div>

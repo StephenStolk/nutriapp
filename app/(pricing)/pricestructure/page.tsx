@@ -88,6 +88,30 @@ export default function Pricing() {
   }, [user]);
 
   const handlePayment = async () => {
+     if (!user) return;
+
+  // 1. Check if user email is verified
+//   // 1. Check if user email is verified
+// if (!user.email_confirmed_at) {
+//   const res = await fetch("/api/send-verification-email", {
+//     method: "POST",
+//     headers: { "Content-Type": "application/json" },
+//     body: JSON.stringify({ email: user.email }),
+//   });
+
+//   const data = await res.json();
+
+//   if (!data.success) {
+//     setMessage("Could not send verification email.");
+//     return;
+//   }
+
+//   setMessage(
+//     "We sent you a verification email. Please verify your email to continue with payment."
+//   );
+//   return;
+// }
+
     try {
       setLoad(true);
       setMessage("");
@@ -169,7 +193,7 @@ export default function Pricing() {
 
       setMessage("Free plan activated. Enjoy basic features!");
       setPlan({ plan: "Free", is_active: true, remaining_uses: 1 });
-      router.push(`/${userId}/nutrition`);
+      router.replace(`/${userId}/nutrition`);
     } catch (err) {
       console.error(err);
       setMessage("❌ Could not activate free plan.");

@@ -36,7 +36,7 @@ export default function SignInPage() {
       return;
     }
 
-    router.push("/pricestructure");
+    router.replace("/pricestructure");
   };
 
   const handleGoogleSignIn = async () => {

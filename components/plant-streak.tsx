@@ -256,12 +256,12 @@ export function PlantStreak({ habitsCompleted, caloriesOnTarget, totalHabits, co
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-xl bg-[#c9fa5f] flex items-center justify-center text-white m-auto">
-  <StreakLightningIcon className="w-5 h-5" />
+            <div className="w-10 h-10 rounded-xl bg-[#c9fa5f] flex items-center justify-center text-white m-auto">
+  <StreakLightningIcon className="w-5 h-5 text-semibold" />
 </div>
 
             <div>
-              <h3 className="text-base font-bold text-foreground flex items-center gap-2 mt-8">
+              <h3 className="text-base font-semibold text-foreground flex items-center gap-2 mt-8">
                 Growth Streak
                 <Badge className="bg-[#c9fa5f] text-black font-bold px-2 py-0.5 text-xs rounded-[5px]">
                   <Flame className="h-3 w-3 mr-1" />

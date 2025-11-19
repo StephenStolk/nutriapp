@@ -268,7 +268,18 @@ export function TodoList({ onOpenJournal }: { onOpenJournal?: () => void }) {
 
       <div className="px-3 space-y-2">
         {pendingTodos.map((todo) => (
-          <Card key={todo.id} className="bg-card border p-3">
+         <Card
+  key={todo.id}
+  className="
+    mt-1 flex h-24 items-center gap-2 p-3
+    rounded-[5px]
+    bg-gradient-to-br from-[#c9fa5f]/10 via-[#c9fa5f]/5 to-transparent
+    border-2 border-[#c9fa5f]/10
+    backdrop-blur-sm
+    transition-all
+    hover:border-[#c9fa5f]/60
+  "
+>
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2.5 flex-1">
                 <button

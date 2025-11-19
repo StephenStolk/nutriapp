@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { MeditationTimer } from "@/components/meditation-timer"
 import CalorieCalculatorModal from "./calorie-calculator-modal"
-import { Plus, Coffee, Utensils, Cookie, Target, TrendingUp, Apple, Settings, CheckCircle2, Circle, Dumbbell, Bed, Clock, Heart, X, Brain, Droplets, BookOpen, Smile, Sun } from 'lucide-react'
+import { Plus, Coffee, Utensils, Cookie, Target, TrendingUp, Apple, Settings, CheckCircle2, Circle, Dumbbell, Bed, Clock, Heart, X, Brain, Droplets, BookOpen, Smile, Sun, Battery, Cloud } from 'lucide-react'
 import { useState, useEffect } from "react"
 import type { User } from "@supabase/supabase-js"
 import { createClient } from "@/lib/supabase/client"
@@ -15,6 +15,17 @@ import { useSubscription } from "@/hooks/use-subscription"
 import { useRouter } from 'next/navigation'
 import { InsightsTracker } from "./insights-tracker"
 import { PlantStreak } from "./plant-streak"
+import { MoodPicker } from "@/components/mood-picker"
+import { CravingTracker } from "@/components/craving-tracker"
+import { HungerCheck } from "@/components/hunger-check"
+import { HelpCircle } from 'lucide-react'
+import { PsychologyInsights } from "@/components/psychology-insights"
+import { BodyBattery } from "@/components/body-battery"
+import { NutritionPersonalityQuiz } from "@/components/nutrition-personality-quiz"
+import { WordCloud } from "@/components/word-cloud"
+import { FoodConsistencyRadar } from "@/components/food-consistency-radar"
+import { MicroWinsTracker } from "@/components/micro-wins-tracker"
+import { BarChart3, Users } from "lucide-react"
 
 interface LoggedFood {
   id: string
@@ -83,11 +94,42 @@ export function Dashboard({ onAddFood }: DashboardProps) {
   const [historyFor, setHistoryFor] = useState<"breakfast" | "lunch" | "dinner" | "snacks" | null>(null)
   const [weeklyConsumption, setWeeklyConsumption] = useState<number[]>([0, 0, 0, 0, 0, 0, 0])
   const [weeklyHabitCount, setWeeklyHabitCount] = useState<number[]>([0, 0, 0, 0, 0, 0, 0])
+
+  const [showMoodPicker, setShowMoodPicker] = useState(false)
+const [showCravingTracker, setShowCravingTracker] = useState(false)
+const [showHungerCheck, setShowHungerCheck] = useState(false)
+const [lastFoodLogId, setLastFoodLogId] = useState<string | null>(null)
+const [todayStressLevel, setTodayStressLevel] = useState<string | null>(null)
+
+
+const [showPsychologyInsights, setShowPsychologyInsights] = useState(false)
+const [showBodyBattery, setShowBodyBattery] = useState(false)
+const [showPersonalityQuiz, setShowPersonalityQuiz] = useState(false)
+const [showWordCloud, setShowWordCloud] = useState(false)
+const [showConsistencyRadar, setShowConsistencyRadar] = useState(false)
+
   const router = useRouter()
   const { user, userId, loading } = useUser()
   const { plan } = useSubscription()
 
   const supabase = createClient()
+
+
+  const addMicroWin = async (type: string, description: string) => {
+  if (!userId) return
+  try {
+    await supabase.from('micro_wins').insert({
+      user_id: userId,
+      win_type: type,
+      description,
+      points: 1,
+    })
+    // Optional: Show toast notification
+  } catch (error) {
+    console.error('Error adding micro-win:', error)
+  }
+}
+
   useEffect(() => {
     if (!userId || loading) return
 
@@ -196,43 +238,97 @@ export function Dashboard({ onAddFood }: DashboardProps) {
   }, [])
 
   useEffect(() => {
-    const fetchFoodLogs = async () => {
-      if (!userId) return
-      const supabase = createClient()
+  const fetchFoodLogs = async () => {
+    if (!userId) return
+    const supabase = createClient()
 
-      try {
-        const { data, error } = await supabase
-          .from("food_logs")
-          .select("id, meal_type, calories, protein, carbs, fat, created_at")
-          .eq("user_id", userId)
-          .order("created_at", { ascending: false })
+    try {
+      const { data, error } = await supabase
+        .from("food_logs")
+        .select("id, meal_type, calories, protein, carbs, fat, created_at")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
 
-        if (error) {
-          console.error("Error fetching food logs:", error)
-          return
-        }
-
-        if (data) {
-          const formatted = data.map((item) => ({
-            id: item.id,
-            name: `${item.meal_type.charAt(0).toUpperCase() + item.meal_type.slice(1)} meal`,
-            calories: Number(item.calories) || 0,
-            protein: Number(item.protein) || 0,
-            carbs: Number(item.carbs) || 0,
-            fat: Number(item.fat) || 0,
-            mealType: item.meal_type as "breakfast" | "lunch" | "dinner" | "snacks",
-            timestamp: new Date(item.created_at),
-          })) as LoggedFood[]
-
-          setLoggedFoods(formatted)
-        }
-      } catch (err) {
-        console.error("Unexpected error fetching food logs:", err)
+      if (error) {
+        console.error("Error fetching food logs:", error)
+        return
       }
-    }
 
-    fetchFoodLogs()
-  }, [userId])
+      if (data) {
+        const formatted = data.map((item) => ({
+          id: item.id,
+          name: `${item.meal_type.charAt(0).toUpperCase() + item.meal_type.slice(1)} meal`,
+          calories: Number(item.calories) || 0,
+          protein: Number(item.protein) || 0,
+          carbs: Number(item.carbs) || 0,
+          fat: Number(item.fat) || 0,
+          mealType: item.meal_type as "breakfast" | "lunch" | "dinner" | "snacks",
+          timestamp: new Date(item.created_at),
+        })) as LoggedFood[]
+
+        setLoggedFoods(formatted)
+
+        // Micro-win detection for today's meals
+        const todayString = new Date().toDateString()
+        const todayMeals = formatted.filter(f => new Date(f.timestamp).toDateString() === todayString)
+        
+        // Check for 3 balanced meals
+        const uniqueMealTypes = new Set(todayMeals.map(m => m.mealType).filter(type => type !== 'snacks'))
+        if (uniqueMealTypes.size === 3) {
+          // Check if we already awarded this win today
+          const { data: existingWin } = await supabase
+            .from('micro_wins')
+            .select('id')
+            .eq('user_id', userId)
+            .eq('win_type', 'balanced_meals')
+            .gte('created_at', `${new Date().toISOString().split('T')[0]}T00:00:00`)
+            .single()
+
+          if (!existingWin) {
+            await addMicroWin('balanced_meals', 'Logged 3 balanced meals today!')
+          }
+        }
+
+        // Check for high protein intake
+        const totalProtein = todayMeals.reduce((sum, m) => sum + m.protein, 0)
+        if (totalProtein >= 100) {
+          const { data: existingWin } = await supabase
+            .from('micro_wins')
+            .select('id')
+            .eq('user_id', userId)
+            .eq('win_type', 'high_protein')
+            .gte('created_at', `${new Date().toISOString().split('T')[0]}T00:00:00`)
+            .single()
+
+          if (!existingWin) {
+            await addMicroWin('high_protein', 'Hit 100g+ protein today!')
+          }
+        }
+
+        // Check for staying within calorie goal
+        const totalCalories = todayMeals.reduce((sum, m) => sum + m.calories, 0)
+        if (totalCalories >= dailyGoal * 0.8 && totalCalories <= dailyGoal * 1.2) {
+          const { data: existingWin } = await supabase
+            .from('micro_wins')
+            .select('id')
+            .eq('user_id', userId)
+            .eq('win_type', 'calorie_target')
+            .gte('created_at', `${new Date().toISOString().split('T')[0]}T00:00:00`)
+            .single()
+
+          if (!existingWin) {
+            await addMicroWin('calorie_target', 'Stayed within calorie goal!')
+          }
+        }
+      }
+    } catch (err) {
+      console.error("Unexpected error fetching food logs:", err)
+    }
+  }
+
+  fetchFoodLogs()
+}, [userId, dailyGoal])
+
 
   useEffect(() => {
     if (!userId) return
@@ -497,6 +593,7 @@ const areHabitsComplete = totalHabitsToday > 0 && completedHabitsToday === total
 
         setHabits(updatedHabits)
 
+
         try {
           localStorage.setItem("habits", JSON.stringify(updatedHabits))
         } catch {}
@@ -600,6 +697,31 @@ const areHabitsComplete = totalHabitsToday > 0 && completedHabitsToday === total
         toggleHabitLocalFallback(habitId)
       } catch {}
     }
+
+
+     // At the very end of the function, after all the habit toggling logic:
+  try {
+    // Check if all habits are now completed
+    const updatedTodayLogs = habitLogs.filter((log) => log.date === todayISO)
+    const completedCount = updatedTodayLogs.filter((log) => log.completed).length
+    
+    if (completedCount === habits.length && habits.length > 0) {
+      // Check if we already awarded this win today
+      const { data: existingWin } = await supabase
+        .from('micro_wins')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('win_type', 'all_habits')
+        .gte('created_at', `${todayISO}T00:00:00`)
+        .single()
+
+      if (!existingWin) {
+        await addMicroWin('all_habits', 'Completed all habits today!')
+      }
+    }
+  } catch (e) {
+    // Silently fail - micro-win is bonus, not critical
+  }
   }
 
   const toggleHabitLocalFallback = (habitId: string) => {
@@ -733,12 +855,14 @@ const areHabitsComplete = totalHabitsToday > 0 && completedHabitsToday === total
     localStorage.setItem("daily-calorie-goal", calories.toString())
   }
 
+  
+
   const handleManageSubscription = () => {
     router.push("/pricestructure")
   }
 
   return (
-    <div className="space-y-2 animate-slide-up px-2">
+    <div className="space-y-2 animate-slide-up px-1">
       <div className="text-start">
         <div className="flex items-center justify-between">
           <div className="leading-tight">
@@ -1220,6 +1344,76 @@ const areHabitsComplete = totalHabitsToday > 0 && completedHabitsToday === total
   completedHabits={completedHabitsToday}
 />
 
+{/* Psychology Dashboard Card */}
+<Card className="p-4 bg-gradient-to-br from-card to-muted/30 border-[#c9fa5f]/20">
+  <div className="flex items-center justify-between mb-3">
+    <div className="flex items-center gap-3">
+      <div className="w-10 h-10 rounded-xl bg-[#c9fa5f] flex items-center justify-center">
+        <Brain className="h-4 w-4 text-black" />
+      </div>
+      <div>
+        <h3 className="text-md font-semibold text-foreground mt-2">Psychology Tools</h3>
+        <p className="text-sm text-muted-foreground">Understand your patterns</p>
+      </div>
+    </div>
+  </div>
+
+  <div className="grid grid-cols-2 gap-2 rounded-[5px]">
+    <Button
+      variant="outline"
+      size="sm"
+      onClick={() => setShowPsychologyInsights(true)}
+      className="h-auto py-3 flex flex-col items-center gap-1 hover:bg-[#c9fa5f]/10 hover:border-[#c9fa5f]/30 rounded-[5px]"
+    >
+      <BarChart3 className="h-4 w-4 text-[#c9fa5f]" />
+      <span className="text-xs">Insights</span>
+    </Button>
+
+    <Button
+      variant="outline"
+      size="sm"
+      onClick={() => setShowBodyBattery(true)}
+      className="h-auto py-3 flex flex-col items-center gap-1 hover:bg-[#c9fa5f]/10 hover:border-[#c9fa5f]/30 rounded-[5px]"
+    >
+      <Battery className="h-4 w-4 text-[#c9fa5f]" />
+      <span className="text-xs">Body Battery</span>
+    </Button>
+
+    <Button
+      variant="outline"
+      size="sm"
+      onClick={() => setShowPersonalityQuiz(true)}
+      className="h-auto py-3 flex flex-col items-center gap-1 hover:bg-[#c9fa5f]/10 hover:border-[#c9fa5f]/30 rounded-[5px]"
+    >
+      <Users className="h-4 w-4 text-[#c9fa5f]" />
+      <span className="text-xs">Personality</span>
+    </Button>
+
+    <Button
+      variant="outline"
+      size="sm"
+      onClick={() => setShowWordCloud(true)}
+      className="h-auto py-3 flex flex-col items-center gap-1 hover:bg-[#c9fa5f]/10 hover:border-[#c9fa5f]/30 rounded-[5px]"
+    >
+      <Cloud className="h-4 w-4 text-[#c9fa5f]" />
+      <span className="text-xs">Triggers</span>
+    </Button>
+  </div>
+
+  <Button
+    variant="ghost"
+    size="sm"
+    onClick={() => setShowConsistencyRadar(true)}
+    className="w-full mt-2 text-xs hover:bg-[#c9fa5f]/10"
+  >
+    <TrendingUp className="h-3 w-3 mr-1" />
+    View Consistency Radar
+  </Button>
+</Card>
+
+{/* Micro Wins Tracker */}
+<MicroWinsTracker />
+
 
       {habits.length > 0 && (
   <Card className="p-4 shadow-sm border-0 rounded-xl bg-card">
@@ -1396,6 +1590,63 @@ const areHabitsComplete = totalHabitsToday > 0 && completedHabitsToday === total
         onClose={() => setIsCalorieCalculatorOpen(false)}
         onSave={handleCalorieCalculatorSave}
       />
+
+      {/* Floating Action Buttons */}
+<div className="fixed bottom-24 right-4 flex flex-col gap-3 z-40">
+  <Button
+    onClick={() => setShowHungerCheck(true)}
+    className="w-14 h-14 rounded-full bg-[#c9fa5f] text-black hover:bg-[#b8e954] shadow-lg"
+    title="Am I Hungry?"
+  >
+    <HelpCircle className="h-8 w-8" />
+  </Button>
+  <Button
+    onClick={() => setShowCravingTracker(true)}
+    className="w-14 h-14 rounded-full bg-card border-2 border-[#c9fa5f]/30 hover:bg-muted shadow-lg"
+    title="Log Craving"
+  >
+    <Cookie className="h-8 w-8 text-[#c9fa5f]" />
+  </Button>
+</div>
+
+{/* Modals */}
+<MoodPicker
+  isOpen={showMoodPicker}
+  onClose={() => setShowMoodPicker(false)}
+  onSelect={async (mood) => {
+    if (userId && lastFoodLogId) {
+      await supabase.from("mood_logs").insert({
+        user_id: userId,
+        food_log_id: lastFoodLogId,
+        mood,
+      })
+    }
+  }}
+/>
+<CravingTracker isOpen={showCravingTracker} onClose={() => setShowCravingTracker(false)} />
+<HungerCheck isOpen={showHungerCheck} onClose={() => setShowHungerCheck(false)} />
+
+
+  <PsychologyInsights 
+  isOpen={showPsychologyInsights} 
+  onClose={() => setShowPsychologyInsights(false)} 
+/>
+<BodyBattery 
+  isOpen={showBodyBattery} 
+  onClose={() => setShowBodyBattery(false)} 
+/>
+<NutritionPersonalityQuiz 
+  isOpen={showPersonalityQuiz} 
+  onClose={() => setShowPersonalityQuiz(false)} 
+/>
+<WordCloud 
+  isOpen={showWordCloud} 
+  onClose={() => setShowWordCloud(false)} 
+/>
+<FoodConsistencyRadar 
+  isOpen={showConsistencyRadar} 
+  onClose={() => setShowConsistencyRadar(false)} 
+/>
     </div>
   )
 }
