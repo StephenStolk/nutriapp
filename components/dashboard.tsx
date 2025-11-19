@@ -1603,14 +1603,14 @@ const areHabitsComplete = totalHabitsToday > 0 && completedHabitsToday === total
 <div className="fixed bottom-24 right-4 flex flex-col gap-3 z-40">
   <Button
     onClick={() => setShowHungerCheck(true)}
-    className="w-14 h-14 rounded-full bg-[#c9fa5f] text-black hover:bg-[#b8e954] shadow-lg"
+    className="w-10 h-10 rounded-full bg-[#c9fa5f] text-black hover:bg-[#b8e954] shadow-lg"
     title="Am I Hungry?"
   >
     <HelpCircle className="h-8 w-8" />
   </Button>
   <Button
     onClick={() => setShowCravingTracker(true)}
-    className="w-14 h-14 rounded-full bg-card border-2 border-[#c9fa5f]/30 hover:bg-muted shadow-lg"
+    className="w-10 h-10 rounded-full bg-card border-2 border-[#c9fa5f]/30 hover:bg-muted shadow-lg"
     title="Log Craving"
   >
     <Cookie className="h-8 w-8 text-[#c9fa5f]" />
