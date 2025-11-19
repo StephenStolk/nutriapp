@@ -1200,13 +1200,21 @@ const areHabitsComplete = totalHabitsToday > 0 && completedHabitsToday === total
             >
               {/* Make header clickable to open history */}
               <div
-                className="flex items-center justify-between cursor-pointer py-1 px-2 border border-dotted border-white/10 rounded-[5px]"
-                onClick={() => setHistoryFor(mealType as any)}
-                role="button"
-                tabIndex={0}
-                onKeyDown={(e) => e.key === "Enter" && setHistoryFor(mealType as any)}
-                aria-label={`Open ${mealType} history`}
-              >
+  className="
+    flex items-center justify-between cursor-pointer py-1 px-2
+    rounded-[5px]
+    bg-gradient-to-br from-[#c9fa5f]/10 via-[#c9fa5f]/5 to-transparent
+    backdrop-blur-sm
+    transition-all
+    hover:border-[#c9fa5f]/60 hover:shadow-lg
+  "
+  onClick={() => setHistoryFor(mealType as any)}
+  role="button"
+  tabIndex={0}
+  onKeyDown={(e) => e.key === 'Enter' && setHistoryFor(mealType as any)}
+  aria-label={`Open ${mealType} history`}
+>
+
                 <div className="flex items-center space-x-3">
                   <div className="w-10 h-10 rounded-xl bg-[#c9fa5f] flex items-center justify-center">
                     <Icon className="h-4 w-4 text-black" />
