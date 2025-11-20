@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
         "X-Title": "Kalnut Meal Planner",
       },
       body: JSON.stringify({
-        model: "meta-llama/llama-3.3-8b-instruct:free", 
+        model: "nvidia/nemotron-nano-12b-v2-vl:free", 
         messages: [
           {
             role: "system",

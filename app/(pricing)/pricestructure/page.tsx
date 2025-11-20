@@ -274,8 +274,8 @@ useEffect(() => {
 
             {/* USD */}
   <p className="text-lg font-semibold text-white">
-    $2
-    <span className="ml-5 text-sm text-gray-300 line-through">$1</span>
+    $1
+    <span className="ml-5 text-sm text-gray-300 line-through">$2</span>
     <span className="ml-2 text-green-400 text-sm">55% OFF</span>
   </p>
 
