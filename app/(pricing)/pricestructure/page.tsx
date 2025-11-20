@@ -91,7 +91,7 @@ if (loading || subLoading) {
   // Remove the existing useEffect that checks subscription
 // Replace with this:
 const searchParams = useSearchParams();
-const isUpgrading = searchParams.get('upgrade') === 'true';
+
 // useEffect(() => {
 //   if (!user || loading || subLoading) return;
 
@@ -128,13 +128,23 @@ const isUpgrading = searchParams.get('upgrade') === 'true';
 useEffect(() => {
   if (!user || loading) return;
 
+  const isUpgrading = searchParams.get('upgrade') === 'true';
+
   const checkSubscription = async () => {
     try {
-      const { data, error } = await supabase
+
+      if (isUpgrading) return;
+
+      const { data } = await supabase
         .from("user_subscriptions")
         .select("plan_name, is_active")
         .eq("user_id", user.id)
         .maybeSingle();
+
+      // Redirect ONLY if user is active AND not upgrading
+      if (data && data.is_active) {
+        router.replace(`/${userId}/nutrition`);
+      }
 
       // ONLY redirect if they have an ACTIVE subscription
       // This prevents the redirect loop
@@ -148,7 +158,7 @@ useEffect(() => {
   };
 
   checkSubscription();
-}, [user, loading, userId, router, supabase]);
+}, [user, loading, userId, router, supabase, searchParams]);
 
 
   const handlePayment = async () => {
