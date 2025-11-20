@@ -114,6 +114,7 @@ useEffect(() => {
       // Only redirect if they have an active subscription
       if (data && data.is_active) {
         router.replace(`/${userId}/nutrition`);
+        
       }
     } catch (err) {
       console.error("Error checking subscription:", err);
