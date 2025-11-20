@@ -280,26 +280,6 @@ export default function CalorieCalculatorModal({ isOpen, onClose, onSave }: Calo
   const {user, userId} = useUser();
   const supabase = createClient();
 
-  const handleSave = async () => {
-    if (!result) return
-    if(!userId) return;
-
-    const { error } = await supabase.from("user_goals").insert({
-    user_id: userId,
-    daily_goal: result.goalCalories,  
-    effective_from: new Date(), 
-  })
-
-  if (error) {
-    console.error("Error saving goal:", error)
-    return
-  }
-
-      onSave(result.goalCalories)
-      onClose()
-      resetForm()
-  }
-
   const resetForm = () => {
     setFormData({
       age: "",
@@ -316,6 +296,63 @@ export default function CalorieCalculatorModal({ isOpen, onClose, onSave }: Calo
     onClose()
     resetForm()
   }
+
+  const handleSave = async () => {
+  if (!result) return;
+  if (!userId) return;
+
+  try {
+    // 1) check if a goal exists for this user
+    const { data: existing, error: selectError } = await supabase
+      .from("user_goals")
+      .select("id")
+      .eq("user_id", userId)
+      .maybeSingle();
+
+    if (selectError) {
+      console.error("Error checking existing goal:", selectError);
+      return;
+    }
+
+    if (existing && existing.id) {
+      // 2a) update existing row
+      const { error: updateError } = await supabase
+        .from("user_goals")
+        .update({
+          daily_goal: result.goalCalories,
+          effective_from: new Date().toISOString().slice(0, 10), // YYYY-MM-DD
+          // optionally update created_at? usually not
+        })
+        .eq("user_id", userId);
+
+      if (updateError) {
+        console.error("Error updating goal:", updateError);
+        return;
+      }
+    } else {
+      // 2b) insert new row
+      const { error: insertError } = await supabase.from("user_goals").insert({
+        user_id: userId,
+        daily_goal: result.goalCalories,
+        effective_from: new Date().toISOString().slice(0, 10),
+      });
+
+      if (insertError) {
+        console.error("Error inserting goal:", insertError);
+        return;
+      }
+    }
+
+    // success: update UI
+    onSave(result.goalCalories);
+    resetForm();
+     onClose();
+
+  } catch (err) {
+    console.error("Unexpected error saving goal:", err);
+  }
+};
+
 
   if (!isOpen) return null
 

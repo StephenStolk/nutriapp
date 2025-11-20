@@ -49,15 +49,15 @@ export default function Pricing() {
           break;
         case "GBP":
           setSymbol("£");
-          setPrice(2.5);
+          setPrice(2);
           break;
         case "INR":
           setSymbol("₹");
-          setPrice(199);
+          setPrice(89);
           break;
         default:
           setSymbol("$");
-          setPrice(3);
+          setPrice(2);
       }
     } catch (error) {
       console.error("Error fetching location:", error);
