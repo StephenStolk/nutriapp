@@ -50,10 +50,10 @@ export default function SignInPage() {
   // Redirect based on subscription status
   if (subData && subData.is_active) {
     // User has active subscription - go DIRECTLY to dashboard
-    router.replace(`/${data.user.id}/nutrition`);
+    router.push(`/${data.user.id}/nutrition`);
   } else {
     // No subscription or inactive - go to pricing
-    router.replace("/pricestructure");
+    router.push("/pricestructure");
   }
 };
 

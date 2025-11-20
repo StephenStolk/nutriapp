@@ -229,6 +229,7 @@ useEffect(() => {
 
       const razorpay = new (window as any).Razorpay(options);
       razorpay.open();
+
     } catch (err) {
       console.error(err);
       setMessage("[error] Something went wrong during payment.");
@@ -269,7 +270,7 @@ useEffect(() => {
       setPlan({ plan: "Free", is_active: true, remaining_uses: 1 });
 
       await refreshSubscription();
-      router.replace(`/${userId}/nutrition`);
+      router.push(`/${userId}/nutrition`);
     } catch (err) {
       console.error(err);
       setMessage("❌ Could not activate free plan.");
