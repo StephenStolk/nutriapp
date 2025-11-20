@@ -1,33 +1,48 @@
-import { createClient } from '@/lib/supabase/server';
-import { NextResponse } from 'next/server';
+"use client";
 
-export async function GET(request: Request) {
-  const { searchParams, origin } = new URL(request.url);
-  const code = searchParams.get('code');
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { createClient } from "@/lib/supabase/client";
 
-  if (code) {
-    const supabase = createClient();
-    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
-    
-    if (!error && data.user) {
-      // Check if user has a subscription
+export default function AuthCallback() {
+  const router = useRouter();
+  const supabase = createClient();
+
+  useEffect(() => {
+    const processCallback = async () => {
+      const { data: sessionData, error } = await supabase.auth.getSession();
+
+      if (error || !sessionData.session) {
+        router.replace("/signin");
+        return;
+      }
+
+      const user = sessionData.session.user;
+      const userId = user.id;
+
+      // Check subscription
       const { data: subData } = await supabase
-        .from('user_subscriptions')
-        .select('plan_name, is_active')
-        .eq('user_id', data.user.id)
+        .from("user_subscriptions")
+        .select("plan_name, is_active")
+        .eq("user_id", userId)
         .maybeSingle();
 
-      // Redirect based on subscription status
+      // Redirect logic
       if (subData && subData.is_active) {
-        // Active subscription - go to dashboard
-        return NextResponse.redirect(`${origin}/${data.user.id}/nutrition`);
+        router.replace(`/${userId}/nutrition`);
       } else {
-        // No subscription or inactive - go to pricing
-        return NextResponse.redirect(`${origin}/pricestructure`);
+        router.replace("/pricestructure");
       }
-    }
-  }
+    };
 
-  // If there's an error or no code, redirect to signin
-  return NextResponse.redirect(`${origin}/signin`);
+    processCallback();
+  }, [router, supabase]);
+
+  return (
+    <div className="flex items-center justify-center h-screen">
+      <p className="text-sm text-muted-foreground">
+        Logging you in, please wait…
+      </p>
+    </div>
+  );
 }

@@ -2,32 +2,20 @@
 
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
-import { useSubscription } from "@/hooks/use-subscription";
 
 export default function LogoutButton() {
-//   const router = useRouter();
-//   const supabase = createClient();
+  const router = useRouter();
 
-//   const handleLogout = async () => {
-//     // await supabase.auth.signOut();
-//     // router.push("/signin"); // redirect after logout
-//   };
-
-
-   const router = useRouter();
-  const {refreshSubscription} = useSubscription();
   const handleLogout = async () => {
     const supabase = createClient();
-  
-  // Clear subscription cache
-  await refreshSubscription();
-  
-  // Sign out
-  await supabase.auth.signOut();
-  
-  // Navigate to signin
-  router.replace('/signin');
+
+    // Sign out the user
+    await supabase.auth.signOut();
+
+    // Redirect after logout
+    router.replace("/signin");
   };
+
   return (
     <button
       onClick={handleLogout}
