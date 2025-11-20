@@ -8,7 +8,11 @@ import type { JSX } from "react"
 // - paragraphs with **bold**, *italic*, _italic_, and `code` inline
 // - simple links [text](url)
 export function parseMarkdownToJSX(markdown: string): JSX.Element[] {
-  if (!markdown) return []
+  if (typeof markdown !== "string") {
+  console.error("MarkdownRenderer: content is not a string:", markdown);
+  return [];
+}
+
 
   const lines = markdown.split("\n")
   const elements: JSX.Element[] = []

@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Calculator, Target, Activity, User, X, TrendingUp, Apple, Utensils } from "lucide-react"
+import { useUser } from "@/hooks/use-user"
+import { createClient } from "@/lib/supabase/client"
 
 interface CalorieCalculatorModalProps {
   isOpen: boolean
@@ -275,12 +277,27 @@ export default function CalorieCalculatorModal({ isOpen, onClose, onSave }: Calo
 
   const isFormValid = Object.values(formData).every((value) => value !== "")
 
-  const handleSave = () => {
-    if (result) {
+  const {user, userId} = useUser();
+  const supabase = createClient();
+
+  const handleSave = async () => {
+    if (!result) return
+    if(!userId) return;
+
+    const { error } = await supabase.from("user_goals").insert({
+    user_id: userId,
+    daily_goal: result.goalCalories,  
+    effective_from: new Date(), 
+  })
+
+  if (error) {
+    console.error("Error saving goal:", error)
+    return
+  }
+
       onSave(result.goalCalories)
       onClose()
       resetForm()
-    }
   }
 
   const resetForm = () => {

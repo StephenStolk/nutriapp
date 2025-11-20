@@ -18,7 +18,7 @@ const MainPage = () => {
     if(!user){
       router.push('/signup');
     }
-    router.replace(`/${userId}/nutrition`)
+    router.push(`/${userId}/nutrition`)
   }
 
   useEffect(() => {
@@ -29,7 +29,7 @@ const MainPage = () => {
   return (
     <div className="fixed inset-0 w-full h-full overflow-hidden bg-black">
        {message && (
-        <div className="absolute top-15 w-full text-center py-3 backdrop-blur-md text-white text-sm font-medium z-50 ">
+        <div className="absolute top-15 w-full text-center py-3 text-white text-sm font-medium z-50 ">
           {message}
         </div>
       )}

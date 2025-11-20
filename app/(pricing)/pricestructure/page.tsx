@@ -1,3 +1,4 @@
+// app/(pricing)/pricestructure/page.tsx
 "use client";
 
 import { useEffect, useState } from "react";
@@ -67,25 +68,41 @@ export default function Pricing() {
     fetchGeo();
   }, []);
 
-  useEffect(() => {
-    if (!user) return;
+  // Remove the existing useEffect that checks subscription
+// Replace with this:
+useEffect(() => {
+  if (!user || loading) return;
 
-    const fetchSubscription = async () => {
-      try {
-        const res = await fetch("/api/check-subscription");
-        const data = await res.json();
-        setPlan(data);
-
-        if (data.is_active && data.plan !== "Free") {
-          router.push(`/${userId}/nutrition`);
-        }
-      } catch (err) {
-        console.error(err);
+  const checkAndRedirect = async () => {
+    try {
+      // ADD THIS: Check if user is coming to upgrade
+      const searchParams = new URLSearchParams(window.location.search);
+      const isUpgrading = searchParams.get('upgrade') === 'true';
+      
+      // If upgrading, don't redirect - let them stay on pricing page
+      if (isUpgrading) {
+        return;
       }
-    };
 
-    fetchSubscription();
-  }, [user]);
+      const { data, error } = await supabase
+        .from("user_subscriptions")
+        .select("plan_name, is_active")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      // Only redirect if they have an active subscription
+      if (data && data.is_active) {
+        router.push(`/${userId}/nutrition`);
+      }
+    } catch (err) {
+      console.error("Error checking subscription:", err);
+    }
+  };
+
+  checkAndRedirect();
+}, [user, loading, userId, router]);
+
+
 
   const handlePayment = async () => {
      if (!user) return;
@@ -180,11 +197,15 @@ export default function Pricing() {
           plan_name: "Free",
           is_active: true,
           remaining_uses: 1,
-          razorpay_customer_id: null,
-          razorpay_subscription_id: null,
-          razorpay_payment_id: null,
-          valid_till: null,
-          updated_at: new Date().toISOString(),
+          used_meal_planner: false,
+    used_analyze_food: false,
+    used_get_recipe: false,
+    last_used_analyze_food: null,
+    razorpay_customer_id: null,
+    razorpay_subscription_id: null,
+    razorpay_payment_id: null,
+    valid_till: null,
+    updated_at: new Date().toISOString(),
         },
         { onConflict: "user_id" }
       );
@@ -193,6 +214,8 @@ export default function Pricing() {
 
       setMessage("Free plan activated. Enjoy basic features!");
       setPlan({ plan: "Free", is_active: true, remaining_uses: 1 });
+
+      await refreshSubscription();
       router.replace(`/${userId}/nutrition`);
     } catch (err) {
       console.error(err);
@@ -211,7 +234,7 @@ export default function Pricing() {
   }
 
   return (
-    <main className="relative flex flex-col items-center justify-center min-h-screen bg-black text-white overflow-hidden px-6">
+    <main className="relative flex flex-col items-center justify-center min-h-screen bg-black text-white overflow-hidden px-0">
       {/* Animated background */}
       <div className="absolute inset-0 z-0 pointer-events-none">
         <FloatingPaths position={1} />
@@ -222,16 +245,16 @@ export default function Pricing() {
         initial={{ opacity: 0, y: 40 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: "easeOut" }}
-        className="relative z-[2] w-full max-w-lg"
+        className="relative z-[2] w-full max-w-xl"
       >
-        <div className="border border-white/15 bg-white/5 backdrop-blur-lg rounded-2xl shadow-2xl p-8 text-center">
+        <div className="border border-white/15 bg-white/5 backdrop-blur-lg rounded-2xl shadow-2xl px-3 py-8 text-center">
           <h1 className="text-2xl font-bold mb-6">Choose Your Plan</h1>
 
           {/* Pro Plan Card */}
           <motion.div
             whileHover={{ scale: 1.02 }}
             transition={{ duration: 0.2 }}
-            className="border border-white/20 bg-black/70 rounded-xl p-6 mb-6 shadow-lg"
+            className="border border-white/20 bg-black/70 rounded-[5px] p-6 mb-6 shadow-lg"
           >
             <h2 className="font-semibold text-lg mb-2 text-white">Pro Plan</h2>
             <p className="text-gray-300 mb-3 text-md">
@@ -244,7 +267,7 @@ export default function Pricing() {
             <Button
               onClick={handlePayment}
               disabled={load}
-              className="w-full bg-white text-black font-semibold hover:bg-gray-200 py-0 rounded-sm transition-all duration-300"
+              className="w-full bg-white text-black font-semibold hover:bg-gray-200 py-0 rounded-[5px] transition-all duration-300"
             >
               {load ? "Processing..." : "Upgrade to Pro"}
             </Button>
@@ -256,7 +279,7 @@ export default function Pricing() {
               variant="outline"
               onClick={handleFreePlan}
               disabled={load}
-              className="w-3/4 rounded-sm border-white/40 text-black hover:bg-white/70 bg-transparent text-white/50 hover:text-black/80 transition-all duration-300 py-0"
+              className="w-3/4 rounded-[5px] border-white/40 text-black hover:bg-white/70 bg-transparent text-white/50 hover:text-black/80 transition-all duration-300 py-0"
             >
               Continue with Free Plan
             </Button>

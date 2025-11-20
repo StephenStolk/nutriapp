@@ -1,3 +1,4 @@
+// app/(auth)/signin/page.tsx
 "use client";
 
 import { useState } from "react";
@@ -24,30 +25,45 @@ export default function SignInPage() {
   const router = useRouter();
 
   const handleSignin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+  e.preventDefault();
+  setLoading(true);
 
-    const supabase = createClient();
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+  const supabase = createClient();
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  
+  if (error) {
+    console.error(error);
+    alert("Sign in failed: " + error.message);
     setLoading(false);
+    return;
+  }
 
-    if (error) {
-      console.error(error);
-      return;
-    }
+  // Check if user has a subscription
+  const { data: subData, error: subError } = await supabase
+    .from("user_subscriptions")
+    .select("plan_name, is_active")
+    .eq("user_id", data.user.id)
+    .maybeSingle(); // Use maybeSingle() instead of single() to avoid error when no record exists
 
-    router.replace("/pricestructure");
-  };
+  setLoading(false);
+
+  // Redirect based on subscription status
+  if (subData && subData.is_active) {
+    router.push(`/${data.user.id}/nutrition`);
+  } else {
+    // No subscription or inactive subscription -> go to pricing
+    router.push("/pricestructure");
+  }
+};
 
   const handleGoogleSignIn = async () => {
   const supabase = createClient();
 
-  const { data, error } = await supabase.auth.signInWithOAuth({
+  const { error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
       redirectTo: `${window.location.origin}/auth/callback`, 
     },
-
   });
 
   if (error) {

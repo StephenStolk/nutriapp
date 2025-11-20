@@ -124,9 +124,25 @@ const [showPatternAnalytics, setShowPatternAnalytics] = useState(false)
 const [showMicroChoiceFork, setShowMicroChoiceFork] = useState(false)
 const [choiceForkFood, setChoiceForkFood] = useState<any>(null)
 
+
   const router = useRouter()
   const { user, userId, loading } = useUser()
-  const { plan } = useSubscription()
+  const { hasSubscription, plan } = useSubscription()
+
+  
+useEffect(() => {
+  // Prevent back button after entering dashboard with active plan
+  if (hasSubscription) {
+    window.history.pushState(null, '', window.location.href);
+    window.onpopstate = function () {
+      window.history.pushState(null, '', window.location.href);
+    };
+  }
+
+  return () => {
+    window.onpopstate = null;
+  };
+}, [hasSubscription]);
 
   const supabase = createClient()
 
@@ -1027,8 +1043,8 @@ const areHabitsComplete = totalHabitsToday > 0 && completedHabitsToday === total
   
 
   const handleManageSubscription = () => {
-    router.push("/pricestructure")
-  }
+  router.push("/pricestructure?upgrade=true")
+}
 
   return (
     <div className="space-y-2 animate-slide-up px-1">
@@ -1409,9 +1425,9 @@ const areHabitsComplete = totalHabitsToday > 0 && completedHabitsToday === total
               </div>
 
               {foods.length > 0 && (
-                <div className="mt-3 space-y-1">
+                <div className="space-y-1">
                   {foods.map((food) => (
-                    <div key={food.id} className="flex justify-between items-center p-2 bg-muted/30 rounded-lg">
+                    <div key={food.id} className="flex justify-between items-center p-2 bg-muted/30 rounded-[5px]">
                       <span className="text-xs text-foreground font-medium">{food.name}</span>
                       <span className="text-xs text-muted-foreground font-semibold">{food.calories} cal</span>
                     </div>
@@ -1759,7 +1775,7 @@ const areHabitsComplete = totalHabitsToday > 0 && completedHabitsToday === total
           {todaysFoods.length > 0 && (
             <Badge
               variant="secondary"
-              className="text-xs sm:text-sm px-3 py-2 bg-primary/10 text-primary border-primary/20 font-semibold rounded-xl text-center"
+              className="text-xs sm:text-sm px-3 py-2 bg-primary/10 text-primary font-semibold rounded-[5px] text-center"
             >
               <Apple className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 flex-shrink-0" />
               <span className="truncate">
@@ -1775,9 +1791,9 @@ const areHabitsComplete = totalHabitsToday > 0 && completedHabitsToday === total
           {habits.length > 0 && (
             <Badge
               variant="secondary"
-              className="text-sm sm:text-sm px-3 py-2 bg-primary/10 text-primary border-primary/20 font-semibold rounded-[5px] text-center"
+              className="text-xs sm:text-sm px-3 py-2 bg-primary/10 text-primary font-semibold rounded-[5px] text-center"
             >
-              <CheckCircle2 className="h-4 w-4 sm:h-4 sm:w-4 mr-1 sm:mr-2 flex-shrink-0" />
+              <CheckCircle2 className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 flex-shrink-0" />
               <span className="truncate">
                 Habits: {Math.round((completedHabitsToday / totalHabitsToday) * 100)}% Complete
               </span>

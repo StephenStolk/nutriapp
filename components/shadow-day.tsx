@@ -122,8 +122,8 @@ export function ShadowDay({ isOpen, onClose }: ShadowDayProps) {
         ) : !showProjection ? (
           <>
             <div className="text-center py-8">
-              <div className="w-16 h-16 rounded-full bg-orange-500/10 flex items-center justify-center mx-auto mb-4">
-                <AlertTriangle className="h-8 w-8 text-orange-500" />
+              <div className="w-16 h-16 rounded-full bg-[#c9fa5f] flex items-center justify-center mx-auto mb-4">
+                <AlertTriangle className="h-8 w-8 text-black" />
               </div>
               <h4 className="text-lg font-semibold text-foreground mb-2">Warning</h4>
               <p className="text-sm text-muted-foreground mb-6 leading-relaxed">
@@ -131,7 +131,7 @@ export function ShadowDay({ isOpen, onClose }: ShadowDayProps) {
               </p>
               <Button
                 onClick={() => setShowProjection(true)}
-                className="bg-orange-500 hover:bg-orange-600 text-white"
+                className="bg-[#c9fa5f] hover:bg-orange-600 text-black rounded-[5px]"
               >
                 Show My Shadow Day
               </Button>

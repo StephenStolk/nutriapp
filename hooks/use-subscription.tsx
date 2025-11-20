@@ -1,5 +1,5 @@
+// app/hooks/use-subscription.tsx
 'use client';
-
 import { useState, useEffect, createContext, useContext, ReactNode } from "react";
 import { createClient } from "@/lib/supabase/client";
 
@@ -17,62 +17,63 @@ interface Subscription {
 interface SubscriptionContextType {
   plan: Subscription | null;
   loading: boolean;
+  hasSubscription: boolean;
   refreshSubscription: () => Promise<void>;
 }
 
 const SubscriptionContext = createContext<SubscriptionContextType>({
-  plan: { 
-    plan_name: "Free",
-    is_active: false,
-    remaining_uses: 1
-  },
+  plan: null,
   loading: true,
+  hasSubscription: false,
   refreshSubscription: async () => {},
 });
 
 export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   const [plan, setPlan] = useState<Subscription | null>(null);
   const [loading, setLoading] = useState(true);
+  const [hasSubscription, setHasSubscription] = useState(false);
   const supabase = createClient();
 
   const fetchSubscription = async () => {
     try {
       setLoading(true);
       const { data: { user } } = await supabase.auth.getUser();
-
+      
       if (!user) {
-        setPlan({ plan_name: "Free", is_active: false, remaining_uses: 1 });
-
+        setPlan(null);
+        setHasSubscription(false);
         setLoading(false);
         return;
       }
 
       const { data, error } = await supabase
-  .from("user_subscriptions")
-  .select("plan_name, is_active, valid_till, remaining_uses, used_meal_planner, used_analyze_food, used_get_recipe, last_used_analyze_food")
-  .eq("user_id", user.id)
-  .single();
+        .from("user_subscriptions")
+        .select("plan_name, is_active, valid_till, remaining_uses, used_meal_planner, used_analyze_food, used_get_recipe, last_used_analyze_food")
+        .eq("user_id", user.id)
+        .single();
 
-
+      // FIXED: Don't set any default plan if no subscription exists
       if (error || !data) {
-        setPlan({ plan_name: "Free", is_active: false, remaining_uses: 1 });
-        
+        console.log("No subscription found for user:", user.id);
+        setPlan(null);
+        setHasSubscription(false);
       } else {
         setPlan({
-          plan_name: data.plan_name || "Free",
-          is_active: data.is_active ?? false,
-          valid_till: data.valid_till ?? null,
-          remaining_uses: data.remaining_uses ?? (data.plan_name === "Free" ? 1 : null),
-          used_meal_planner: data.used_meal_planner ?? false,
-          used_analyze_food: data.used_analyze_food ?? false,
-          used_get_recipe: data.used_get_recipe ?? false,
-          last_used_analyze_food: data.last_used_analyze_food ?? null,
+          plan_name: data.plan_name,
+          is_active: data.is_active,
+          valid_till: data.valid_till,
+          remaining_uses: data.remaining_uses,
+          used_meal_planner: data.used_meal_planner,
+          used_analyze_food: data.used_analyze_food,
+          used_get_recipe: data.used_get_recipe,
+          last_used_analyze_food: data.last_used_analyze_food,
         });
+        setHasSubscription(true);
       }
     } catch (err) {
       console.error("Error fetching subscription:", err);
-      setPlan({ plan_name: "Free", is_active: false, remaining_uses: 1 });
-
+      setPlan(null);
+      setHasSubscription(false);
     } finally {
       setLoading(false);
     }
@@ -80,12 +81,10 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     fetchSubscription();
-
   }, []);
 
   return (
-    <SubscriptionContext.Provider value={{ plan, loading, refreshSubscription: fetchSubscription }}>
-
+    <SubscriptionContext.Provider value={{ plan, loading, hasSubscription, refreshSubscription: fetchSubscription }}>
       {children}
     </SubscriptionContext.Provider>
   );

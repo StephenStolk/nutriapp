@@ -1,3 +1,4 @@
+// app/(auth)/signup/page.tsx
 "use client";
 
 import { useState } from "react";
@@ -22,32 +23,40 @@ export default function SignUpPage() {
   const [loading, setLoading] = useState<boolean>(false);
   const router = useRouter();
 
-  const handleSignup = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+ const handleSignup = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setLoading(true);
 
-    const supabase = createClient();
-    const { data, error } = await supabase.auth.signUp({ email, password,
-     });
+  const supabase = createClient();
+  const { data, error } = await supabase.auth.signUp({ 
+    email, 
+    password,
+    options: {
+      emailRedirectTo: `${window.location.origin}/auth/callback`,
+    },
+  });
 
-      // options: {
-      //   emailRedirectTo: `${window.location.origin}/auth/verify`,
-      // },
+  setLoading(false);
 
-    setLoading(false);
+  if (error) {
+    alert(error.message);
+    return;
+  }
 
-    if (error) {
-      alert(error.message);
-      return;
-    }
+  // Check if user already exists
+  if (data.user?.identities?.length === 0) {
+    alert("User already registered. Please sign in instead.");
 
-    if (data.user?.identities?.length === 0) {
-      alert("User already registered.");
-    } else {
-      router.push("/signin");
-    }
-  };
+    router.push("/signin");
+    return;
+  }
 
+  // Successful signup
+  if (data.user) {
+    console.log("Account created successfully! Please sign in to continue.");
+    router.push("/signin");
+  }
+};
 
   const handleGoogleSignUp = async () => {
   const supabase = createClient();
