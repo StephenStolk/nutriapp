@@ -307,7 +307,7 @@ export default function NutritionApp() {
                   </div>
                 </Card>
 
-                <Card className="p-5 md:p-6 bg-gradient-to-r from-primary/5 to-accent/5 border-primary/10 rounded-[5px]">
+                {/* <Card className="p-5 md:p-6 bg-gradient-to-r from-primary/5 to-accent/5 border-primary/10 rounded-[5px]">
                   <div className="space-y-3 md:space-y-4">
                     <h4 className="text-sm md:text-base font-semibold text-foreground">Optional: Improve accuracy</h4>
                     <div className="grid grid-cols-1 gap-3">
@@ -350,7 +350,7 @@ export default function NutritionApp() {
                       )}
                     </div>
                   </div>
-                </Card>
+                </Card> */}
 
                 <Card className="p-5 md:p-6 bg-gradient-to-r from-primary/5 to-accent/5 border-primary/10 rounded-[5px]">
                   <div className="flex items-start space-x-3 md:space-x-4">
@@ -363,6 +363,7 @@ export default function NutritionApp() {
                         <li>• Ensure good lighting for better analysis</li>
                         <li>• Include the entire meal in the frame</li>
                         <li>• Avoid shadows and reflections</li>
+                        <li>• Add a reference object (eg: creedit car, watch etc) for better results</li>
                       </ul>
                     </div>
                   </div>
