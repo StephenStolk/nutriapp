@@ -14,7 +14,7 @@ export default function Pricing() {
   const [message, setMessage] = useState("");
   const [currency, setCurrency] = useState("INR");
   const [symbol, setSymbol] = useState("₹");
-  const [price, setPrice] = useState(199); // default INR price
+  const [price, setPrice] = useState(89); // default INR price
   const [country, setCountry] = useState<string>("India");
 
   const [plan, setPlan] = useState<{
@@ -28,45 +28,49 @@ export default function Pricing() {
   const { user, userId, loading } = useUser();
   const supabase = createClient();
 
-  useEffect(() => {
-    const fetchGeo = async () => {
+ useEffect(() => {
+  const fetchGeo = async () => {
+    try {
+      // CHANGE THIS: Use your API route instead of direct fetch
+      const res = await fetch("/api/get-location");
+      const data = await res.json();
 
-      try {
-        const res = await fetch("https://ipapi.co/json/");
+      setCountry(data.country_name || "India");
+      setCurrency(data.currency || "INR");
 
-        const data = await res.json();
-
-        setCountry(data.country_name || "India");
-        setCurrency(data.currency || "INR");
-
-        switch (data.currency) {
-          case "USD":
-            setSymbol("$");
-            setPrice(3);
-            break;
-          case "EUR":
-            setSymbol("€");
-            setPrice(2.8);
-            break;
-          case "GBP":
-            setSymbol("£");
-            setPrice(2.5);
-            break;
-          case "INR":
-            setSymbol("₹");
-            setPrice(199);
-            break;
-          default:
-            setSymbol("$");
-            setPrice(3);
-        }
-      } catch (error) {
-        console.error("Error fetching location:", error);
+      switch (data.currency) {
+        case "USD":
+          setSymbol("$");
+          setPrice(3);
+          break;
+        case "EUR":
+          setSymbol("€");
+          setPrice(2.8);
+          break;
+        case "GBP":
+          setSymbol("£");
+          setPrice(2.5);
+          break;
+        case "INR":
+          setSymbol("₹");
+          setPrice(199);
+          break;
+        default:
+          setSymbol("$");
+          setPrice(3);
       }
-    };
+    } catch (error) {
+      console.error("Error fetching location:", error);
+      // Set defaults on error - don't throw
+      setCountry("India");
+      setCurrency("INR");
+      setSymbol("₹");
+      setPrice(199);
+    }
+  };
 
-    fetchGeo();
-  }, []);
+  fetchGeo();
+}, []); // Keep empty dependency array
 
   // Remove the existing useEffect that checks subscription
 // Replace with this:
