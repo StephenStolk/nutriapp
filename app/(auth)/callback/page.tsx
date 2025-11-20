@@ -9,40 +9,41 @@ export default function AuthCallback() {
   const supabase = createClient();
 
   useEffect(() => {
-    const processCallback = async () => {
-      const { data: sessionData, error } = await supabase.auth.getSession();
+    const handleCallback = async () => {
+      // Wait for Supabase to finish restoring the session
+      const { data: sessionData } = await supabase.auth.getSession();
 
-      if (error || !sessionData.session) {
+      if (!sessionData.session) {
+        // Give Supabase time to hydrate session from cookies
+        const {
+          data: refreshed,
+          error: refreshError,
+        } = await supabase.auth.getSession();
+
+        if (!refreshed.session) {
+          router.replace("/signin");
+          return;
+        }
+      }
+
+      const user = sessionData.session?.user;
+      if (!user) {
         router.replace("/signin");
         return;
       }
 
-      const user = sessionData.session.user;
-      const userId = user.id;
+      // IMPORTANT: NO SUBSCRIPTION CHECK HERE
+      // Only send user to pricing first-time
 
-      // Check subscription
-      const { data: subData } = await supabase
-        .from("user_subscriptions")
-        .select("plan_name, is_active")
-        .eq("user_id", userId)
-        .maybeSingle();
-
-      // Redirect logic
-      if (subData && subData.is_active) {
-        router.replace(`/${userId}/nutrition`);
-      } else {
-        router.replace("/pricestructure");
-      }
+      router.replace("/pricestructure"); 
     };
 
-    processCallback();
-  }, [router, supabase]);
+    handleCallback();
+  }, []);
 
   return (
-    <div className="flex items-center justify-center h-screen">
-      <p className="text-sm text-muted-foreground">
-        Logging you in, please wait…
-      </p>
+    <div className="flex items-center justify-center h-screen bg-black text-white">
+      <p className="text-sm opacity-70">Signing you in…</p>
     </div>
   );
 }
