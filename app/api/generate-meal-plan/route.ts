@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
         "X-Title": "Kalnut Meal Planner",
       },
       body: JSON.stringify({
-        model: "nvidia/nemotron-nano-12b-v2-vl:free", 
+        model: "google/gemma-3-27b-it:free", 
         messages: [
           {
             role: "system",
@@ -110,9 +110,9 @@ Output STRICT JSON ONLY in this exact shape:
   "mealPlan": [
     {
       "day": "Day 1",
-      "breakfast": {"name": "Dish Name", "calories": 300, "description": "Brief description"},
-      "lunch": {"name": "Dish Name", "calories": 450, "description": "Brief description"},
-      "dinner": {"name": "Dish Name", "calories": 400, "description": "Brief description"}
+      "breakfast": {"name": "Dish Name", "calories": 300, "description": "Detailed description line by line step by step like a chef"},
+      "lunch": {"name": "Dish Name", "calories": 450, "description": "Detailed description line by line step by step like a chef"},
+      "dinner": {"name": "Dish Name", "calories": 400, "description": "Detailed description line by line step by step like a chef"}
     }
   ]
 }`,

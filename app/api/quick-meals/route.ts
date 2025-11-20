@@ -72,7 +72,7 @@ Make the recipes fun, easy to follow, and use Gen-Z language. Include cooking ti
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "nvidia/nemotron-nano-12b-v2-vl:free",
+        model: "google/gemma-3-27b-it:free",
         messages: messages,
         temperature: 0.7,
         max_tokens: 5000,

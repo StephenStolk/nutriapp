@@ -26,7 +26,7 @@ export async function POST(request: NextRequest) {
         "X-Title": "Kalnut Recipe Generator",
       },
       body: JSON.stringify({
-        model: "nvidia/nemotron-nano-12b-v2-vl:free", // Using more reliable model
+        model: "google/gemma-3-27b-it:free", // Using more reliable model
         messages: [
           {
             role: "system",
@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
             - Any cooking tips or variations
             -Make sure recipe is fully deatiled and cooking instruction is very clear
             
-            Make it authentic and practical for home cooking in India.Make sure you explain every step of cooking in depth like teacher`,
+            Make it authentic and practical for home cooking in India.Make sure you explain every step of cooking in depth like teacher. Detailed description line by line step by step like a chef`,
           },
         ],
         max_tokens: 10000,
