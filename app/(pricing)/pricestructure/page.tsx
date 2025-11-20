@@ -126,39 +126,27 @@ const searchParams = useSearchParams();
 
 
 useEffect(() => {
-  if (!user || loading) return;
+  if (loading || subLoading) return;  // prevents premature redirects
+  if (!user) return;
 
-  const isUpgrading = searchParams.get('upgrade') === 'true';
+  const isUpgrading = searchParams.get("upgrade") === "true";
+  if (isUpgrading) return; // allow upgrade page to load
 
   const checkSubscription = async () => {
-    try {
+    const { data } = await supabase
+      .from("user_subscriptions")
+      .select("plan_name, is_active")
+      .eq("user_id", user.id)
+      .maybeSingle();
 
-      if (isUpgrading) return;
-
-      const { data } = await supabase
-        .from("user_subscriptions")
-        .select("plan_name, is_active")
-        .eq("user_id", user.id)
-        .maybeSingle();
-
-      // Redirect ONLY if user is active AND not upgrading
-      if (data && data.is_active) {
-        router.replace(`/${userId}/nutrition`);
-      }
-
-      // ONLY redirect if they have an ACTIVE subscription
-      // This prevents the redirect loop
-      if (data && data.is_active) {
-        router.replace(`/${userId}/nutrition`);
-      }
-      // If no subscription or inactive, do nothing - stay on pricing page
-    } catch (err) {
-      console.error("Error checking subscription:", err);
+    if (data?.is_active) {
+      router.replace(`/${userId}/nutrition`);
     }
   };
 
   checkSubscription();
-}, [user, loading, userId, router, supabase, searchParams]);
+}, [user, loading, subLoading, userId, router, supabase, searchParams]);
+
 
 
   const handlePayment = async () => {
