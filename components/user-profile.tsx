@@ -208,9 +208,9 @@ export function UserProfile() {
         <Button onClick={handleSave} className="w-full rounded-[5px] mb-20" disabled={saving}>
           {saving ? "Saving..." : "Save Profile"}
         </Button>
-
-        <LogoutButton />
       </Card>
+
+      <LogoutButton />
     </div>
   );
 }
