@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { MeditationTimer } from "@/components/meditation-timer"
 import CalorieCalculatorModal from "./calorie-calculator-modal"
-import { Plus, Coffee, Utensils, Cookie, Target, TrendingUp, Apple, Settings, CheckCircle2, Circle, Dumbbell, Bed, Clock, Heart, X, Brain, Droplets, BookOpen, Smile, Sun, Battery, Cloud } from 'lucide-react'
+import { Plus, Coffee, Utensils, Cookie, Target, TrendingUp, Apple, Settings, CheckCircle2, Circle, Dumbbell, Bed, Clock, Heart, X, Brain, Droplets, BookOpen, Smile, Sun, Battery, Cloud, AlertTriangle, MinusCircle } from 'lucide-react'
 import { useState, useEffect } from "react"
 import type { User } from "@supabase/supabase-js"
 import { createClient } from "@/lib/supabase/client"
@@ -26,6 +26,13 @@ import { WordCloud } from "@/components/word-cloud"
 import { FoodConsistencyRadar } from "@/components/food-consistency-radar"
 import { MicroWinsTracker } from "@/components/micro-wins-tracker"
 import { BarChart3, Users } from "lucide-react"
+import { FutureSelfMirror } from "@/components/future-self-mirror"
+import { CravingParasite } from "@/components/craving-parasite"
+import { ShadowDay } from "@/components/shadow-day"
+import { DisciplineDebt } from "@/components/discipline-debt"
+import { PatternAnalytics } from "@/components/pattern-analytics"
+import { MicroChoiceFork } from "@/components/micro-choice-fork"
+import { GitBranch } from "lucide-react"
 
 interface LoggedFood {
   id: string
@@ -108,6 +115,15 @@ const [showPersonalityQuiz, setShowPersonalityQuiz] = useState(false)
 const [showWordCloud, setShowWordCloud] = useState(false)
 const [showConsistencyRadar, setShowConsistencyRadar] = useState(false)
 
+
+const [showFutureSelfMirror, setShowFutureSelfMirror] = useState(false)
+const [showCravingParasite, setShowCravingParasite] = useState(false)
+const [showShadowDay, setShowShadowDay] = useState(false)
+const [showDisciplineDebt, setShowDisciplineDebt] = useState(false)
+const [showPatternAnalytics, setShowPatternAnalytics] = useState(false)
+const [showMicroChoiceFork, setShowMicroChoiceFork] = useState(false)
+const [choiceForkFood, setChoiceForkFood] = useState<any>(null)
+
   const router = useRouter()
   const { user, userId, loading } = useUser()
   const { plan } = useSubscription()
@@ -127,6 +143,144 @@ const [showConsistencyRadar, setShowConsistencyRadar] = useState(false)
     // Optional: Show toast notification
   } catch (error) {
     console.error('Error adding micro-win:', error)
+  }
+}
+
+
+const checkMicroChoiceFork = (mealType: string, calories: number) => {
+  // Trigger fork for high-calorie meals or junk food patterns
+  if (calories > 600 || mealType === 'snacks') {
+    setChoiceForkFood({ name: `${mealType} (${calories} cal)`, calories })
+    setShowMicroChoiceFork(true)
+    return true
+  }
+  return false
+}
+
+
+
+const updateIdentityAlignment = async (foodLogId: string, calories: number) => {
+  if (!userId) return
+  
+  try {
+    // Get active identity
+    const { data: identity } = await supabase
+      .from('user_identities_future')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('is_active', true)
+      .single()
+
+    if (!identity) return
+
+    // Calculate impact (simplified)
+    const isHealthy = calories < 600 && calories > 200
+    const impactPercentage = isHealthy ? (Math.random() * 2 + 1) : -(Math.random() * 2 + 0.5)
+    const direction = isHealthy ? 'positive' : 'negative'
+
+    // Save impact
+    await supabase.from('identity_meal_impacts').insert({
+      user_id: userId,
+      identity_id: identity.id,
+      food_log_id: foodLogId,
+      impact_percentage: impactPercentage,
+      impact_direction: direction,
+    })
+
+    // Update alignment score
+    const newScore = Math.max(0, Math.min(100, identity.alignment_score + impactPercentage))
+    await supabase
+      .from('user_identities_future')
+      .update({ alignment_score: newScore })
+      .eq('id', identity.id)
+  } catch (error) {
+    console.error('Error updating identity alignment:', error)
+  }
+}
+
+
+const feedParasite = async (foodName: string, calories: number) => {
+  if (!userId) return
+  
+  const isJunkFood = calories > 500 || foodName.toLowerCase().includes('fries') || 
+                     foodName.toLowerCase().includes('pizza') || 
+                     foodName.toLowerCase().includes('burger')
+  
+  if (!isJunkFood) return
+
+  try {
+    let { data: parasite } = await supabase
+      .from('craving_parasite')
+      .select('*')
+      .eq('user_id', userId)
+      .single()
+
+    if (!parasite) {
+      await supabase.from('craving_parasite').insert({
+        user_id: userId,
+        health_points: 50,
+      })
+      parasite = { health_points: 50 }
+    }
+
+    const growth = Math.min(15, Math.floor(calories / 50))
+    const newHealth = Math.min(100, parasite.health_points + growth)
+
+    await supabase
+      .from('craving_parasite')
+      .update({ health_points: newHealth, last_updated: new Date().toISOString() })
+      .eq('user_id', userId)
+
+    await supabase.from('parasite_events').insert({
+      user_id: userId,
+      event_type: 'grew',
+      change_amount: growth,
+      trigger_food: foodName,
+    })
+  } catch (error) {
+    console.error('Error feeding parasite:', error)
+  }
+}
+
+
+const addDisciplineDebt = async (reason: string, amount: number) => {
+  if (!userId) return
+
+  try {
+    let { data: debt } = await supabase
+      .from('discipline_debt')
+      .select('*')
+      .eq('user_id', userId)
+      .single()
+
+    if (!debt) {
+      await supabase.from('discipline_debt').insert({
+        user_id: userId,
+        current_debt: 0,
+      })
+      debt = { current_debt: 0, total_accumulated: 0 }
+    }
+
+    const newDebt = debt.current_debt + amount
+    const newTotal = debt.total_accumulated + amount
+
+    await supabase
+      .from('discipline_debt')
+      .update({
+        current_debt: newDebt,
+        total_accumulated: newTotal,
+        last_updated: new Date().toISOString(),
+      })
+      .eq('user_id', userId)
+
+    await supabase.from('debt_transactions').insert({
+      user_id: userId,
+      transaction_type: 'debt_added',
+      amount,
+      reason,
+    })
+  } catch (error) {
+    console.error('Error adding debt:', error)
   }
 }
 
@@ -271,6 +425,21 @@ const [showConsistencyRadar, setShowConsistencyRadar] = useState(false)
         // Micro-win detection for today's meals
         const todayString = new Date().toDateString()
         const todayMeals = formatted.filter(f => new Date(f.timestamp).toDateString() === todayString)
+
+// Check if user overate today
+const todayTotal = todayMeals.reduce((sum, m) => sum + m.calories, 0)
+
+if (todayTotal > dailyGoal * 1.3) {
+  const excess = todayTotal - dailyGoal
+  await addDisciplineDebt(`Overate by ${Math.round(excess)} cal`, Math.floor(excess / 50))
+}
+
+// Update identity alignment for latest meal
+if (formatted.length > 0) {
+  const latestMeal = formatted[0]
+  await updateIdentityAlignment(latestMeal.id, latestMeal.calories)
+  await feedParasite(latestMeal.name, latestMeal.calories)
+}
         
         // Check for 3 balanced meals
         const uniqueMealTypes = new Set(todayMeals.map(m => m.mealType).filter(type => type !== 'snacks'))
@@ -1353,7 +1522,7 @@ const areHabitsComplete = totalHabitsToday > 0 && completedHabitsToday === total
 />
 
 {/* Psychology Dashboard Card */}
-<Card className="p-4 bg-gradient-to-br from-card to-muted/30 border-[#c9fa5f]/20">
+<Card className="p-4">
   <div className="flex items-center justify-between mb-3">
     <div className="flex items-center gap-3">
       <div className="w-10 h-10 rounded-xl bg-[#c9fa5f] flex items-center justify-center">
@@ -1416,6 +1585,74 @@ const areHabitsComplete = totalHabitsToday > 0 && completedHabitsToday === total
   >
     <TrendingUp className="h-3 w-3 mr-1" />
     View Consistency Radar
+  </Button>
+</Card>
+
+
+{/* Mind Rewire Features */}
+<Card className="p-4 mt-8 mb-8">
+  <div className="flex items-center justify-between mb-3">
+    <div className="flex items-center gap-3">
+      <div className="w-10 h-10 rounded-lg bg-[#c9fa5f] flex items-center justify-center">
+        <GitBranch className="h-5 w-5 text-black" />
+      </div>
+      <div>
+        <h3 className="text-md font-semibold text-foreground mt-2">Mind Rewire</h3>
+        <p className="text-xs text-muted-foreground">Transform your mindset</p>
+      </div>
+    </div>
+  </div>
+
+  <div className="grid grid-cols-2 gap-2 mb-2">
+    <Button
+      variant="outline"
+      size="sm"
+      onClick={() => setShowFutureSelfMirror(true)}
+      className="h-auto py-3 flex flex-col items-center gap-1 hover:bg-[#c9fa5f]/10 hover:border-[#c9fa5f]/30 rounded-[5px]"
+    >
+      <Target className="h-4 w-4 text-[#c9fa5f]" />
+      <span className="text-xs">Future Self</span>
+    </Button>
+
+    <Button
+      variant="outline"
+      size="sm"
+      onClick={() => setShowCravingParasite(true)}
+      className="h-auto py-3 flex flex-col items-center gap-1 hover:bg-[#c9fa5f]/10 hover:border-[#c9fa5f]/30 rounded-[5px]"
+    >
+      <span className="text-lg">👹</span>
+      <span className="text-xs">Parasite</span>
+    </Button>
+
+    <Button
+      variant="outline"
+      size="sm"
+      onClick={() => setShowShadowDay(true)}
+      className="h-auto py-4 flex flex-col items-center gap-1 hover:bg-[#c9fa5f]/10 hover:border-[#c9fa5f]/30 rounded-[5px]"
+    >
+      <AlertTriangle className="h-4 w-4 text-[#c9fa5f]" />
+      <span className="text-xs">Shadow Day</span>
+    </Button>
+
+    <Button
+      variant="outline"
+      size="sm"
+      onClick={() => setShowDisciplineDebt(true)}
+      className="h-auto py-3 flex flex-col items-center gap-1 hover:bg-[#c9fa5f]/10 hover:border-[#c9fa5f]/30 rounded-[5px]"
+    >
+      <MinusCircle className="h-4 w-4 text-[#c9fa5f]" />
+      <span className="text-xs">Debt</span>
+    </Button>
+  </div>
+
+  <Button
+    variant="ghost"
+    size="sm"
+    onClick={() => setShowPatternAnalytics(true)}
+    className="w-full text-xs hover:bg-[#c9fa5f]/10"
+  >
+    <BarChart3 className="h-3 w-3 mr-1" />
+    View Pattern Analytics
   </Button>
 </Card>
 
@@ -1654,6 +1891,38 @@ const areHabitsComplete = totalHabitsToday > 0 && completedHabitsToday === total
 <FoodConsistencyRadar 
   isOpen={showConsistencyRadar} 
   onClose={() => setShowConsistencyRadar(false)} 
+/>
+
+
+<FutureSelfMirror 
+  isOpen={showFutureSelfMirror} 
+  onClose={() => setShowFutureSelfMirror(false)} 
+/>
+<CravingParasite 
+  isOpen={showCravingParasite} 
+  onClose={() => setShowCravingParasite(false)} 
+/>
+<ShadowDay 
+  isOpen={showShadowDay} 
+  onClose={() => setShowShadowDay(false)} 
+/>
+<DisciplineDebt 
+  isOpen={showDisciplineDebt} 
+  onClose={() => setShowDisciplineDebt(false)} 
+/>
+<PatternAnalytics 
+  isOpen={showPatternAnalytics} 
+  onClose={() => setShowPatternAnalytics(false)} 
+/>
+<MicroChoiceFork 
+  isOpen={showMicroChoiceFork}
+  onClose={() => setShowMicroChoiceFork(false)}
+  foodItem={choiceForkFood || { name: '', calories: 0 }}
+  onChoice={(choice) => {
+    if (choice === 'shift') {
+      addMicroWin('healthy_choice', 'Chose healthier option!')
+    }
+  }}
 />
     </div>
   )
