@@ -92,38 +92,63 @@ if (loading || subLoading) {
 // Replace with this:
 const searchParams = useSearchParams();
 const isUpgrading = searchParams.get('upgrade') === 'true';
+// useEffect(() => {
+//   if (!user || loading || subLoading) return;
+
+//   const checkAndRedirect = async () => {
+//     try {
+//       // ADD THIS: Check if user is coming to upgrade
+      
+      
+//       // If upgrading, don't redirect - let them stay on pricing page
+//       if (isUpgrading) {
+//         return;
+//       }
+
+//       const { data, error } = await supabase
+//         .from("user_subscriptions")
+//         .select("plan_name, is_active")
+//         .eq("user_id", user.id)
+//         .maybeSingle();
+
+//       // Only redirect if they have an active subscription
+//       if (data && data.is_active) {
+//         router.replace(`/${userId}/nutrition`);
+
+//       }
+//     } catch (err) {
+//       console.error("Error checking subscription:", err);
+//     }
+//   };
+
+//   checkAndRedirect();
+// }, [user, loading, subLoading, userId, router, isUpgrading]);
+
+
 useEffect(() => {
-  if (!user || loading || subLoading) return;
+  if (!user || loading) return;
 
-  const checkAndRedirect = async () => {
+  const checkSubscription = async () => {
     try {
-      // ADD THIS: Check if user is coming to upgrade
-      
-      
-      // If upgrading, don't redirect - let them stay on pricing page
-      if (isUpgrading) {
-        return;
-      }
-
       const { data, error } = await supabase
         .from("user_subscriptions")
         .select("plan_name, is_active")
         .eq("user_id", user.id)
         .maybeSingle();
 
-      // Only redirect if they have an active subscription
+      // ONLY redirect if they have an ACTIVE subscription
+      // This prevents the redirect loop
       if (data && data.is_active) {
         router.replace(`/${userId}/nutrition`);
-        
       }
+      // If no subscription or inactive, do nothing - stay on pricing page
     } catch (err) {
       console.error("Error checking subscription:", err);
     }
   };
 
-  checkAndRedirect();
-}, [user, loading, subLoading, userId, router, isUpgrading]);
-
+  checkSubscription();
+}, [user, loading, userId, router, supabase]);
 
 
   const handlePayment = async () => {
@@ -175,23 +200,26 @@ useEffect(() => {
         description: "Premium quick meal features",
         order_id: data.order_id,
         handler: async function (response: any) {
-          const verifyRes = await fetch("/api/verify-payment", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(response),
-          });
+  const verifyRes = await fetch("/api/verify-payment", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(response),
+  });
 
-          const verifyData = await verifyRes.json();
+  const verifyData = await verifyRes.json();
 
-          if (verifyData.success) {
-            setMessage("Payment successful! You are now a Pro user.");
-            setPlan({ plan: "Pro Plan", is_active: true, remaining_uses: null });
-            await refreshSubscription();
-            router.push(`/${userId}/nutrition`);
-          } else {
-            setMessage("[error] Payment verification failed.");
-          }
-        },
+  if (verifyData.success) {
+    setMessage("Payment successful! Redirecting...");
+    
+    // Refresh subscription
+    await refreshSubscription();
+    
+    // Navigate to dashboard
+    router.replace(`/${userId}/nutrition`);
+  } else {
+    setMessage("Payment verification failed.");
+  }
+},
         prefill: {
           name: user?.email ?? "User",
           email: user?.email ?? "user@example.com",

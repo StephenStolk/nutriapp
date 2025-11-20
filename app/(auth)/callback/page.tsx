@@ -1,49 +1,33 @@
-"use client";
+import { createClient } from '@/lib/supabase/server';
+import { NextResponse } from 'next/server';
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { createClient } from "@/lib/supabase/client";
+export async function GET(request: Request) {
+  const { searchParams, origin } = new URL(request.url);
+  const code = searchParams.get('code');
 
-export default function AuthCallback() {
-  const router = useRouter();
-  const supabase = createClient();
-
-  useEffect(() => {
-    const handleCallback = async () => {
-      // Step 1: Get current session
-      const { data: sessionData, error } = await supabase.auth.getSession();
-
-      if (error || !sessionData.session) {
-        router.replace("/signin");
-        return;
-      }
-
-      const user = sessionData.session.user;
-      const userId = user.id;
-
-      // Step 2: Check subscription
+  if (code) {
+    const supabase = await createClient();
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+    
+    if (!error && data.user) {
+      // Check if user has a subscription
       const { data: subData } = await supabase
-        .from("user_subscriptions")
-        .select("plan_name, is_active")
-        .eq("user_id", userId)
+        .from('user_subscriptions')
+        .select('plan_name, is_active')
+        .eq('user_id', data.user.id)
         .maybeSingle();
 
-      // Step 3: Redirect based on subscription status
+      // Redirect based on subscription status
       if (subData && subData.is_active) {
-        router.replace(`/${userId}/nutrition`);
+        // Active subscription - go to dashboard
+        return NextResponse.redirect(`${origin}/${data.user.id}/nutrition`);
       } else {
-        router.replace(`/pricestructure`);
+        // No subscription or inactive - go to pricing
+        return NextResponse.redirect(`${origin}/pricestructure`);
       }
-    };
+    }
+  }
 
-    handleCallback();
-  }, [router, supabase]);
-
-  return (
-    <div className="flex items-center justify-center h-screen">
-      <p className="text-sm text-muted-foreground">
-        Verifying your email, please wait…
-      </p>
-    </div>
-  );
+  // If there's an error or no code, redirect to signin
+  return NextResponse.redirect(`${origin}/signin`);
 }

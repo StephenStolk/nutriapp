@@ -39,23 +39,22 @@ export default function SignInPage() {
   }
 
   // Check if user has a subscription
-  // Check if user has a subscription
-const { data: subData, error: subError } = await supabase
-  .from("user_subscriptions")
-  .select("plan_name, is_active")
-  .eq("user_id", data.user.id)
-  .maybeSingle();
+  const { data: subData, error: subError } = await supabase
+    .from("user_subscriptions")
+    .select("plan_name, is_active")
+    .eq("user_id", data.user.id)
+    .maybeSingle();
 
-setLoading(false);
+  setLoading(false);
 
-// Redirect based on subscription status
-if (subData && subData.is_active) {
-  // User has active subscription - go to dashboard
-  router.replace(`/${data.user.id}/nutrition`);
-} else {
-  // No subscription or inactive - go to pricing
-  router.replace("/pricestructure");
-}
+  // Redirect based on subscription status
+  if (subData && subData.is_active) {
+    // User has active subscription - go DIRECTLY to dashboard
+    router.replace(`/${data.user.id}/nutrition`);
+  } else {
+    // No subscription or inactive - go to pricing
+    router.replace("/pricestructure");
+  }
 };
 
   const handleGoogleSignIn = async () => {
