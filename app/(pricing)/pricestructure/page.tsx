@@ -8,6 +8,7 @@ import { useUser } from "@/hooks/use-user";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { useSubscription } from "@/hooks/use-subscription";
+import { useSearchParams } from "next/navigation";
 
 export default function Pricing() {
   const [load, setLoad] = useState<boolean>(false);
@@ -89,14 +90,15 @@ if (loading || subLoading) {
 
   // Remove the existing useEffect that checks subscription
 // Replace with this:
+const searchParams = useSearchParams();
+const isUpgrading = searchParams.get('upgrade') === 'true';
 useEffect(() => {
   if (!user || loading || subLoading) return;
 
   const checkAndRedirect = async () => {
     try {
       // ADD THIS: Check if user is coming to upgrade
-      const searchParams = new URLSearchParams(window.location.search);
-      const isUpgrading = searchParams.get('upgrade') === 'true';
+      
       
       // If upgrading, don't redirect - let them stay on pricing page
       if (isUpgrading) {
@@ -111,7 +113,7 @@ useEffect(() => {
 
       // Only redirect if they have an active subscription
       if (data && data.is_active) {
-        router.push(`/${userId}/nutrition`);
+        router.replace(`/${userId}/nutrition`);
       }
     } catch (err) {
       console.error("Error checking subscription:", err);
@@ -119,7 +121,7 @@ useEffect(() => {
   };
 
   checkAndRedirect();
-}, [user, loading, subLoading, userId, router]);
+}, [user, loading, subLoading, userId, router, isUpgrading]);
 
 
 
