@@ -10,17 +10,29 @@ export default function AuthCallback() {
 
   useEffect(() => {
     const handleCallback = async () => {
-      
-      const { data, error } = await supabase.auth.getSession();
+      // Step 1: Get current session
+      const { data: sessionData, error } = await supabase.auth.getSession();
 
-      if (!error && data.session) {
-        const userId = data.session.user.id;
-        // Redirect
-        router.replace(`/${userId}/nutrition`);
-
-      } else {
-        
+      if (error || !sessionData.session) {
         router.replace("/signin");
+        return;
+      }
+
+      const user = sessionData.session.user;
+      const userId = user.id;
+
+      // Step 2: Check subscription
+      const { data: subData } = await supabase
+        .from("user_subscriptions")
+        .select("plan_name, is_active")
+        .eq("user_id", userId)
+        .maybeSingle();
+
+      // Step 3: Redirect based on subscription status
+      if (subData && subData.is_active) {
+        router.replace(`/${userId}/nutrition`);
+      } else {
+        router.replace(`/pricestructure`);
       }
     };
 
