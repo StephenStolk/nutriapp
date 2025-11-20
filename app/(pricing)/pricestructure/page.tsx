@@ -124,13 +124,18 @@ const searchParams = useSearchParams();
 //   checkAndRedirect();
 // }, [user, loading, subLoading, userId, router, isUpgrading]);
 
+const isUpgrading = searchParams.get("upgrade") === "true";
 
 useEffect(() => {
   if (loading || subLoading) return;  // prevents premature redirects
   if (!user) return;
 
-  const isUpgrading = searchParams.get("upgrade") === "true";
-  if (isUpgrading) return; // allow upgrade page to load
+  // const isUpgrading = searchParams.get("upgrade") === "true";
+  if (isUpgrading) {
+  setMessage("You already have a subscription. Free plan is unavailable.");
+  return;
+}
+ // allow upgrade page to load
 
   const checkSubscription = async () => {
     const { data } = await supabase
@@ -139,9 +144,10 @@ useEffect(() => {
       .eq("user_id", user.id)
       .maybeSingle();
 
-    if (data?.is_active) {
-      router.replace(`/${userId}/nutrition`);
-    }
+    if (data && data.is_active && !isUpgrading) {
+  router.replace(`/${userId}/nutrition`);
+}
+
   };
 
   checkSubscription();
@@ -349,7 +355,7 @@ useEffect(() => {
 
           {/* Free Plan Option */}
           <motion.div whileHover={{ scale: 1.02 }}>
-            {subscription?.plan_name !== "Pro Plan" && (
+            {!isUpgrading && subscription?.plan_name !== "Pro Plan" && (
   <motion.div whileHover={{ scale: 1.02 }}>
     <Button
       variant="outline"

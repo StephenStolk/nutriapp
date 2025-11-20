@@ -1,5 +1,7 @@
 "use client";
-import { redirect } from "next/navigation";
+
+
+// import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import NutritionApp from "@/components/nutrition-app";
 import { useSubscription } from '@/hooks/use-subscription';
