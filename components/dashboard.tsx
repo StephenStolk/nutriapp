@@ -1083,14 +1083,14 @@ const areHabitsComplete = totalHabitsToday > 0 && completedHabitsToday === total
             <div className="text-xl font-bold text-foreground mb-1">{totalCalories.toLocaleString()}</div>
             <div className="text-xs text-muted-foreground font-medium">Eaten</div>
           </div>
-
+{/* #373837 */}
           <div className="relative">
             <svg className="w-28 h-28 transform -rotate-90" viewBox="0 0 120 120">
               <circle
                 cx="60"
                 cy="60"
                 r="50"
-                stroke="currentColor"
+                stroke="#292b29"
                 strokeWidth="6"
                 fill="none"
                 className="text-muted/30"
