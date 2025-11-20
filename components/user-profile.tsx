@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { User, MapPin, Heart, Target, Clock2Icon, HeartPulse } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
+import LogoutButton from "./LogoutButton";
 
 export function UserProfile() {
   const supabase = createClient();
@@ -207,6 +208,8 @@ export function UserProfile() {
         <Button onClick={handleSave} className="w-full rounded-[5px] mb-20" disabled={saving}>
           {saving ? "Saving..." : "Save Profile"}
         </Button>
+
+        <LogoutButton />
       </Card>
     </div>
   );
