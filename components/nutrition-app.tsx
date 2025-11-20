@@ -363,7 +363,7 @@ export default function NutritionApp() {
                         <li>• Ensure good lighting for better analysis</li>
                         <li>• Include the entire meal in the frame</li>
                         <li>• Avoid shadows and reflections</li>
-                        <li>• Add a reference object (eg: creedit car, watch etc) for better results</li>
+                        <li>• Add a reference object (eg: credit card, watch etc) for better results</li>
                       </ul>
                     </div>
                   </div>
@@ -415,7 +415,7 @@ export default function NutritionApp() {
                   <Button
                     onClick={handleAnalyze}
                     disabled={!canAnalyzeFood || isAnalyzing}
-                    className="w-full h-12 md:h-14 text-base md:text-lg font-semibold bg-primary hover:bg-primary/90 shadow-lg hover:shadow-xl transition-all duration-300 rounded-2xl mb-20"
+                    className="w-full h-12 md:h-14 text-base md:text-lg font-semibold bg-primary hover:bg-primary/90 shadow-lg hover:shadow-xl transition-all duration-300 rounded-[5px] mb-20"
                     size="lg"
                   >
                     {isAnalyzing ? (
