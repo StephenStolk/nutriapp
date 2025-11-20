@@ -23,59 +23,74 @@ export default function Pricing() {
     remaining_uses: Number | null;
   }>({ plan: "Free", is_active: false, remaining_uses: 1 });
 
-  const { refreshSubscription } = useSubscription();
+  const { plan: subscription, loading: subLoading, refreshSubscription } = useSubscription();
+
   const router = useRouter();
   const { user, userId, loading } = useUser();
   const supabase = createClient();
 
+  // Add this check to prevent premature redirects
+if (loading || subLoading) {
+  return (
+    <div className="flex items-center justify-center min-h-screen bg-black text-white">
+      <p>Loading...</p>
+    </div>
+  );
+}
+
  useEffect(() => {
-  const fetchGeo = async () => {
-    try {
-      // CHANGE THIS: Use your API route instead of direct fetch
-      const res = await fetch("/api/get-location");
-      const data = await res.json();
+  // const fetchGeo = async () => {
+  //   try {
+  //     // CHANGE THIS: Use your API route instead of direct fetch
+  //     const res = await fetch("/api/get-location");
+  //     const data = await res.json();
 
-      setCountry(data.country_name || "India");
-      setCurrency(data.currency || "INR");
+  //     setCountry(data.country_name || "India");
+  //     setCurrency(data.currency || "INR");
 
-      switch (data.currency) {
-        case "USD":
-          setSymbol("$");
-          setPrice(3);
-          break;
-        case "EUR":
-          setSymbol("€");
-          setPrice(2.8);
-          break;
-        case "GBP":
-          setSymbol("£");
-          setPrice(2);
-          break;
-        case "INR":
-          setSymbol("₹");
-          setPrice(89);
-          break;
-        default:
-          setSymbol("$");
-          setPrice(2);
-      }
-    } catch (error) {
-      console.error("Error fetching location:", error);
-      // Set defaults on error - don't throw
-      setCountry("India");
-      setCurrency("INR");
-      setSymbol("₹");
-      setPrice(89);
-    }
-  };
+  //     switch (data.currency) {
+  //       case "USD":
+  //         setSymbol("$");
+  //         setPrice(3);
+  //         break;
+  //       case "EUR":
+  //         setSymbol("€");
+  //         setPrice(2.8);
+  //         break;
+  //       case "GBP":
+  //         setSymbol("£");
+  //         setPrice(2);
+  //         break;
+  //       case "INR":
+  //         setSymbol("₹");
+  //         setPrice(89);
+  //         break;
+  //       default:
+  //         setSymbol("$");
+  //         setPrice(2);
+  //     }
+  //   } catch (error) {
+  //     console.error("Error fetching location:", error);
+  //     // Set defaults on error - don't throw
+  //     setCountry("India");
+  //     setCurrency("INR");
+  //     setSymbol("₹");
+  //     setPrice(89);
+  //   }
+  // };
 
-  fetchGeo();
+  // fetchGeo();
+
+   setCountry("India");
+  setCurrency("INR");
+  setSymbol("₹");
+  setPrice(89);
 }, []); // Keep empty dependency array
 
   // Remove the existing useEffect that checks subscription
 // Replace with this:
 useEffect(() => {
-  if (!user || loading) return;
+  if (!user || loading || subLoading) return;
 
   const checkAndRedirect = async () => {
     try {
@@ -104,7 +119,7 @@ useEffect(() => {
   };
 
   checkAndRedirect();
-}, [user, loading, userId, router]);
+}, [user, loading, subLoading, userId, router]);
 
 
 
@@ -140,7 +155,10 @@ useEffect(() => {
       const response = await fetch("/api/create-subscription", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ amount: price, currency }),
+        body: JSON.stringify({ 
+  amount: price, 
+  currency: "INR" // Always use INR for Razorpay
+}),
       });
 
       const data = await response.json();
@@ -301,14 +319,18 @@ useEffect(() => {
 
           {/* Free Plan Option */}
           <motion.div whileHover={{ scale: 1.02 }}>
-            <Button
-              variant="outline"
-              onClick={handleFreePlan}
-              disabled={load}
-              className="w-3/4 rounded-[5px] border-white/40 text-black hover:bg-white/70 bg-transparent text-white/50 hover:text-black/80 transition-all duration-300 py-0"
-            >
-              Continue with Free Plan
-            </Button>
+            {subscription?.plan_name !== "Pro Plan" && (
+  <motion.div whileHover={{ scale: 1.02 }}>
+    <Button
+      variant="outline"
+      onClick={handleFreePlan}
+      disabled={load}
+      className="w-3/4 rounded-[5px] border-white/40 text-black hover:bg-white/70 bg-transparent text-white/50 hover:text-black/80 transition-all duration-300 py-0"
+    >
+      Continue with Free Plan
+    </Button>
+  </motion.div>
+)}
           </motion.div>
 
           {/* Info */}
