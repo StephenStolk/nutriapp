@@ -1,24 +1,33 @@
 // app/api/get-location/route.ts
-import { NextResponse } from 'next/server';
+import { headers } from "next/headers";
 
-export async function GET(request: Request) {
+export async function GET() {
   try {
-    // Get IP from headers (Vercel provides this)
-    const forwarded = request.headers.get('x-forwarded-for');
-    const ip = forwarded ? forwarded.split(',')[0] : request.headers.get('x-real-ip');
+    const ip =
+      headers().get("x-real-ip") ||
+      headers().get("x-forwarded-for")?.split(",")[0] ||
+      "";
 
-    const res = await fetch(`https://ipapi.co/${ip || ''}/json/`);
+    const res = await fetch(`https://ipwho.is/${ip}`, {
+      cache: "no-store",
+    });
+
     const data = await res.json();
 
-    return NextResponse.json({
-      country_name: data.country_name || "India",
-      currency: data.currency || "INR"
+    return Response.json({
+      country_name: data.country || "United States",
+      currency: data.currency?.code || "USD",
     });
-  } catch (error) {
-    console.error('Geolocation error:', error);
-    return NextResponse.json({
-      country_name: "India",
-      currency: "INR"
-    });
+  } catch (err) {
+    console.error("Geo API error:", err);
+
+    // ⭐ DEFAULT TO USD
+    return Response.json(
+      {
+        country_name: "United States",
+        currency: "USD",
+      },
+      { status: 200 }
+    );
   }
 }

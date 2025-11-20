@@ -1828,7 +1828,8 @@ const areHabitsComplete = totalHabitsToday > 0 && completedHabitsToday === total
               ) : (
                 <Button
                   variant="outline"
-                  onClick={() => (window.location.href = "/manage-subscription")}
+                  // onClick={() => (window.location.href = "/manage-subscription")}
+                  onClick={handleManageSubscription}
                   className="bg-white text-black rounded-[5px] h-9 text-sm"
                 >
                   Manage Subscription

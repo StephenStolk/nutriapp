@@ -65,7 +65,7 @@ export default function Pricing() {
       setCountry("India");
       setCurrency("INR");
       setSymbol("₹");
-      setPrice(199);
+      setPrice(89);
     }
   };
 
@@ -237,6 +237,8 @@ useEffect(() => {
     );
   }
 
+
+
   return (
     <main className="relative flex flex-col items-center justify-center min-h-screen bg-black text-white overflow-hidden px-0">
       {/* Animated background */}
@@ -264,10 +266,30 @@ useEffect(() => {
             <p className="text-gray-300 mb-3 text-md">
               Unlock quick meal features, calorie tracking & personalized plans.
             </p>
-            <p className="text-2xl font-bold mb-4 text-white">
+            {/* <p className="text-2xl font-bold mb-4 text-white">
               {symbol}
               {price} / month
-            </p>
+            </p> */}
+           <div className="text-white space-y-1">
+
+            {/* USD */}
+  <p className="text-lg font-semibold text-white">
+    $2
+    <span className="ml-5 text-sm text-gray-300 line-through">$1</span>
+    <span className="ml-2 text-green-400 text-sm">55% OFF</span>
+  </p>
+
+  {/* INR */}
+  <p className="text-lg font-semibold text-white">
+    ₹89
+    <span className="ml-5 text-sm text-gray-300 line-through">₹199</span>
+    <span className="ml-2 text-green-400 text-sm">55% OFF</span>
+  </p>
+
+</div>
+
+
+
             <Button
               onClick={handlePayment}
               disabled={load}
