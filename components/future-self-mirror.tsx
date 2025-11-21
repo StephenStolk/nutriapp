@@ -62,7 +62,7 @@ export function FutureSelfMirror({ isOpen, onClose }: FutureSelfMirrorProps) {
   const [todayImpacts, setTodayImpacts] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const { userId } = useUser()
-  const supabase = createClient()
+  
 
   useEffect(() => {
     if (!userId || !isOpen) return
@@ -71,6 +71,7 @@ export function FutureSelfMirror({ isOpen, onClose }: FutureSelfMirrorProps) {
 
   const loadIdentityData = async () => {
     setLoading(true)
+    const supabase = createClient()
     try {
       const today = new Date().toISOString().split('T')[0]
 
@@ -80,7 +81,7 @@ export function FutureSelfMirror({ isOpen, onClose }: FutureSelfMirrorProps) {
         .select('*')
         .eq('user_id', userId)
         .eq('is_active', true)
-        .single()
+        .maybeSingle()
 
       if (activeIdentity) {
         const identityType = IDENTITY_TYPES.find(t => t.id === activeIdentity.identity_type)
@@ -110,6 +111,7 @@ export function FutureSelfMirror({ isOpen, onClose }: FutureSelfMirrorProps) {
 
   const selectIdentity = async (identityType: any) => {
     if (!userId) return
+    const supabase = createClient()
     try {
       const today = new Date().toISOString().split('T')[0]
 
@@ -131,7 +133,7 @@ export function FutureSelfMirror({ isOpen, onClose }: FutureSelfMirrorProps) {
           is_active: true,
         })
         .select()
-        .single()
+        .maybeSingle()
 
       setSelectedIdentity({ ...data, ...identityType })
       setAlignmentScore(0)

@@ -129,7 +129,7 @@ export function PlantStreak({ habitsCompleted, caloriesOnTarget, totalHabits, co
           .from("streaks")
           .select("*")
           .eq("user_id", userId)
-          .single()
+          .maybeSingle()
 
         if (error && error.code === 'PGRST116') {
           const { data: newStreak, error: insertError } = await supabase
@@ -151,7 +151,7 @@ export function PlantStreak({ habitsCompleted, caloriesOnTarget, totalHabits, co
             .select("*")
             .eq("user_id", userId)
             .eq("date", today)
-            .single()
+            .maybeSingle()
 
           if (logData?.streak_maintained) {
             setTodayComplete(true)
@@ -184,7 +184,7 @@ export function PlantStreak({ habitsCompleted, caloriesOnTarget, totalHabits, co
           .select("*")
           .eq("user_id", userId)
           .eq("date", yesterday)
-          .single()
+          .maybeSingle()
 
         const shouldContinue = yesterdayLog?.streak_maintained || streak.current_streak === 0
 

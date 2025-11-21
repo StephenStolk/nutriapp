@@ -30,14 +30,6 @@ export default function Pricing() {
   const { user, userId, loading } = useUser();
   const supabase = createClient();
 
-  // Add this check to prevent premature redirects
-if (loading || subLoading) {
-  return (
-    <div className="flex items-center justify-center min-h-screen bg-black text-white">
-      <p>Loading...</p>
-    </div>
-  );
-}
 
  useEffect(() => {
   // const fetchGeo = async () => {
@@ -86,99 +78,23 @@ if (loading || subLoading) {
   setCurrency("INR");
   setSymbol("₹");
   setPrice(89);
-}, []); // Keep empty dependency array
+}, []); 
 
-  // Remove the existing useEffect that checks subscription
-// Replace with this:
+
 const searchParams = useSearchParams();
 
-// useEffect(() => {
-//   if (!user || loading || subLoading) return;
-
-//   const checkAndRedirect = async () => {
-//     try {
-//       // ADD THIS: Check if user is coming to upgrade
-      
-      
-//       // If upgrading, don't redirect - let them stay on pricing page
-//       if (isUpgrading) {
-//         return;
-//       }
-
-//       const { data, error } = await supabase
-//         .from("user_subscriptions")
-//         .select("plan_name, is_active")
-//         .eq("user_id", user.id)
-//         .maybeSingle();
-
-//       // Only redirect if they have an active subscription
-//       if (data && data.is_active) {
-//         router.replace(`/${userId}/nutrition`);
-
-//       }
-//     } catch (err) {
-//       console.error("Error checking subscription:", err);
-//     }
-//   };
-
-//   checkAndRedirect();
-// }, [user, loading, subLoading, userId, router, isUpgrading]);
-
-const isUpgrading = searchParams.get("upgrade") === "true";
-
 useEffect(() => {
-  if (loading || subLoading) return;  // prevents premature redirects
-  if (!user) return;
-
-  // const isUpgrading = searchParams.get("upgrade") === "true";
-  if (isUpgrading) {
-  setMessage("You already have a subscription. Free plan is unavailable.");
-  return;
-}
- // allow upgrade page to load
-
-  const checkSubscription = async () => {
-    const { data } = await supabase
-      .from("user_subscriptions")
-      .select("plan_name, is_active")
-      .eq("user_id", user.id)
-      .maybeSingle();
-
-    if (data && data.is_active && !isUpgrading) {
-  router.replace(`/${userId}/nutrition`);
-}
-
-  };
-
-  checkSubscription();
-}, [user, loading, subLoading, userId, router, supabase, searchParams]);
+  // Only redirect if coming from upgrade button
+  const isUpgrading = searchParams.get("upgrade") === "true";
+  if (isUpgrading) return; // Let them stay on pricing page
+  
+  // For all other cases, no automatic redirects
+}, [searchParams]);
 
 
 
   const handlePayment = async () => {
      if (!user) return;
-
-  // 1. Check if user email is verified
-//   // 1. Check if user email is verified
-// if (!user.email_confirmed_at) {
-//   const res = await fetch("/api/send-verification-email", {
-//     method: "POST",
-//     headers: { "Content-Type": "application/json" },
-//     body: JSON.stringify({ email: user.email }),
-//   });
-
-//   const data = await res.json();
-
-//   if (!data.success) {
-//     setMessage("Could not send verification email.");
-//     return;
-//   }
-
-//   setMessage(
-//     "We sent you a verification email. Please verify your email to continue with payment."
-//   );
-//   return;
-// }
 
     try {
       setLoad(true);
@@ -215,11 +131,11 @@ useEffect(() => {
   if (verifyData.success) {
     setMessage("Payment successful! Redirecting...");
     
-    // Refresh subscription
-    await refreshSubscription();
+    // Wait for database to update
+    await new Promise(resolve => setTimeout(resolve, 500));
     
-    // Navigate to dashboard
-    router.replace(`/${userId}/nutrition`);
+    // Hard redirect
+    window.location.href = `/${userId}/nutrition`;
   } else {
     setMessage("Payment verification failed.");
   }
@@ -243,50 +159,52 @@ useEffect(() => {
   };
 
   const handleFreePlan = async () => {
-    if (!user) return;
+  if (!user) return;
 
-    try {
-      setLoad(true);
-      setMessage("");
+  try {
+    setLoad(true);
+    setMessage("");
 
-      const { error } = await supabase.from("user_subscriptions").upsert(
-        {
-          user_id: user.id,
-          plan_name: "Free",
-          is_active: true,
-          remaining_uses: 1,
-          used_meal_planner: false,
-    used_analyze_food: false,
-    used_get_recipe: false,
-    last_used_analyze_food: null,
-    razorpay_customer_id: null,
-    razorpay_subscription_id: null,
-    razorpay_payment_id: null,
-    valid_till: null,
-    updated_at: new Date().toISOString(),
-        },
-        { onConflict: "user_id" }
-      );
+    const { error } = await supabase.from("user_subscriptions").upsert(
+      {
+        user_id: user.id,
+        plan_name: "Free",
+        is_active: true,
+        remaining_uses: 1,
+        used_meal_planner: false,
+        used_analyze_food: false,
+        used_get_recipe: false,
+        last_used_analyze_food: null,
+        razorpay_customer_id: null,
+        razorpay_subscription_id: null,
+        razorpay_payment_id: null,
+        valid_till: null,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: "user_id" }
+    );
 
-      if (error) throw error;
+    if (error) throw error;
 
-      setMessage("Free plan activated. Enjoy basic features!");
-      setPlan({ plan: "Free", is_active: true, remaining_uses: 1 });
+    setMessage("Free plan activated!");
+    
+    // Wait a bit for database to update
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // Hard redirect
+    window.location.href = `/${userId}/nutrition`;
+  } catch (err) {
+    console.error(err);
+    setMessage("❌ Could not activate free plan.");
+    setLoad(false);
+  }
+};
 
-      await refreshSubscription();
-      router.push(`/${userId}/nutrition`);
-    } catch (err) {
-      console.error(err);
-      setMessage("❌ Could not activate free plan.");
-    } finally {
-      setLoad(false);
-    }
-  };
 
-  if (loading) {
+ if (loading || subLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-black text-white">
-        <p>Loading user data...</p>
+        <p>Loading...</p>
       </div>
     );
   }
@@ -355,7 +273,8 @@ useEffect(() => {
 
           {/* Free Plan Option */}
           <motion.div whileHover={{ scale: 1.02 }}>
-            {!isUpgrading && subscription?.plan_name !== "Pro Plan" && (
+            {/* Free Plan Option - Only for new users without subscription */}
+{!subscription && (
   <motion.div whileHover={{ scale: 1.02 }}>
     <Button
       variant="outline"
@@ -367,6 +286,7 @@ useEffect(() => {
     </Button>
   </motion.div>
 )}
+
           </motion.div>
 
           {/* Info */}

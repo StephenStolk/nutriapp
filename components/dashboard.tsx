@@ -33,6 +33,7 @@ import { DisciplineDebt } from "@/components/discipline-debt"
 import { PatternAnalytics } from "@/components/pattern-analytics"
 import { MicroChoiceFork } from "@/components/micro-choice-fork"
 import { GitBranch } from "lucide-react"
+import { SubscriptionExpiryWarning } from "@/components/subscription-expiry-warning"
 
 interface LoggedFood {
   id: string
@@ -130,25 +131,26 @@ const [choiceForkFood, setChoiceForkFood] = useState<any>(null)
   const { hasSubscription, plan } = useSubscription()
 
   
-useEffect(() => {
-  // Prevent back button after entering dashboard with active plan
-  if (hasSubscription) {
-    window.history.pushState(null, '', window.location.href);
-    window.onpopstate = function () {
-      window.history.pushState(null, '', window.location.href);
-    };
-  }
+// useEffect(() => {
+//   // Prevent back button after entering dashboard with active plan
+//   if (hasSubscription) {
+//     window.history.pushState(null, '', window.location.href);
+//     window.onpopstate = function () {
+//       window.history.pushState(null, '', window.location.href);
+//     };
+//   }
 
-  return () => {
-    window.onpopstate = null;
-  };
-}, [hasSubscription]);
+//   return () => {
+//     window.onpopstate = null;
+//   };
+// }, [hasSubscription]);
 
-  const supabase = createClient()
+  
 
 
   const addMicroWin = async (type: string, description: string) => {
   if (!userId) return
+  const supabase = createClient()
   try {
     await supabase.from('micro_wins').insert({
       user_id: userId,
@@ -177,6 +179,7 @@ const checkMicroChoiceFork = (mealType: string, calories: number) => {
 
 const updateIdentityAlignment = async (foodLogId: string, calories: number) => {
   if (!userId) return
+  const supabase = createClient()
   
   try {
     // Get active identity
@@ -217,6 +220,7 @@ const updateIdentityAlignment = async (foodLogId: string, calories: number) => {
 
 const feedParasite = async (foodName: string, calories: number) => {
   if (!userId) return
+  const supabase = createClient()
   
   const isJunkFood = calories > 500 || foodName.toLowerCase().includes('fries') || 
                      foodName.toLowerCase().includes('pizza') || 
@@ -261,6 +265,7 @@ const feedParasite = async (foodName: string, calories: number) => {
 
 const addDisciplineDebt = async (reason: string, amount: number) => {
   if (!userId) return
+  const supabase = createClient()
 
   try {
     let { data: debt } = await supabase
@@ -302,6 +307,7 @@ const addDisciplineDebt = async (reason: string, amount: number) => {
 
   useEffect(() => {
     if (!userId || loading) return
+    const supabase = createClient()
 
     const fetchData = async () => {
       try {
@@ -517,6 +523,7 @@ if (formatted.length > 0) {
 
   useEffect(() => {
     if (!userId) return
+    const supabase = createClient()
     const fetchGoal = async () => {
       const { data: goalRows, error } = await supabase
         .from("user_goals")
@@ -667,6 +674,7 @@ const areHabitsComplete = totalHabitsToday > 0 && completedHabitsToday === total
 
   const addHabit = async () => {
     if (!userId || !newHabitName.trim()) return
+    const supabase = createClient()
 
     const payload = {
       user_id: userId,
@@ -725,6 +733,7 @@ const areHabitsComplete = totalHabitsToday > 0 && completedHabitsToday === total
 
   const toggleHabit = async (habitId: string) => {
     // console.log("toggleHabit called for", { habitId, userId })
+    const supabase = createClient()
     const isLocalBuiltIn = typeof habitId === "string" && habitId.startsWith("builtin-")
 
     try {
@@ -965,6 +974,7 @@ const areHabitsComplete = totalHabitsToday > 0 && completedHabitsToday === total
   }
 
   const deleteHabit = async (habitId: string) => {
+    const supabase = createClient()
     if (userId) {
       try {
         const { error: deleteHabitErr } = await supabase.from("habits").delete().eq("id", habitId).eq("user_id", userId)
@@ -1012,6 +1022,7 @@ const areHabitsComplete = totalHabitsToday > 0 && completedHabitsToday === total
 
   const handleGoalSave = async () => {
     const newGoal = Number.parseInt(tempGoal)
+    const supabase = createClient()
 
     if (newGoal > 0) {
       setDailyGoal(newGoal)
@@ -1043,11 +1054,19 @@ const areHabitsComplete = totalHabitsToday > 0 && completedHabitsToday === total
   
 
   const handleManageSubscription = () => {
-  router.push("/pricestructure?upgrade=true")
-}
+  if (plan?.plan_name === "Free") {
+    router.push("/pricestructure?upgrade=true");
+  } else {
+    router.push("/manage-subscription");
+  }
+};
 
   return (
     <div className="space-y-2 animate-slide-up px-1">
+       <SubscriptionExpiryWarning 
+      validTill={plan?.valid_till || null} 
+      planName={plan?.plan_name || "Free"} 
+    />
       <div className="text-start">
         <div className="flex items-center justify-between">
           <div className="leading-tight">
@@ -1803,48 +1822,50 @@ const areHabitsComplete = totalHabitsToday > 0 && completedHabitsToday === total
       )}
 
       <div className="mt-8 border-t border-border/50 pt-4 pb-20 text-center">
-        {loading ? (
-          <p className="text-sm text-muted-foreground">Loading your plan...</p>
+  {loading ? (
+    <p className="text-sm text-muted-foreground">Loading your plan...</p>
+  ) : (
+    <>
+      <p className="text-sm text-muted-foreground mt-8">
+        {plan?.plan_name === "Pro Plan" ? (
+          <>
+            You're on the <span className="font-semibold text-[#c9fa5f]">Pro Plan</span>.
+          </>
         ) : (
           <>
-            <p className="text-sm text-muted-foreground mt-8">
-              {plan?.plan_name === "Pro Plan" ? (
-                <>
-                  You’re on the <span className="font-semibold text-primary">Pro Plan</span>.
-                </>
-              ) : (
-                <>
-                  You’re on the Free Plan. <br />
-                  You have 1 trial for all service.
-                </>
-              )}
-            </p>
-
-            <div className="flex justify-center gap-3 mt-3">
-              {plan?.plan_name === "Free" ? (
-                <Button onClick={handleManageSubscription} className="rounded-[5px] h-9 text-sm">
-                  Upgrade Subscription
-                </Button>
-              ) : (
-                <Button
-                  variant="outline"
-                  // onClick={() => (window.location.href = "/manage-subscription")}
-                  onClick={handleManageSubscription}
-                  className="bg-white text-black rounded-[5px] h-9 text-sm"
-                >
-                  Manage Subscription
-                </Button>
-              )}
-            </div>
-
-            {plan?.valid_till && (
-              <p className="text-xs text-muted-foreground mt-2">
-                Valid till: {new Date(plan.valid_till).toLocaleDateString()}
-              </p>
-            )}
+            You're on the Free Plan. <br />
+            You have 1 trial for all services.
           </>
         )}
+      </p>
+
+      <div className="flex justify-center gap-3 mt-3">
+        {plan?.plan_name === "Free" ? (
+          <Button 
+            onClick={() => router.push("/pricestructure?upgrade=true")} 
+            className="rounded-[5px] h-9 text-sm"
+          >
+            Upgrade Subscription
+          </Button>
+        ) : (
+          <Button
+            variant="outline"
+            onClick={() => router.push("/manage-subscription")}
+            className="bg-white text-black rounded-[5px] h-9 text-sm"
+          >
+            Manage Subscription
+          </Button>
+        )}
       </div>
+
+      {plan?.valid_till && plan?.plan_name !== "Free" && (
+        <p className="text-xs text-muted-foreground mt-2">
+          Valid till: {new Date(plan.valid_till).toLocaleDateString()}
+        </p>
+      )}
+    </>
+  )}
+</div>
 
       <MeditationTimer isOpen={isMeditationOpen} onClose={() => setIsMeditationOpen(false)} />
       <CalorieCalculatorModal
@@ -1877,6 +1898,7 @@ const areHabitsComplete = totalHabitsToday > 0 && completedHabitsToday === total
   onClose={() => setShowMoodPicker(false)}
   onSelect={async (mood) => {
     if (userId && lastFoodLogId) {
+      const supabase = createClient()
       await supabase.from("mood_logs").insert({
         user_id: userId,
         food_log_id: lastFoodLogId,

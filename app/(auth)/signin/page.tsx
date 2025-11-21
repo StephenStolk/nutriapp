@@ -24,36 +24,45 @@ export default function SignInPage() {
   const [loading, setLoading] = useState<boolean>(false);
   const router = useRouter();
 
-  const handleSignin = async (e: React.FormEvent) => {
+ const handleSignin = async (e: React.FormEvent) => {
   e.preventDefault();
   setLoading(true);
 
-  const supabase = createClient();
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-  
-  if (error) {
-    console.error(error);
-    alert("Sign in failed: " + error.message);
+  try {
+    const supabase = createClient();
+    const { data, error } = await supabase.auth.signInWithPassword({ 
+      email, 
+      password 
+    });
+    
+    if (error) {
+      alert("Sign in failed: " + error.message);
+      setLoading(false);
+      return;
+    }
+
+    if (!data.user) {
+      alert("Sign in failed");
+      setLoading(false);
+      return;
+    }
+
+    // Check subscription once
+    const { data: subData } = await supabase
+      .from("user_subscriptions")
+      .select("is_active")
+      .eq("user_id", data.user.id)
+      .single();
+
+    // Single redirect - no delays
+    if (subData?.is_active) {
+      router.push(`/${data.user.id}/nutrition`);
+    } else {
+      router.push("/pricestructure");
+    }
+  } catch (error) {
+    console.error("Sign in error:", error);
     setLoading(false);
-    return;
-  }
-
-  // Check if user has a subscription
-  const { data: subData, error: subError } = await supabase
-    .from("user_subscriptions")
-    .select("plan_name, is_active")
-    .eq("user_id", data.user.id)
-    .maybeSingle();
-
-  setLoading(false);
-
-  // Redirect based on subscription status
-  if (subData && subData.is_active) {
-    // User has active subscription - go DIRECTLY to dashboard
-    router.push(`/${data.user.id}/nutrition`);
-  } else {
-    // No subscription or inactive - go to pricing
-    router.push("/pricestructure");
   }
 };
 
