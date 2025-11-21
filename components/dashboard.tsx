@@ -183,14 +183,14 @@ const updateIdentityAlignment = async (foodLogId: string, calories: number) => {
   
   try {
     // Get active identity
-    const { data: identity } = await supabase
-      .from('user_identities_future')
-      .select('*')
-      .eq('user_id', userId)
-      .eq('is_active', true)
-      .single()
+  const { data: identity, error: identityError } = await supabase
+  .from('user_identities_future')
+  .select('*')
+  .eq('user_id', userId)
+  .eq('is_active', true)
+  .maybeSingle()
 
-    if (!identity) return
+if (!identity || identityError) return
 
     // Calculate impact (simplified)
     const isHealthy = calories < 600 && calories > 200
@@ -307,9 +307,11 @@ const addDisciplineDebt = async (reason: string, amount: number) => {
 
   useEffect(() => {
     if (!userId || loading) return
+     let isMounted = true;
     const supabase = createClient()
 
     const fetchData = async () => {
+      if (!isMounted) return;
       try {
         const { data: habitsData, error: habitsErr } = await supabase
           .from("habits")
@@ -414,8 +416,10 @@ const addDisciplineDebt = async (reason: string, amount: number) => {
   }, [])
 
   useEffect(() => {
+      let isMounted = true;
   const fetchFoodLogs = async () => {
     if (!userId) return
+    if (!isMounted) return;
     const supabase = createClient()
 
     try {
@@ -523,8 +527,11 @@ if (formatted.length > 0) {
 
   useEffect(() => {
     if (!userId) return
+      let isMounted = true;
+
     const supabase = createClient()
     const fetchGoal = async () => {
+      if (!isMounted) return;
       const { data: goalRows, error } = await supabase
         .from("user_goals")
         .select("*")
@@ -545,6 +552,7 @@ if (formatted.length > 0) {
   }, [userId])
 
   useEffect(() => {
+
     if (loggedFoods.length > 0) {
       const weeklyData = [0, 0, 0, 0, 0, 0, 0]
       const habitData = [0, 0, 0, 0, 0, 0, 0]

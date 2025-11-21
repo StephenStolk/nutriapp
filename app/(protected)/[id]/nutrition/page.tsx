@@ -15,7 +15,7 @@ interface PageProps {
     };
 }
 
-export default async function Nutrition({ params} : PageProps) {
+export default function Nutrition({ params} : PageProps) {
     
     const { userId, loading: userLoading } = useUser();
   const [isVerifying, setIsVerifying] = useState(true);

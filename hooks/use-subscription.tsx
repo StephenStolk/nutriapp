@@ -32,15 +32,20 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
   const [plan, setPlan] = useState<Subscription | null>(null);
   const [loading, setLoading] = useState(true);
   const [hasSubscription, setHasSubscription] = useState(false);
+  const [hasFetched, setHasFetched] = useState(false); // Add this
   const supabase = createClient();
 
   const fetchSubscription = async () => {
+     if (hasFetched && !loading) return;
   try {
+    setLoading(true);
     const { data: { user } } = await supabase.auth.getUser();
     
     if (!user) {
       setPlan(null);
       setHasSubscription(false);
+      setLoading(false);
+      setHasFetched(true); // Mark as fetched
       return;
     }
 
@@ -63,12 +68,15 @@ export const SubscriptionProvider = ({ children }: { children: ReactNode }) => {
     setHasSubscription(false);
   } finally {
     setLoading(false);
+    setHasFetched(true); // Mark as fetched
   }
 };
 
   useEffect(() => {
+    if (!hasFetched) {
     fetchSubscription();
-  }, []);
+  }
+  }, [hasFetched]);
 
   return (
     <SubscriptionContext.Provider value={{ plan, loading, hasSubscription, refreshSubscription: fetchSubscription }}>

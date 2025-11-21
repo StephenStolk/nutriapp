@@ -76,12 +76,17 @@ export function FutureSelfMirror({ isOpen, onClose }: FutureSelfMirrorProps) {
       const today = new Date().toISOString().split('T')[0]
 
       // Check if user has active identity
-      const { data: activeIdentity } = await supabase
-        .from('user_identities_future')
-        .select('*')
-        .eq('user_id', userId)
-        .eq('is_active', true)
-        .maybeSingle()
+      const { data: activeIdentity, error: identityError } = await supabase
+  .from('user_identities_future')
+  .select('*')
+  .eq('user_id', userId)
+  .eq('is_active', true)
+  .maybeSingle()
+
+// Add this check
+if (identityError && identityError.code !== 'PGRST116') {
+  console.error('Error fetching identity:', identityError)
+}
 
       if (activeIdentity) {
         const identityType = IDENTITY_TYPES.find(t => t.id === activeIdentity.identity_type)

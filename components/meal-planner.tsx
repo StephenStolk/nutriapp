@@ -256,7 +256,7 @@ interface MealPlanData {
 export function MealPlannerEnhanced() {
   const { userId } = useUser()
   const { plan, refreshSubscription } = useSubscription()
-  const supabase = createClient()
+  // const supabase = createClient()
 
   const [view, setView] = useState<"categories" | "questions" | "generated">("categories")
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
@@ -286,6 +286,7 @@ export function MealPlannerEnhanced() {
   const canUseMealPlanner = plan?.plan_name === "Pro Plan" || (plan?.plan_name === "Free" && !plan?.used_meal_planner)
 
   const loadOngoingPlans = async () => {
+    const supabase = createClient()
   try {
     const { data, error } = await supabase
       .from("generated_meal_plans")
@@ -332,35 +333,29 @@ export function MealPlannerEnhanced() {
 }
 
 const loadSavedPlans = async () => {
+  const supabase = createClient()
   try {
     const { data, error } = await supabase
-      .from("generated_meal_plans")
-      .select("*, user_meal_planner_inputs(*)")
-      .eq("user_id", userId)
-      .order("created_at", { ascending: false })
+  .from("user_meal_planner_inputs")
+  .select(`
+    *,
+    generated_meal_plans(*)
+  `)
+  .eq("user_id", userId)
+  .order("created_at", { ascending: false })
 
     if (!error && data) {
-      const grouped = data.reduce((acc: any, plan: any) => {
-        const key = plan.input_id
-        if (!acc[key]) {
-          acc[key] = {
-            plans: [],
-            inputData: plan.user_meal_planner_inputs,
-            created_at: plan.created_at // Use created_at from the plan itself
-          }
-        }
-        acc[key].plans.push(plan)
-        return acc
-      }, {})
+  const savedArray = data
+    .filter((input: any) => input.generated_meal_plans && input.generated_meal_plans.length > 0)
+    .map((input: any) => ({
+      inputId: input.id,
+      plans: input.generated_meal_plans,
+      inputData: input,
+      created_at: input.created_at
+    }))
 
-      const savedArray = Object.values(grouped).map((group: any) => ({
-        plans: group.plans,
-        inputData: group.inputData,
-        created_at: group.created_at
-      }))
-
-      setSavedPlans(savedArray)
-    }
+  setSavedPlans(savedArray)
+}
   } catch (err) {
     console.error("Error loading saved plans:", err)
   }
@@ -374,6 +369,7 @@ const loadSavedPlans = async () => {
 }, [userId])
 
 const removePlan = async (inputId: string) => {
+  const supabase = createClient()
   try {
     await supabase
       .from("generated_meal_plans")
@@ -424,6 +420,7 @@ const removePlan = async (inputId: string) => {
     if (!canUseMealPlanner) return
 
     setIsGenerating(true)
+    const supabase = createClient()
     try {
       // Convert camelCase to snake_case for database
       const dbFormData = {
@@ -669,26 +666,26 @@ const removePlan = async (inputId: string) => {
 
 
 {/* Action Buttons for Ongoing and Saved */}
-{view === "categories" && !showSaved && (
-  <div className="grid grid-cols-2 gap-3 flex gap-2 p-1 bg-muted/30 rounded-[5px] border border-border/50 border border-dotted border-white/10 rounded-[5px]">
-    {ongoingPlans.length > 0 && (
-      <Button
-        onClick={() => setShowOngoingScreen(true)}
-        className="h-12 bg-transparent text-white rounded-[5px]"
-      >
-        <Flame className="h-4 w-4 mr-2" />
-        Ongoing ({ongoingPlans.length})
-      </Button>
-    )}
-    {savedPlans.length > 0 && (
-      <Button
-        onClick={() => setShowSaved(true)}
-        className="h-12 bg-[#c9fa5f]/10 text-white rounded-[5px]"
-      >
-        <BookOpen className="h-4 w-4 mr-2" />
-        Saved ({savedPlans.length})
-      </Button>
-    )}
+{/* Action Buttons for Ongoing and Saved */}
+{view === "categories" && !showSaved && !showOngoingScreen && (
+  <div className="grid grid-cols-2 gap-3 p-2 bg-muted/30 rounded-[5px] border border-border/50">
+    <Button
+      onClick={() => setShowOngoingScreen(true)}
+      className="h-12 bg-[#c9fa5f]/10 hover:bg-[#c9fa5f]/20 text-white rounded-[5px]"
+      disabled={ongoingPlans.length === 0}
+    >
+      <Flame className="h-4 w-4 mr-2" />
+      Ongoing ({ongoingPlans.length})
+    </Button>
+    
+    <Button
+      onClick={() => setShowSaved(true)}
+      className="h-12 bg-[#c9fa5f]/10 hover:bg-[#c9fa5f]/20 text-white rounded-[5px]"
+      disabled={savedPlans.length === 0}
+    >
+      <BookOpen className="h-4 w-4 mr-2" />
+      Saved ({savedPlans.length})
+    </Button>
   </div>
 )}
       {/* Categories View */}
@@ -912,7 +909,13 @@ const removePlan = async (inputId: string) => {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => setSelectedRecipe({ meal: meal.name, day: day.day })}
+                       onClick={() => setSelectedRecipe({ 
+    meal: meal.name, 
+    day: day.day,
+    calories: meal.calories,
+    description: meal.description,
+    fullMealData: meal // Store complete meal object
+  })}
                       className="h-8 w-8 p-0 hover:bg-[#c9fa5f]/20 flex-shrink-0"
                     >
                                             <BookOpen className="h-4 w-4 text-[#c9fa5f]" />
@@ -1049,94 +1052,47 @@ const removePlan = async (inputId: string) => {
               </Button>
             </div>
             
-            <div className="p-4 space-y-4">
-              <div>
-                <h4 className="font-semibold text-base text-foreground mb-2">{selectedRecipe.meal}</h4>
-                <p className="text-sm text-muted-foreground">{selectedRecipe.day}</p>
-              </div>
+            {selectedRecipe && (
+  <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
+    <Card className="w-full max-w-md max-h-[80vh] overflow-y-auto bg-card border-2 border-[#c9fa5f]/30 rounded-[5px] shadow-lg">
+      
+      {/* Header */}
+      <div className="sticky top-0 bg-card border-b border-[#c9fa5f]/30 p-4 flex items-center justify-between z-10">
+        <h3 className="text-lg font-bold text-foreground">Recipe Details</h3>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setSelectedRecipe(null)}
+          className="h-8 w-8 p-0 hover:bg-[#c9fa5f]/20"
+        >
+          <X className="h-4 w-4" />
+        </Button>
+      </div>
 
-              <div className="bg-[#c9fa5f]/10 rounded-[5px] p-4 border border-border/30">
-                <h5 className="font-semibold text-sm text-foreground mb-2">Cooking Time</h5>
-                <p className="text-sm text-muted-foreground">25-30 minutes</p>
-              </div>
+      {/* Content */}
+      <div className="py-6 px-1 space-y-5">
+        {/* Meal Info */}
+        <div className="bg-[#c9fa5f]/10 rounded-[5px] p-4 border border-[#c9fa5f]/20">
+          <h4 className="font-semibold text-lg text-foreground mb-3">{selectedRecipe.meal}</h4>
+          <ul className="space-y-2 text-sm text-muted-foreground">
+            <li>
+              <span className="font-semibold text-foreground">Day:</span> {selectedRecipe.day}
+            </li>
+            <li>
+              <span className="font-semibold text-foreground">Calories:</span> <span className="text-[#c9fa5f] font-bold">{selectedRecipe.calories} cal</span>
+            </li>
+            {selectedRecipe.description && (
+              <li>
+                <span className="font-semibold text-foreground">Description:</span> {selectedRecipe.description}
+              </li>
+            )}
+          </ul>
+        </div>
+      </div>
+    </Card>
+  </div>
+)}
 
-              <div>
-                <h5 className="font-semibold text-sm text-foreground mb-2 flex items-center gap-2">
-                  <Salad className="h-4 w-4 text-[#c9fa5f]" />
-                  Ingredients
-                </h5>
-                <ul className="space-y-1.5 text-sm text-muted-foreground">
-                  <li className="flex items-start gap-2">
-                    <span className="text-[#c9fa5f] mt-0.5">•</span>
-                    <span>1 cup main ingredient (rice/quinoa)</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-[#c9fa5f] mt-0.5">•</span>
-                    <span>2 tbsp cooking oil</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-[#c9fa5f] mt-0.5">•</span>
-                    <span>1 medium onion, chopped</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-[#c9fa5f] mt-0.5">•</span>
-                    <span>2 cloves garlic, minced</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-[#c9fa5f] mt-0.5">•</span>
-                    <span>1 cup seasonal vegetables</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-[#c9fa5f] mt-0.5">•</span>
-                    <span>Salt and spices to taste</span>
-                  </li>
-                </ul>
-              </div>
-
-              <div>
-                <h5 className="font-semibold text-sm text-foreground mb-2 flex items-center gap-2">
-                  <ChefHat className="h-4 w-4 text-[#c9fa5f]" />
-                  Instructions
-                </h5>
-                <ol className="space-y-2 text-sm text-muted-foreground">
-                  <li className="flex items-start gap-2">
-                    <span className="font-semibold text-[#c9fa5f] flex-shrink-0">1.</span>
-                    <span>Heat oil in a pan over medium heat</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="font-semibold text-[#c9fa5f] flex-shrink-0">2.</span>
-                    <span>Add onions and cook until golden (3-4 min)</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="font-semibold text-[#c9fa5f] flex-shrink-0">3.</span>
-                    <span>Add garlic and cook for 1 minute</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="font-semibold text-[#c9fa5f] flex-shrink-0">4.</span>
-                    <span>Add vegetables and cook for 5-7 minutes</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="font-semibold text-[#c9fa5f] flex-shrink-0">5.</span>
-                    <span>Season with salt and spices</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="font-semibold text-[#c9fa5f] flex-shrink-0">6.</span>
-                    <span>Add main ingredient and cook as required</span>
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="font-semibold text-[#c9fa5f] flex-shrink-0">7.</span>
-                    <span>Garnish and serve hot</span>
-                  </li>
-                </ol>
-              </div>
-
-              <div className="bg-[#c9fa5f]/10 rounded-[5px] p-4 border border-[#c9fa5f]/20">
-                <h5 className="font-semibold text-sm text-foreground mb-2">Nutritional Benefits</h5>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  Rich in fiber, vitamins, and minerals. Provides sustained energy and supports overall health.
-                </p>
-              </div>
-            </div>
           </Card>
         </div>
       )}
