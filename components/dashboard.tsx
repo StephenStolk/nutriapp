@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { MeditationTimer } from "@/components/meditation-timer"
 import CalorieCalculatorModal from "./calorie-calculator-modal"
-import { Plus, Coffee, Utensils, Cookie, Target, TrendingUp, Apple, Settings, CheckCircle2, Circle, Dumbbell, Bed, Clock, Heart, X, Brain, Droplets, BookOpen, Smile, Sun, Battery, Cloud, AlertTriangle, MinusCircle } from 'lucide-react'
+import { Plus, Coffee, Utensils, Cookie, Target, TrendingUp, Apple, Settings, CheckCircle2, Circle, Dumbbell, Bed, Clock, Heart, X, Brain, Droplets, BookOpen, Smile, Sun, Battery, Cloud, AlertTriangle, MinusCircle, Pencil } from 'lucide-react'
 import { useState, useEffect } from "react"
 import type { User } from "@supabase/supabase-js"
 import { createClient } from "@/lib/supabase/client"
@@ -102,6 +102,15 @@ export function Dashboard({ onAddFood }: DashboardProps) {
   const [historyFor, setHistoryFor] = useState<"breakfast" | "lunch" | "dinner" | "snacks" | null>(null)
   const [weeklyConsumption, setWeeklyConsumption] = useState<number[]>([0, 0, 0, 0, 0, 0, 0])
   const [weeklyHabitCount, setWeeklyHabitCount] = useState<number[]>([0, 0, 0, 0, 0, 0, 0])
+  const [nutrientInputMode, setNutrientInputMode] = useState<{
+  mealType: "breakfast" | "lunch" | "dinner" | "snacks" | null;
+  isOpen: boolean;
+}>({ mealType: null, isOpen: false })
+const [nutrientValues, setNutrientValues] = useState({
+  protein: "",
+  carbs: "",
+  fat: "",
+})
 
   const [showMoodPicker, setShowMoodPicker] = useState(false)
 const [showCravingTracker, setShowCravingTracker] = useState(false)
@@ -1059,6 +1068,57 @@ const areHabitsComplete = totalHabitsToday > 0 && completedHabitsToday === total
     localStorage.setItem("daily-calorie-goal", calories.toString())
   }
 
+  const handleNutrientLog = async () => {
+  if (!nutrientInputMode.mealType || !userId) return
+  
+  const protein = Number(nutrientValues.protein) || 0
+  const carbs = Number(nutrientValues.carbs) || 0
+  const fat = Number(nutrientValues.fat) || 0
+  
+  // Calculate calories: Protein=4cal/g, Carbs=4cal/g, Fat=9cal/g
+  const calories = (protein * 4) + (carbs * 4) + (fat * 9)
+  
+  if (calories === 0) return
+  
+  const supabase = createClient()
+  
+  try {
+    const { data, error } = await supabase.from("food_logs").insert({
+      user_id: userId,
+      meal_type: nutrientInputMode.mealType,
+      calories,
+      protein,
+      carbs,
+      fat,
+    }).select().single()
+    
+    if (!error && data) {
+      const newFood: LoggedFood = {
+        id: data.id,
+        name: `${nutrientInputMode.mealType.charAt(0).toUpperCase() + nutrientInputMode.mealType.slice(1)} nutrients`,
+        calories,
+        protein,
+        carbs,
+        fat,
+        mealType: nutrientInputMode.mealType,
+        timestamp: new Date(),
+      }
+      
+      setLoggedFoods([newFood, ...loggedFoods])
+      
+      // Trigger micro-win checks
+      await updateIdentityAlignment(data.id, calories)
+      await feedParasite(newFood.name, calories)
+    }
+  } catch (err) {
+    console.error("Error logging nutrients:", err)
+  }
+  
+  // Reset
+  setNutrientValues({ protein: "", carbs: "", fat: "" })
+  setNutrientInputMode({ mealType: null, isOpen: false })
+}
+
   
 
   const handleManageSubscription = () => {
@@ -1439,16 +1499,31 @@ const areHabitsComplete = totalHabitsToday > 0 && completedHabitsToday === total
                   </div>
                 </div>
 
-                <Button
-                  size="sm"
-                  onClick={(e) => {
-                    e.stopPropagation() // prevent opening history when pressing +
-                    onAddFood?.(mealType as any)
-                  }}
-                  className="w-8 h-8 rounded-xl p-0 bg-primary hover:bg-primary/90 shadow-md hover:shadow-lg transition-all duration-300"
-                >
-                  <Plus className="h-3 w-3" />
-                </Button>
+                <div className="flex gap-2">
+  <Button
+    size="sm"
+    onClick={(e) => {
+      e.stopPropagation()
+      onAddFood?.(mealType as any)
+    }}
+    className="h-8 w-8 rounded-full bg-primary hover:bg-primary/90 shadow-md text-xs flex items-center justify-center"
+  >
+    <Plus className="h-3 w-3" />
+  </Button>
+
+  <Button
+  size="sm"
+  variant="outline"
+  onClick={(e) => {
+    e.stopPropagation()
+    setNutrientInputMode({ mealType: mealType as any, isOpen: true })
+  }}
+  className="h-8 w-8 rounded-full border-[#c9fa5f]/30 hover:bg-[#c9fa5f]/10 bg-[#c9fa5f] flex items-center justify-center"
+>
+  <Pencil className="h-3 w-3 text-black" />
+</Button>
+</div>
+
               </div>
 
               {foods.length > 0 && (
@@ -1526,13 +1601,109 @@ const areHabitsComplete = totalHabitsToday > 0 && completedHabitsToday === total
         </div>
       )}
 
+      {/* Nutrient Input Modal */}
+{nutrientInputMode.isOpen && (
+  <div className="fixed inset-0 z-50 bg-black/50 flex items-end sm:items-center justify-center p-0 sm:p-4 mb-16">
+    <Card className="w-full max-w-md bg-card rounded-t-[5px] sm:rounded-[5px] p-5">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-base font-semibold capitalize">
+          Add {nutrientInputMode.mealType} Nutrients
+        </h3>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="h-8 w-8 p-0"
+          onClick={() => {
+            setNutrientInputMode({ mealType: null, isOpen: false })
+            setNutrientValues({ protein: "", carbs: "", fat: "" })
+          }}
+        >
+          <X className="h-4 w-4" />
+        </Button>
+      </div>
+
+      <div className="space-y-4">
+        <div>
+          <label className="text-sm font-medium text-foreground mb-1.5 block">
+            Protein (g)
+          </label>
+          <Input
+            type="number"
+            placeholder="0"
+            value={nutrientValues.protein}
+            onChange={(e) => setNutrientValues({ ...nutrientValues, protein: e.target.value })}
+            className="text-sm"
+          />
+        </div>
+
+        <div>
+          <label className="text-sm font-medium text-foreground mb-1.5 block">
+            Carbs (g)
+          </label>
+          <Input
+            type="number"
+            placeholder="0"
+            value={nutrientValues.carbs}
+            onChange={(e) => setNutrientValues({ ...nutrientValues, carbs: e.target.value })}
+            className="text-sm"
+          />
+        </div>
+
+        <div>
+          <label className="text-sm font-medium text-foreground mb-1.5 block">
+            Fat (g)
+          </label>
+          <Input
+            type="number"
+            placeholder="0"
+            value={nutrientValues.fat}
+            onChange={(e) => setNutrientValues({ ...nutrientValues, fat: e.target.value })}
+            className="text-sm"
+          />
+        </div>
+
+        {(nutrientValues.protein || nutrientValues.carbs || nutrientValues.fat) && (
+          <div className="p-3 bg-muted/30 rounded-[5px]">
+            <p className="text-xs text-muted-foreground mb-1">Estimated Calories</p>
+            <p className="text-lg font-bold text-foreground">
+              {(Number(nutrientValues.protein || 0) * 4 + 
+                Number(nutrientValues.carbs || 0) * 4 + 
+                Number(nutrientValues.fat || 0) * 9).toFixed(0)} cal
+            </p>
+          </div>
+        )}
+
+        <div className="flex gap-2 pt-2">
+          <Button
+            variant="outline"
+            className="flex-1 rounded-[5px]"
+            onClick={() => {
+              setNutrientInputMode({ mealType: null, isOpen: false })
+              setNutrientValues({ protein: "", carbs: "", fat: "" })
+            }}
+          >
+            Cancel
+          </Button>
+          <Button
+            className="flex-1 rounded-[5px]"
+            onClick={handleNutrientLog}
+            disabled={!nutrientValues.protein && !nutrientValues.carbs && !nutrientValues.fat}
+          >
+            Log Nutrients
+          </Button>
+        </div>
+      </div>
+    </Card>
+  </div>
+)}
+
       {todaysFoods.length > 0 && (
         <Card className="p-4 shadow-sm border-0 rounded-xl bg-card">
           <div className="flex items-center space-x-2 mb-4">
-            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center">
               <TrendingUp className="h-4 w-4 text-primary" />
             </div>
-            <h3 className="text-base font-semibold text-foreground">This Week</h3>
+            <h3 className="text-base font-semibold text-foreground mt-2">This Week</h3>
           </div>
           <div className="flex justify-between items-end space-x-2">
             {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day, index) => {
