@@ -47,19 +47,24 @@ export default function SignInPage() {
       return;
     }
 
-    // Check subscription once
-    const { data: subData } = await supabase
-      .from("user_subscriptions")
-      .select("is_active")
-      .eq("user_id", data.user.id)
-      .single();
+    // Check subscription
+const { data: subData, error: subError } = await supabase
+  .from("user_subscriptions")
+  .select("is_active, plan_name")
+  .eq("user_id", data.user.id)
+  .maybeSingle();
 
-    // Single redirect - no delays
-    if (subData?.is_active) {
-      router.push(`/${data.user.id}/nutrition`);
-    } else {
-      router.push("/pricestructure");
-    }
+// Redirect logic
+if (subData && subData.is_active) {
+  // User has active subscription - go to dashboard
+  window.location.href = `/${data.user.id}/nutrition`;
+} else if (subError || !subData) {
+  // No subscription record - go to pricing
+  window.location.href = "/pricestructure";
+} else {
+  // Subscription exists but inactive - go to pricing
+  window.location.href = "/pricestructure";
+}
   } catch (error) {
     console.error("Sign in error:", error);
     setLoading(false);

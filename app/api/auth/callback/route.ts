@@ -7,7 +7,7 @@ export async function GET(request: Request) {
   const code = searchParams.get('code');
 
   if (code) {
-    const supabase = await createClient();
+    const supabase = createClient();
     
     try {
       const { data, error } = await supabase.auth.exchangeCodeForSession(code);
@@ -16,11 +16,11 @@ export async function GET(request: Request) {
       
       if (data.user) {
         // Check subscription
-        const { data: subData } = await supabase
-          .from('user_subscriptions')
-          .select('is_active')
-          .eq('user_id', data.user.id)
-          .maybeSingle();
+        const { data: subData, error: subError } = await supabase
+  .from('user_subscriptions')
+  .select('is_active, plan_name')
+  .eq('user_id', data.user.id)
+  .maybeSingle();
 
         // Redirect based on subscription
         if (subData && subData.is_active) {
