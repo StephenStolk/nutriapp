@@ -55,16 +55,13 @@ const { data: subData, error: subError } = await supabase
   .maybeSingle();
 
 // Redirect logic
-if (subData && subData.is_active) {
-  // User has active subscription - go to dashboard
+if (subData) {
   window.location.href = `/${data.user.id}/nutrition`;
-} else if (subError || !subData) {
-  // No subscription record - go to pricing
-  window.location.href = "/pricestructure";
 } else {
-  // Subscription exists but inactive - go to pricing
+  // No subscription record at all - need to choose a plan
   window.location.href = "/pricestructure";
 }
+
   } catch (error) {
     console.error("Sign in error:", error);
     setLoading(false);

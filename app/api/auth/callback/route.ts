@@ -23,11 +23,12 @@ export async function GET(request: Request) {
   .maybeSingle();
 
         // Redirect based on subscription
-        if (subData && subData.is_active) {
-          return NextResponse.redirect(`${origin}/${data.user.id}/nutrition`);
-        } else {
-          return NextResponse.redirect(`${origin}/pricestructure`);
-        }
+        if (subData) {
+  return NextResponse.redirect(`${origin}/${data.user.id}/nutrition`);
+}
+
+// No subscription record - go to pricing to select Free or Pro
+return NextResponse.redirect(`${origin}/pricestructure`);
       }
     } catch (error) {
       console.error('Auth callback error:', error);
