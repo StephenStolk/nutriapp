@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
 import { MeditationTimer } from "@/components/meditation-timer"
 import CalorieCalculatorModal from "./calorie-calculator-modal"
+import { DailyQuoteModal } from "@/components/daily-quote-modal"
 import { Plus, Coffee, Utensils, Cookie, Target, TrendingUp, Apple, Settings, CheckCircle2, Circle, Dumbbell, Bed, Clock, Heart, X, Brain, Droplets, BookOpen, Smile, Sun, Battery, Cloud, AlertTriangle, MinusCircle, Pencil } from 'lucide-react'
 import { useState, useEffect } from "react"
 import type { User } from "@supabase/supabase-js"
@@ -34,6 +35,12 @@ import { PatternAnalytics } from "@/components/pattern-analytics"
 import { MicroChoiceFork } from "@/components/micro-choice-fork"
 import { GitBranch } from "lucide-react"
 import { SubscriptionExpiryWarning } from "@/components/subscription-expiry-warning"
+// import { AddToHomeScreen } from "./add-to-home-screen"
+// import { EmotionalWordCloud } from "@/components/emotional-word-cloud"
+// import { TriggerHeatmap } from "@/components/trigger-heatmap"
+// import { CravingPatternAnalyzer } from "@/components/craving-pattern-analyzer"
+// import { WeeklySummaryCard } from "@/components/weekly-summary-card"
+
 
 interface LoggedFood {
   id: string
@@ -133,6 +140,11 @@ const [showDisciplineDebt, setShowDisciplineDebt] = useState(false)
 const [showPatternAnalytics, setShowPatternAnalytics] = useState(false)
 const [showMicroChoiceFork, setShowMicroChoiceFork] = useState(false)
 const [choiceForkFood, setChoiceForkFood] = useState<any>(null)
+
+const [showEmotionalWordCloud, setShowEmotionalWordCloud] = useState(false)
+
+const [showTriggerHeatmap, setShowTriggerHeatmap] = useState(false)
+const [showCravingAnalyzer, setShowCravingAnalyzer] = useState(false)
 
 
   const router = useRouter()
@@ -1135,6 +1147,11 @@ const areHabitsComplete = totalHabitsToday > 0 && completedHabitsToday === total
       validTill={plan?.valid_till || null} 
       planName={plan?.plan_name || "Free"} 
     />
+
+     <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
+    <div className="absolute top-20 right-10 w-96 h-96 rounded-full bg-[#c9fa5f]/5 blur-3xl animate-pulse" style={{ animationDuration: '8s' }} />
+    <div className="absolute bottom-20 left-10 w-96 h-96 rounded-full bg-[#c9fa5f]/5 blur-3xl animate-pulse" style={{ animationDuration: '10s', animationDelay: '2s' }} />
+  </div>
       <div className="text-start">
         <div className="flex items-center justify-between">
           <div className="leading-tight">
@@ -1165,6 +1182,10 @@ const areHabitsComplete = totalHabitsToday > 0 && completedHabitsToday === total
       </div>
 
       <Card className="p-1 pb-7">
+
+          <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none">
+    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#c9fa5f]/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+  </div>
         <div className="p-2 rounded-[5px] flex items-center justify-between mb-4">
           <div className="text-center">
             <div className="text-xl font-bold text-foreground mb-1">{totalCalories.toLocaleString()}</div>
@@ -1468,7 +1489,7 @@ const areHabitsComplete = totalHabitsToday > 0 && completedHabitsToday === total
           return (
             <Card
               key={mealType}
-              className="p-1 hover:shadow-md transition-all duration-300 border-0 rounded-[5px] bg-card"
+              className="p-1 hover:shadow-md transition-all duration-300 border-0 rounded-[5px] bg-card card-premium"
             >
               {/* Make header clickable to open history */}
               <div
@@ -1735,6 +1756,8 @@ const areHabitsComplete = totalHabitsToday > 0 && completedHabitsToday === total
   completedHabits={completedHabitsToday}
 />
 
+{/* <WeeklySummaryCard /> */}
+
 {/* Psychology Dashboard Card */}
 <Card className="p-4">
   <div className="flex items-center justify-between mb-3">
@@ -1780,16 +1803,48 @@ const areHabitsComplete = totalHabitsToday > 0 && completedHabitsToday === total
       <span className="text-xs">Personality</span>
     </Button>
 
-    <Button
-      variant="outline"
-      size="sm"
-      onClick={() => setShowWordCloud(true)}
-      className="h-auto py-3 flex flex-col items-center gap-1 hover:bg-[#c9fa5f]/10 hover:border-[#c9fa5f]/30 rounded-[5px]"
-    >
-      <Cloud className="h-4 w-4 text-[#c9fa5f]" />
-      <span className="text-xs">Triggers</span>
-    </Button>
+    {/* <Button
+  variant="outline"
+  size="sm"
+  onClick={() => setShowTriggerHeatmap(true)}
+  className="h-auto py-3 flex flex-col items-center gap-1 hover:bg-[#c9fa5f]/10 hover:border-[#c9fa5f]/30"
+>
+  <Clock className="h-4 w-4 text-[#c9fa5f]" />
+  <span className="text-xs">Heatmap</span>
+</Button> */}
+
+{/* <Button
+  variant="outline"
+  size="sm"
+  onClick={() => setShowCravingAnalyzer(true)}
+  className="h-auto py-3 flex flex-col items-center gap-1 hover:bg-[#c9fa5f]/10 hover:border-[#c9fa5f]/30"
+>
+  <TrendingUp className="h-4 w-4 text-[#c9fa5f]" />
+  <span className="text-xs">Cravings</span>
+</Button> */}
+
+
+    {/* <Button
+  variant="outline"
+  size="sm"
+  onClick={() => setShowEmotionalWordCloud(true)}
+  className="h-auto py-3 flex flex-col items-center gap-1 hover:bg-[#c9fa5f]/10 hover:border-[#c9fa5f]/30 rounded-[5px]"
+>
+  <Cloud className="h-4 w-4 text-[#c9fa5f]" />
+  <span className="text-xs">Emotions</span>
+</Button> */}
+
+ <Button
+  variant="outline"
+  size="sm"
+  onClick={() => setShowWordCloud(true)}
+  className="h-auto py-3 flex flex-col items-center gap-1 hover:bg-[#c9fa5f]/10 hover:border-[#c9fa5f]/30 rounded-[5px]"
+>
+  <Cloud className="h-4 w-4 text-[#c9fa5f]" />
+  <span className="text-xs">Trigger</span>
+</Button>
   </div>
+
 
   <Button
     variant="ghost"
@@ -2142,6 +2197,24 @@ const areHabitsComplete = totalHabitsToday > 0 && completedHabitsToday === total
     }
   }}
 />
+
+{/* <EmotionalWordCloud
+  isOpen={showEmotionalWordCloud}
+  onClose={() => setShowEmotionalWordCloud(false)}
+/> */}
+
+{/* <TriggerHeatmap 
+  isOpen={showTriggerHeatmap} 
+  onClose={() => setShowTriggerHeatmap(false)} 
+/>
+<CravingPatternAnalyzer 
+  isOpen={showCravingAnalyzer} 
+  onClose={() => setShowCravingAnalyzer(false)} 
+/> */}
+
+  <DailyQuoteModal />
+
+{/* <AddToHomeScreen /> */}
     </div>
   )
 }
