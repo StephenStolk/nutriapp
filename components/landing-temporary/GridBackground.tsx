@@ -53,7 +53,7 @@ function GridBackground({
 
   const {
     count = 16,
-    colors: beamColors = ['bg-neutral-700/50'], // light black / grayish beams
+    colors: beamColors = ['bg-gray-700/80'], // light black / grayish beams
     shadow = '',
     speed = 6,
   } = beams;

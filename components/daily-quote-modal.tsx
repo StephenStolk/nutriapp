@@ -64,7 +64,7 @@ export function DailyQuoteModal() {
           <div className="pt-4">
             <Button
               onClick={handleClose}
-              className="px-8 py-2 rounded-full bg-[#c9fa5f] hover:bg-[#b8e954] text-black font-medium transition-all duration-300 hover:scale-105"
+              className="px-8 py-2 rounded-[5px] bg-[#c9fa5f] hover:bg-[#b8e954] text-black font-medium transition-all duration-300 hover:scale-105"
             >
               Start Your Day
             </Button>
