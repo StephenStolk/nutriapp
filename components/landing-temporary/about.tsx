@@ -106,15 +106,15 @@ export default function About() {
     Meet the Founders Behind Kalnut
   </h3>
 
-  <div className="grid md:grid-cols-2 gap-10">
+  <div className="grid md:grid-cols-2 gap-5 sm:mt-20">
     
     {/* Founder Card */}
     <div className="text-center bg-white rounded-2xl p-8 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300">
-      <img
+      {/* <img
         src="https://media.licdn.com/dms/image/v2/D5603AQFtcop9_Cuueg/profile-displayphoto-shrink_400_400/profile-displayphoto-shrink_400_400/0/1719175102348?e=1764201600&v=beta&t=pOu5D1c31I6z13C-wgyxoH20HGgvZ_ArO5wA1h2h78I"
         alt="Aditya Kumar Jha"
         className="w-36 h-36 md:w-40 md:h-40 rounded-full mx-auto mb-4 object-cover shadow-sm border border-gray-200"
-      />
+      /> */}
 
       <h4 className="font-semibold text-xl text-gray-900">Aditya Kumar Jha</h4>
       <p className="text-sm text-gray-500 font-medium">Founder & CEO</p>
@@ -151,11 +151,11 @@ export default function About() {
 
     {/* Shikhar */}
     <div className="text-center bg-white rounded-2xl p-8 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-300">
-      <img
+      {/* <img
         src="https://drive.google.com/thumbnail?id=1_0r0Vzqzy92ChKFQDrX6DinqP_Jf2wcW&sz=w400"
         alt="Shikhar Burman"
         className="w-36 h-36 md:w-40 md:h-40 rounded-full mx-auto mb-4 object-cover shadow-sm border border-gray-200"
-      />
+      /> */}
 
       <h4 className="font-semibold text-xl text-gray-900">Shikhar Burman</h4>
       <p className="text-sm text-gray-500 font-medium">Co-Founder & CTO</p>

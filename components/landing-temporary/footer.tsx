@@ -21,9 +21,9 @@ export default function Footer() {
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
-          <div>
-            <h4 className="text-xs tracking-widest font-bold mb-4">PRODUCT</h4>
-            <ul className="space-y-2 text-xs text-gray-400">
+          {/* <div> */}
+            {/* <h4 className="text-xs tracking-widest font-bold mb-4">PRODUCT</h4> */}
+            {/* <ul className="space-y-2 text-xs text-gray-400">
               <li>
                 <a href="#features" className="hover:text-white transition-all duration-500 ease-out">
                   Features
@@ -44,8 +44,8 @@ export default function Footer() {
                   Download App
                 </a>
               </li>
-            </ul>
-          </div>
+            </ul> */}
+          {/* </div> */}
           <div>
             <h4 className="text-xs tracking-widest font-bold mb-4">COMPANY</h4>
             <ul className="space-y-2 text-xs text-gray-400">

@@ -44,7 +44,7 @@ export function BodyBattery({ isOpen, onClose }: BodyBatteryProps) {
         .select('hours')
         .eq('user_id', userId)
         .eq('date', today)
-        .single()
+        .maybeSingle()
 
       // Get stress
       const { data: stressData } = await supabase
@@ -52,7 +52,7 @@ export function BodyBattery({ isOpen, onClose }: BodyBatteryProps) {
         .select('stress_level')
         .eq('user_id', userId)
         .eq('date', today)
-        .single()
+        .maybeSingle()
 
       // Get calories
       const { data: foodData } = await supabase
@@ -70,7 +70,7 @@ export function BodyBattery({ isOpen, onClose }: BodyBatteryProps) {
         .select('glasses')
         .eq('user_id', userId)
         .eq('date', today)
-        .single()
+        .maybeSingle()
 
       // Calculate scores
       const sleepScore = Math.min(((sleepData?.hours || 7) / 8) * 100, 100)
