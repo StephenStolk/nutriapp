@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input"
 import { MeditationTimer } from "@/components/meditation-timer"
 import CalorieCalculatorModal from "./calorie-calculator-modal"
 import { DailyQuoteModal } from "@/components/daily-quote-modal"
-import { Plus, Coffee, Utensils, Cookie, Target, TrendingUp, Apple, Settings, CheckCircle2, Circle, Dumbbell, Bed, Clock, Heart, X, Brain, Droplets, BookOpen, Smile, Sun, Battery, Cloud, AlertTriangle, MinusCircle, Pencil } from 'lucide-react'
+import { UserProfile } from "@/components/user-profile"
+import { Plus, Coffee, Utensils, Cookie, Target, TrendingUp, Apple, Settings, CheckCircle2, Circle, Dumbbell, Bed, Clock, Heart, X, Brain, Droplets, BookOpen, Smile, Sun, Battery, Cloud, AlertTriangle, MinusCircle, Pencil, ChevronDown, ChevronUp, ArrowUpRight } from 'lucide-react'
 import { useState, useEffect } from "react"
 import type { User } from "@supabase/supabase-js"
 import { createClient } from "@/lib/supabase/client"
@@ -41,9 +42,19 @@ import { SubscriptionExpiryWarning } from "@/components/subscription-expiry-warn
 // import { CravingPatternAnalyzer } from "@/components/craving-pattern-analyzer"
 // import { WeeklySummaryCard } from "@/components/weekly-summary-card"
 
+type ActivePage =
+  | "landing"
+  | "home"
+  | "dashboard"
+  | "meal-planner"
+  | "profile"
+  | "quick-meals"
+  | "todos"
+  | "journal"
 
 interface LoggedFood {
   id: string
+  food_name?: string
   name: string
   calories: number
   protein: number
@@ -139,12 +150,38 @@ const [showShadowDay, setShowShadowDay] = useState(false)
 const [showDisciplineDebt, setShowDisciplineDebt] = useState(false)
 const [showPatternAnalytics, setShowPatternAnalytics] = useState(false)
 const [showMicroChoiceFork, setShowMicroChoiceFork] = useState(false)
+const [expandedMeals, setExpandedMeals] = useState<{[key: string]: boolean}>({
+  breakfast: false,
+  lunch: false,
+  dinner: false,
+  snacks: false
+})
 const [choiceForkFood, setChoiceForkFood] = useState<any>(null)
 
-const [showEmotionalWordCloud, setShowEmotionalWordCloud] = useState(false)
+// const [showEmotionalWordCloud, setShowEmotionalWordCloud] = useState(false)
 
-const [showTriggerHeatmap, setShowTriggerHeatmap] = useState(false)
-const [showCravingAnalyzer, setShowCravingAnalyzer] = useState(false)
+// const [showTriggerHeatmap, setShowTriggerHeatmap] = useState(false)
+// const [showCravingAnalyzer, setShowCravingAnalyzer] = useState(false)
+
+const [activePage, setActivePage] = useState<ActivePage>("landing")
+const [activeStatView, setActiveStatView] = useState<'calories' | 'habits'>('calories')
+
+
+// Add these state variables near your existing state declarations (around line 100):
+
+const [weeklyHabitData, setWeeklyHabitData] = useState<{
+  date: string
+  completed: number
+  total: number
+  percentage: number
+}[]>([])
+
+const [monthlyHabitData, setMonthlyHabitData] = useState<{
+  date: string
+  completed: number
+  total: number
+  percentage: number
+}[]>([])
 
 
   const router = useRouter()
@@ -446,7 +483,7 @@ const addDisciplineDebt = async (reason: string, amount: number) => {
     try {
       const { data, error } = await supabase
         .from("food_logs")
-        .select("id, meal_type, calories, protein, carbs, fat, created_at")
+        .select("id, meal_type, food_name, calories, protein, carbs, fat, created_at")
         .eq("user_id", userId)
         .order("created_at", { ascending: false })
 
@@ -458,7 +495,8 @@ const addDisciplineDebt = async (reason: string, amount: number) => {
       if (data) {
         const formatted = data.map((item) => ({
           id: item.id,
-          name: `${item.meal_type.charAt(0).toUpperCase() + item.meal_type.slice(1)} meal`,
+          food_name: item.food_name,
+          name: item.food_name || `${item.meal_type.charAt(0).toUpperCase() + item.meal_type.slice(1)} meal`,
           calories: Number(item.calories) || 0,
           protein: Number(item.protein) || 0,
           carbs: Number(item.carbs) || 0,
@@ -599,6 +637,81 @@ if (formatted.length > 0) {
       setWeeklyHabitCount(habitData)
     }
   }, [loggedFoods, habitLogs])
+
+
+  // Add this useEffect AFTER your existing habit data calculations (around line 450):
+
+useEffect(() => {
+  if (habits.length === 0) return
+
+  // Calculate Weekly Habit Data
+  const weeklyData = []
+  const today = new Date()
+  
+  for (let i = 6; i >= 0; i--) {
+    const date = new Date(today)
+    date.setDate(today.getDate() - i)
+    const dateString = date.toISOString().slice(0, 10)
+    
+    const dayLogs = habitLogs.filter(log => log.date === dateString)
+    const completed = dayLogs.filter(log => log.completed).length
+    const total = habits.length
+    
+    weeklyData.push({
+      date: date.toLocaleDateString("en-US", { weekday: "short" }),
+      completed,
+      total,
+      percentage: total > 0 ? Math.round((completed / total) * 100) : 0
+    })
+  }
+  setWeeklyHabitData(weeklyData)
+
+  // Calculate Monthly Habit Data
+  const monthlyData = []
+  const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate()
+  
+  for (let i = 1; i <= daysInMonth; i++) {
+    const date = new Date(today.getFullYear(), today.getMonth(), i)
+    const dateString = date.toISOString().slice(0, 10)
+    
+    const dayLogs = habitLogs.filter(log => log.date === dateString)
+    const completed = dayLogs.filter(log => log.completed).length
+    const total = habits.length
+    
+    monthlyData.push({
+      date: date.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+      completed,
+      total,
+      percentage: total > 0 ? Math.round((completed / total) * 100) : 0
+    })
+  }
+  setMonthlyHabitData(monthlyData)
+}, [habits, habitLogs])
+
+
+
+const deleteFood = async (foodId: string) => {
+  if (!userId) return
+  const supabase = createClient()
+
+  try {
+    const { error } = await supabase
+      .from("food_logs")
+      .delete()
+      .eq("id", foodId)
+      .eq("user_id", userId)
+
+    if (error) {
+      console.error("Error deleting food:", error)
+      return
+    }
+
+    // Update local state
+    setLoggedFoods(loggedFoods.filter(food => food.id !== foodId))
+  } catch (err) {
+    console.error("Error deleting food:", err)
+  }
+}
 
 
 
@@ -1141,6 +1254,15 @@ const areHabitsComplete = totalHabitsToday > 0 && completedHabitsToday === total
   }
 };
 
+const handleNavigation = (page: ActivePage) => {
+  if (page === "profile") {
+    router.push(`/${userId}/profile`)
+  } else {
+    setActivePage(page)
+  }
+}
+
+
   return (
     <div className="space-y-2 animate-slide-up px-1">
        <SubscriptionExpiryWarning 
@@ -1152,34 +1274,44 @@ const areHabitsComplete = totalHabitsToday > 0 && completedHabitsToday === total
     <div className="absolute top-20 right-10 w-96 h-96 rounded-full bg-[#c9fa5f]/5 blur-3xl animate-pulse" style={{ animationDuration: '8s' }} />
     <div className="absolute bottom-20 left-10 w-96 h-96 rounded-full bg-[#c9fa5f]/5 blur-3xl animate-pulse" style={{ animationDuration: '10s', animationDelay: '2s' }} />
   </div>
-      <div className="text-start">
-        <div className="flex items-center justify-between">
-          <div className="leading-tight">
-            {" "}
-            {/* 👈 reduces vertical spacing */}
-            <h1 className="text-lg font-bold text-foreground">Today</h1>
-            <p className="text-xs text-muted-foreground -mt-1">
-              {" "}
-              {/* 👈 pulls date closer */}
-              {today.toLocaleDateString("en-US", {
-                weekday: "long",
-                month: "long",
-                day: "numeric",
-              })}
-            </p>
-          </div>
 
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setIsMeditationOpen(true)}
-            className="w-8 h-8 p-0 rounded-full hover:bg-black hover:text-white"
-            style={{ backgroundColor: "#c9fa5f" }}
-          >
-            <Brain className="h-4 w-4" style={{ color: "#000" }} />
-          </Button>
-        </div>
-      </div>
+<div className="flex items-center justify-between mb-6 px-3 mt-14 bg-[#161616] rounded-sm">
+  <div className="flex items-center gap-3">
+    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#c9fa5f] to-[#b8e954] flex items-center justify-center shadow-lg" onClick={() => handleNavigation("profile")}>
+      <span className="text-lg font-bold text-black">
+        {user?.user_metadata?.name?.charAt(0) || "U"}
+      </span>
+    </div>
+    <div className="leading-tight">
+      <h1 className="text-lg font-bold text-foreground mt-4">
+        Hello, {user?.user_metadata?.name || "User"}
+      </h1>
+      <p className="text-xs text-muted-foreground">
+        Today {today.toLocaleDateString("en-US", { day: "numeric", month: "short" })}
+      </p>
+    </div>
+  </div>
+
+
+
+  <div className="flex items-center gap-2">
+    <Button
+      variant="ghost"
+      size="sm"
+      onClick={() => setIsMeditationOpen(true)}
+      className="w-12 h-12 p-0 rounded-full hover:bg-[#c9fa5f]/10"
+    >
+      <Brain className="h-12 w-12 text-[#c9fa5f]" />
+    </Button>
+    {/* <Button
+      variant="ghost"
+      size="sm"
+      className="w-10 h-10 p-0 rounded-full hover:bg-[#c9fa5f]/10"
+    >
+      <Settings className="h-5 w-5 text-muted-foreground" />
+    </Button> */}
+  </div>
+</div>
 
       <Card className="p-1 pb-7">
 
@@ -1283,8 +1415,246 @@ const areHabitsComplete = totalHabitsToday > 0 && completedHabitsToday === total
   )}
 </div>
 
+<div className="grid grid-cols-2 gap-3 mb-4">
+  {/* Calories Card */}
+<Card className="p-3 bg-[#161616] rounded-sm">
+  <div className="flex items-center gap-2">
+    <div className="w-8 h-8 flex items-center justify-center">
+      <Apple className="h-5 w-5 text-[#c9fa5f]" />
+    </div>
+  </div>
 
-        <div className="text-center py-2 bg-[#c9fa5f]/10 rounded-[5px] mb-4">
+  <div className="text-2xl font-bold text-white">
+    {totalCalories}
+  </div>
+
+  <div className="text-xs text-gray-400 font-medium mb-0">
+    Calories Consumed
+  </div>
+
+  <div className="flex items-center justify-between">
+    <span className="text-xs text-gray-400">
+      Goal: {dailyGoal}
+    </span>
+    <span className="text-xs font-semibold text-white">
+      {Math.round(progressPercentage)}%
+    </span>
+  </div>
+</Card>
+
+
+  {/* Habits Card */}
+  <Card className="p-3 bg-[#161616] rounded-sm border border-gray-800">
+    <div className="flex items-center gap-2">
+      <div className="w-8 h-8 flex items-center justify-center">
+        <Target className="h-5 w-5 text-[#c9fa5f]" />
+      </div>
+    </div>
+    <div className="text-2xl font-bold text-white">
+      {completedHabitsToday}
+    </div>
+    <div className="text-xs text-gray-400 font-medium mb-0">Habits Completed</div>
+    <div className="flex items-center justify-between">
+      <span className="text-xs text-gray-400">Goal: {totalHabitsToday}</span>
+      <span className="text-xs font-semibold text-white">
+        {totalHabitsToday > 0 ? Math.round((completedHabitsToday / totalHabitsToday) * 100) : 0}%
+      </span>
+    </div>
+  </Card>
+
+  {/* Sleep Card */}
+  <Card className="p-3 bg-[#161616] rounded-sm border border-gray-800">
+    <div className="flex items-center gap-2">
+      <div className="w-8 h-8 flex items-center justify-center">
+        <Bed className="h-5 w-5 text-[#c9fa5f]" />
+      </div>
+    </div>
+    <div className="text-2xl font-bold text-white">
+      7.5
+    </div>
+    <div className="text-xs text-gray-400 font-medium">Sleep Hours</div>
+    <div className="flex items-center justify-between">
+      <span className="text-xs text-gray-400">Goal: 8h</span>
+      <span className="text-xs font-semibold text-white">94%</span>
+    </div>
+  </Card>
+
+  {/* Water Card */}
+  <Card className="p-3 bg-[#161616] rounded-sm border border-gray-800">
+    <div className="flex items-center gap-2">
+      <div className="w-8 h-8 flex items-center justify-center">
+        <Droplets className="h-5 w-5 text-[#c9fa5f]" />
+      </div>
+    </div>
+    <div className="text-2xl font-bold text-white">
+      3/8
+    </div>
+    <div className="text-xs text-gray-400 font-medium">Water Glasses</div>
+    <div className="flex items-center justify-between">
+      <span className="text-xs text-gray-400">Goal: 8</span>
+      <span className="text-xs font-semibold text-white">38%</span>
+    </div>
+  </Card>
+</div>
+
+
+<div className="space-y-3 mb-4">
+  <div className="flex items-center justify-between px-1 mb-3">
+    <h3 className="text-base font-bold text-foreground">Daily Food</h3>
+  </div>
+
+  {Object.entries(mealGroups).map(([mealType, foods]) => {
+    const Icon = getMealIcon(mealType)
+    const mealCalories = getMealCalories(mealType as keyof typeof mealGroups)
+    const mealGoal = getMealGoal(mealType)
+    const progress = mealGoal > 0 ? (mealCalories / mealGoal) * 100 : 0
+    const isExpanded = expandedMeals[mealType]
+
+    return (
+      <Card
+        key={mealType}
+        className="border-0 rounded-sm bg-[#161616] overflow-hidden transition-all duration-300"
+      >
+        {/* Header */}
+        <div className="p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3 flex-1">
+              <div className="w-10 h-10 rounded-full bg-[#c9fa5f] flex items-center justify-center">
+                <Icon className="h-4 w-4 text-black" />
+              </div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2">
+                  <h4 className="text-sm font-bold text-foreground capitalize">
+                    {mealType}
+                  </h4>
+                  {foods.length > 0 && (
+                    <Badge variant="secondary" className="text-xs px-2 py-0">
+                      {foods.length} {foods.length === 1 ? 'item' : 'items'}
+                    </Badge>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {mealCalories} / {mealGoal} cal
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setNutrientInputMode({ mealType: mealType as any, isOpen: true })
+                }}
+                className="h-9 w-9 rounded-full hover:bg-muted"
+                title="Add nutrients manually"
+              >
+                <Pencil className="h-4 w-4" />
+              </Button>
+              <Button
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onAddFood?.(mealType as any)
+                }}
+                className="h-9 w-9 rounded-full bg-[#c9fa5f] hover:bg-[#c9fa5f]/90"
+                title="Add food"
+              >
+                <Plus className="h-4 w-4 text-black" />
+              </Button>
+            </div>
+          </div>
+
+          {/* Progress Bar */}
+          <div className="pt-2">
+            <div className="h-2 bg-black rounded-full overflow-hidden">
+              <div
+                className="h-full bg-[#c9fa5f] rounded-full transition-all duration-700"
+                style={{ width: `${Math.min(progress, 100)}%` }}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Food Items - Collapsible */}
+        {foods.length > 0 && (
+          <>
+            <button
+              onClick={() => setExpandedMeals(prev => ({ ...prev, [mealType]: !prev[mealType] }))}
+              className="w-full px-4 flex items-center justify-between hover:bg-muted/20 transition-colors"
+            >
+              <span className="text-xs font-medium text-muted-foreground">
+                {isExpanded ? 'Hide' : 'View'} items
+              </span>
+              {isExpanded ? (
+                <ChevronUp className="h-4 w-4 text-muted-foreground" />
+              ) : (
+                <ChevronDown className="h-4 w-4 text-muted-foreground" />
+              )}
+            </button>
+
+            {isExpanded && (
+              <div className="px-4 pb-4 space-y-2">
+                {foods.map((food) => (
+                  <div
+                    key={food.id}
+                    className="group flex items-center justify-between p-3 bg-muted/20 rounded-xl hover:bg-muted/30 transition-colors"
+                  >
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <div className="w-2 h-2 rounded-full bg-[#c9fa5f] flex-shrink-0" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-foreground truncate">
+                          {food.food_name || food.name}
+                        </p>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className="text-xs text-muted-foreground">
+                            P: {food.protein}g
+                          </span>
+                          <span className="text-xs text-muted-foreground">•</span>
+                          <span className="text-xs text-muted-foreground">
+                            C: {food.carbs}g
+                          </span>
+                          <span className="text-xs text-muted-foreground">•</span>
+                          <span className="text-xs text-muted-foreground">
+                            F: {food.fat}g
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-semibold text-foreground whitespace-nowrap">
+                        {food.calories} cal
+                      </span>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => deleteFood(food.id)}
+                        className="h-7 w-7 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X className="h-3 w-3 text-muted-foreground hover:text-destructive" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Empty State */}
+        {foods.length === 0 && (
+          <div className="px-4 pb-4 text-center">
+            <p className="text-xs text-muted-foreground">No items logged yet</p>
+          </div>
+        )}
+      </Card>
+    )
+  })}
+</div>
+
+
+        <div className="text-center py-2 bg-[#161616] rounded-sm mb-4">
           <button
             onClick={() => setIsCalorieCalculatorOpen(true)}
             className="text-xs text-primary hover:text-primary/80"
@@ -1343,224 +1713,6 @@ const areHabitsComplete = totalHabitsToday > 0 && completedHabitsToday === total
           </div>
         </div>
       </Card>
-
-      <Card className="p-3 shadow-sm border-0 rounded-[5px] bg-card mb-12">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center justify-center space-x-2">
-            <CheckCircle2 className="h-4 w-3.7 text-primary" />
-            <h3 className="text-md text-foreground mt-4">Daily Habits</h3>
-          </div>
-          <Badge
-            variant="secondary"
-            className="text-xs px-2 bg-transparent py-0.5 text-primary border-primary/20 rounded-[5px]"
-          >
-            {completedHabitsToday}/{totalHabitsToday} completed
-          </Badge>
-        </div>
-
-        {habits.length === 0 ? (
-          <div className="text-center py-8">
-            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-primary/10 flex items-center justify-center">
-              <CheckCircle2 className="h-8 w-8 text-primary" />
-            </div>
-            <h3 className="text-lg font-semibold text-foreground mb-2">Track Your Habits</h3>
-            <p className="text-sm text-muted-foreground mb-6 max-w-xs mx-auto">
-              Build better habits by tracking daily activities like workouts, reading, or meditation.
-            </p>
-            <Button
-              onClick={() => setIsAddingHabit(true)}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-2 rounded-[5px] font-medium"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add Your First Habit
-            </Button>
-          </div>
-        ) : (
-          <div className="grid grid-cols-3 gap-2">
-            {habits.map((habit) => {
-              const Icon = getHabitIcon(habit.icon ?? "dumbbell")
-              const completed = isHabitCompleted(habit.id)
-
-              return (
-                <div key={habit.id} className="relative group">
-                  <Card
-                    className={`p-2 cursor-pointer transition-all duration-300 border-0 rounded-sm ${
-                      completed ? "bg-[#c9fa5f] text-black" 
-        : "bg-muted/30 hover:bg-muted/50 text-foreground"
-
-                    }`}
-                    onClick={() => toggleHabit(habit.id)}
-                  >
-                    <div className="flex flex-col items-center space-y-1">
-                      <div
-                        className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                          completed ? "bg-black/20 text-black" 
-            : "bg-muted text-muted-foreground"
-                        }`}
-                      >
-                        <Icon className="h-4 w-4" />
-                      </div>
-                      <span className={`text-xs font-medium text-center ${completed ? "text-black" : ""} leading-tight`}>
-                        {habit.name}
-                      </span>
-                      <div className="flex items-center justify-center">
-                        {completed ? (
-                          <CheckCircle2 className="h-3 w-3 text-black" />
-                        ) : (
-                          <Circle className="h-3 w-3 text-muted-foreground" />
-                        )}
-                      </div>
-                    </div>
-                  </Card>
-                  {!habit.id.startsWith("builtin-") && (
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="absolute -top-1 -right-1 w-4 h-4 p-0 rounded-full
-        opacity-0 group-hover:opacity-100 transition-opacity
-        bg-black/20 hover:bg-black/30"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        deleteHabit(habit.id)
-                      }}
-                    >
-                      <X className="h-2 w-2 text-white" />
-                    </Button>
-                  )}
-                </div>
-              )
-            })}
-
-            <Card
-              className="p-2 cursor-pointer transition-all duration-300 border-2 border-dashed border-muted-foreground/30 hover:border-primary/50 rounded-lg bg-muted/20 hover:bg-muted/30"
-              onClick={() => setIsAddingHabit(true)}
-            >
-              <div className="flex flex-col items-center justify-center space-y-1 h-full min-h-[60px]">
-                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <Plus className="h-4 w-4 text-primary" />
-                </div>
-                <span className="text-xs font-medium text-center text-muted-foreground">Add Habit</span>
-              </div>
-            </Card>
-          </div>
-        )}
-      </Card>
-
-      {isAddingHabit && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-          <Card className="w-full max-w-md p-6 bg-card">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-sm font-semibold">Add New Habit</h3>
-              <Button variant="ghost" size="sm" onClick={() => setIsAddingHabit(false)} className="mb-4">
-                <X className="w-2 h-2 mr-1" />
-              </Button>
-            </div>
-            <div className="space-y-4">
-              <Input
-                placeholder="Enter habit name (e.g., Workout, Made bed, Read book)"
-                value={newHabitName}
-                onChange={(e) => setNewHabitName(e.target.value)}
-                onKeyPress={(e) => e.key === "Enter" && addHabit()}
-                className="text-sm"
-              />
-              <div className="flex justify-end space-x-2">
-                <Button
-                  variant="outline"
-                  className="p-0 px-6 rounded-[5px] bg-transparent"
-                  onClick={() => setIsAddingHabit(false)}
-                >
-                  Cancel
-                </Button>
-                <Button onClick={addHabit} className="p-0 px-4 rounded-[5px]" disabled={!newHabitName.trim()}>
-                  Add Habit
-                </Button>
-              </div>
-            </div>
-          </Card>
-        </div>
-      )}
-
-      <div className="space-y-2 dark:rounded-[5px]">
-        {Object.entries(mealGroups).map(([mealType, foods]) => {
-          const Icon = getMealIcon(mealType)
-          const mealCalories = getMealCalories(mealType as keyof typeof mealGroups)
-          const mealGoal = getMealGoal(mealType)
-
-          return (
-            <Card
-              key={mealType}
-              className="p-1 hover:shadow-md transition-all duration-300 border-0 rounded-[5px] bg-card card-premium"
-            >
-              {/* Make header clickable to open history */}
-              <div
-  className="
-    flex items-center justify-between cursor-pointer py-1 px-2
-    rounded-[5px]
-    bg-gradient-to-br from-[#c9fa5f]/10 via-[#c9fa5f]/5 to-transparent
-    backdrop-blur-sm
-    transition-all
-    hover:border-[#c9fa5f]/60 hover:shadow-lg
-  "
-  onClick={() => setHistoryFor(mealType as any)}
-  role="button"
-  tabIndex={0}
-  onKeyDown={(e) => e.key === 'Enter' && setHistoryFor(mealType as any)}
-  aria-label={`Open ${mealType} history`}
->
-
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 rounded-xl bg-[#c9fa5f] flex items-center justify-center">
-                    <Icon className="h-4 w-4 text-black" />
-                  </div>
-                  <div className="px-2 pt-2">
-                    <h3 className="text-sm font-semibold text-foreground capitalize">{mealType}</h3>
-                    <p className="text-xs text-muted-foreground">
-                      {mealCalories} / {mealGoal} Cal
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex gap-2">
-  <Button
-    size="sm"
-    onClick={(e) => {
-      e.stopPropagation()
-      onAddFood?.(mealType as any)
-    }}
-    className="h-8 w-8 rounded-full bg-primary hover:bg-primary/90 shadow-md text-xs flex items-center justify-center"
-  >
-    <Plus className="h-3 w-3" />
-  </Button>
-
-  <Button
-  size="sm"
-  variant="outline"
-  onClick={(e) => {
-    e.stopPropagation()
-    setNutrientInputMode({ mealType: mealType as any, isOpen: true })
-  }}
-  className="h-8 w-8 rounded-full border-[#c9fa5f]/30 hover:bg-[#c9fa5f]/10 bg-[#c9fa5f] flex items-center justify-center"
->
-  <Pencil className="h-3 w-3 text-black" />
-</Button>
-</div>
-
-              </div>
-
-              {foods.length > 0 && (
-                <div className="space-y-1">
-                  {foods.map((food) => (
-                    <div key={food.id} className="flex justify-between items-center p-2 bg-muted/30 rounded-[5px]">
-                      <span className="text-xs text-foreground font-medium">{food.name}</span>
-                      <span className="text-xs text-muted-foreground font-semibold">{food.calories} cal</span>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </Card>
-          )
-        })}
-      </div>
 
       {/* Bottom sheet: meal history */}
       {historyFor && (
@@ -1718,6 +1870,250 @@ const areHabitsComplete = totalHabitsToday > 0 && completedHabitsToday === total
   </div>
 )}
 
+
+<Card className="mx-1.5 mb-4 border-0 rounded-sm bg-card">
+  <div className="flex items-center justify-between mb-4">
+    <div>
+      <h3 className="text-base font-bold text-foreground">My Statistics</h3>
+      <p className="text-xs text-muted-foreground">Weekly overview</p>
+    </div>
+    <div className="flex gap-2">
+      <Button
+        size="sm"
+        variant={activeStatView === 'calories' ? 'default' : 'outline'}
+        onClick={() => setActiveStatView('calories')}
+        className="h-7 text-xs rounded-full px-3"
+      >
+        <Apple className="h-3 w-3 mr-1" />
+        Calories
+      </Button>
+      <Button
+        size="sm"
+        variant={activeStatView === 'habits' ? 'default' : 'outline'}
+        onClick={() => setActiveStatView('habits')}
+        className="h-7 text-xs rounded-full px-3"
+      >
+        <CheckCircle2 className="h-3 w-3 mr-1" />
+        Habits
+      </Button>
+    </div>
+  </div>
+
+  {/* Chart */}
+  <div className="relative h-48">
+    <div className="flex items-end justify-between h-full gap-2 px-2">
+      {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day, index) => {
+        const data = activeStatView === 'calories' ? weeklyConsumption : weeklyHabitCount;
+        const maxValue = activeStatView === 'calories' 
+          ? Math.max(...weeklyConsumption, dailyGoal)
+          : Math.max(...weeklyHabitCount, totalHabitsToday, 1);
+        
+        const heightPercent = (data[index] / maxValue) * 100;
+        const isToday = index === new Date().getDay() - 1;
+        
+        return (
+          <div key={day} className="flex-1 flex flex-col items-center gap-2 group">
+            <div className="relative w-full">
+              {/* Tooltip */}
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-black text-white text-[10px] rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
+                {activeStatView === 'calories' 
+                  ? `${data[index]} cal` 
+                  : `${data[index]} habits`}
+              </div>
+              
+              {/* Bar */}
+              <div 
+                className="w-full rounded-t-lg transition-all duration-500 relative overflow-hidden"
+                style={{
+                  height: `${Math.max(heightPercent, 8)}px`,
+                  backgroundColor: isToday ? '#c9fa5f' : '#c9fa5f',
+                  opacity: isToday ? 1 : 0.4,
+                }}
+              >
+                {isToday && (
+                  <div className="absolute inset-0 bg-gradient-to-t from-white/20 to-transparent" />
+                )}
+              </div>
+            </div>
+            
+            {/* Day Label */}
+            <span className={`text-[10px] font-medium ${
+              isToday ? 'text-[#c9fa5f]' : 'text-muted-foreground'
+            }`}>
+              {day}
+            </span>
+          </div>
+        );
+      })}
+    </div>
+  </div>
+
+  {/* Summary Stats */}
+  <div className="mt-4 py-3 bg-[#161616] grid grid-cols-3 gap-3 rounded-sm">
+    <div className="text-center">
+      <div className="text-xs text-muted-foreground mb-1">Average</div>
+      <div className="text-sm font-bold text-foreground">
+        {activeStatView === 'calories'
+          ? `${Math.round(weeklyConsumption.reduce((a, b) => a + b, 0) / 7)} cal`
+          : `${(weeklyHabitCount.reduce((a, b) => a + b, 0) / 7).toFixed(1)} habits`}
+      </div>
+    </div>
+    <div className="text-center">
+      <div className="text-xs text-muted-foreground mb-1">Best Day</div>
+      <div className="text-sm font-bold text-[#c9fa5f]">
+        {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][
+          activeStatView === 'calories'
+            ? weeklyConsumption.indexOf(Math.max(...weeklyConsumption))
+            : weeklyHabitCount.indexOf(Math.max(...weeklyHabitCount))
+        ]}
+      </div>
+    </div>
+    <div className="text-center">
+      <div className="text-xs text-muted-foreground mb-1">Streak</div>
+      <div className="text-sm font-bold text-foreground">5 days</div>
+    </div>
+  </div>
+</Card>
+
+
+   <Card className="p-3 shadow-sm border-0 rounded-[5px] bg-card mb-12">
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center justify-center space-x-2">
+            <CheckCircle2 className="h-3.5 w-3.5 text-primary" />
+            <h3 className="text-base text-foreground mt-4">Daily Habits</h3>
+          </div>
+          <Badge
+            variant="secondary"
+            className="text-xs px-2 bg-transparent py-0.5 text-primary border-primary/20 rounded-[5px]"
+          >
+            {completedHabitsToday}/{totalHabitsToday} completed
+          </Badge>
+        </div>
+
+        {habits.length === 0 ? (
+          <div className="text-center py-8">
+            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-primary/10 flex items-center justify-center">
+              <CheckCircle2 className="h-8 w-8 text-primary" />
+            </div>
+            <h3 className="text-lg font-semibold text-foreground mb-2">Track Your Habits</h3>
+            <p className="text-sm text-muted-foreground mb-6 max-w-xs mx-auto">
+              Build better habits by tracking daily activities like workouts, reading, or meditation.
+            </p>
+            <Button
+              onClick={() => setIsAddingHabit(true)}
+              className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-2 rounded-[5px] font-medium"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add Your First Habit
+            </Button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-3 gap-2">
+            {habits.map((habit) => {
+              const Icon = getHabitIcon(habit.icon ?? "dumbbell")
+              const completed = isHabitCompleted(habit.id)
+
+              return (
+                <div key={habit.id} className="relative group">
+                  <Card
+                    className={`p-2 cursor-pointer transition-all duration-300 border-0 rounded-sm ${
+                      completed ? "bg-[#c9fa5f] text-black" 
+        : "bg-muted/30 hover:bg-muted/50 text-foreground"
+
+                    }`}
+                    onClick={() => toggleHabit(habit.id)}
+                  >
+                    <div className="flex flex-col items-center space-y-1">
+                      <div
+                        className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                          completed ? "bg-black/20 text-black" 
+            : "bg-muted text-muted-foreground"
+                        }`}
+                      >
+                        <Icon className="h-4 w-4" />
+                      </div>
+                      <span className={`text-xs font-medium text-center ${completed ? "text-black" : ""} leading-tight`}>
+                        {habit.name}
+                      </span>
+                      <div className="flex items-center justify-center">
+                        {completed ? (
+                          <CheckCircle2 className="h-3 w-3 text-black" />
+                        ) : (
+                          <Circle className="h-3 w-3 text-muted-foreground" />
+                        )}
+                      </div>
+                    </div>
+                  </Card>
+                  {!habit.id.startsWith("builtin-") && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="absolute -top-1 -right-1 w-4 h-4 p-0 rounded-full
+        opacity-0 group-hover:opacity-100 transition-opacity
+        bg-black/20 hover:bg-black/30"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        deleteHabit(habit.id)
+                      }}
+                    >
+                      <X className="h-2 w-2 text-white" />
+                    </Button>
+                  )}
+                </div>
+              )
+            })}
+
+            <Card
+              className="p-2 cursor-pointer transition-all duration-300 border-2 border-dashed border-muted-foreground/30 hover:border-primary/50 rounded-lg bg-muted/20 hover:bg-muted/30"
+              onClick={() => setIsAddingHabit(true)}
+            >
+              <div className="flex flex-col items-center justify-center space-y-1 h-full min-h-[60px]">
+                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                  <Plus className="h-4 w-4 text-primary" />
+                </div>
+                <span className="text-xs font-medium text-center text-muted-foreground">Add Habit</span>
+              </div>
+            </Card>
+          </div>
+        )}
+      </Card>
+
+      {isAddingHabit && (
+        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+          <Card className="w-full max-w-md p-6 bg-card">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-sm font-semibold">Add New Habit</h3>
+              <Button variant="ghost" size="sm" onClick={() => setIsAddingHabit(false)} className="mb-4">
+                <X className="w-2 h-2 mr-1" />
+              </Button>
+            </div>
+            <div className="space-y-4">
+              <Input
+                placeholder="Enter habit name (e.g., Workout, Made bed, Read book)"
+                value={newHabitName}
+                onChange={(e) => setNewHabitName(e.target.value)}
+                onKeyPress={(e) => e.key === "Enter" && addHabit()}
+                className="text-sm"
+              />
+              <div className="flex justify-end space-x-2">
+                <Button
+                  variant="outline"
+                  className="p-0 px-6 rounded-[5px] bg-transparent"
+                  onClick={() => setIsAddingHabit(false)}
+                >
+                  Cancel
+                </Button>
+                <Button onClick={addHabit} className="p-0 px-4 rounded-[5px]" disabled={!newHabitName.trim()}>
+                  Add Habit
+                </Button>
+              </div>
+            </div>
+          </Card>
+        </div>
+      )}
+
+      
+
       {todaysFoods.length > 0 && (
         <Card className="p-4 shadow-sm border-0 rounded-xl bg-card">
           <div className="flex items-center space-x-2 mb-4">
@@ -1748,6 +2144,8 @@ const areHabitsComplete = totalHabitsToday > 0 && completedHabitsToday === total
         </Card>
       )}
 
+
+
               {/* After the main Card with progress circle */}
 <PlantStreak 
   habitsCompleted={areHabitsComplete}
@@ -1756,110 +2154,110 @@ const areHabitsComplete = totalHabitsToday > 0 && completedHabitsToday === total
   completedHabits={completedHabitsToday}
 />
 
+
+{/* Horizontal Scrollable Feature Cards */}
+<div className="relative px-1 mt-3">
+  <div className="flex gap-3 overflow-x-auto mb-1 snap-x snap-mandatory scrollbar-hide">
+
+    
+    {/* ===================== Psychology Tools Card ===================== */}
+    <div
+      onClick={() => router.push(`/${userId}/psychology-tools`)}
+      className="min-w-[280px] snap-start cursor-pointer group"
+    >
+      <Card
+  className="min-w-[280px] h-[360px] overflow-hidden rounded-2xl cursor-pointer bg-[#161616] transition p-0"
+  onClick={() => router.push(`/${userId}/psychology-tools`)}
+>
+  {/* Image (Top Half) */}
+  <div
+    className="h-1/2 w-full bg-cover bg-center"
+    style={{ backgroundImage: "url('/images/dashboard/psychology-tools.png')" }}
+  />
+
+  {/* Content (Bottom Half) */}
+  <div className="h-1/2 p-5 flex flex-col justify-between">
+    <div className="flex items-start justify-between">
+      <div className="w-10 h-10 rounded-full bg-[#c9fa5f] flex items-center justify-center">
+        <Brain className="h-6 w-6 text-black" />
+      </div>
+      <ArrowUpRight className="h-5 w-5 text-gray-500" />
+    </div>
+
+    <div>
+      <h4 className="text-base font-semibold text-foreground mb-1">
+        Psychology Tools
+      </h4>
+      <p className="text-xs text-muted-foreground">
+        Understand your patterns and behaviors
+      </p>
+    </div>
+  </div>
+</Card>
+
+    </div>
+
+    {/* ===================== Mind Rewire Card ===================== */}
+    <div
+      onClick={() => router.push(`/${userId}/mind-rewire`)}
+      className="min-w-[280px] snap-start cursor-pointer group rounded-sm"
+    >
+      <Card
+  className="min-w-[280px] h-[360px] overflow-hidden rounded-2xl cursor-pointer bg-[#161616] transition p-0"
+  onClick={() => router.push(`/${userId}/mind-rewire`)}
+>
+  {/* Image (Top Half) */}
+  <div
+    className="h-1/2 w-full bg-cover bg-center"
+    style={{ backgroundImage: "url('/images/dashboard/mind-rewire.png')" }}
+  />
+
+  {/* Content (Bottom Half) */}
+  <div className="h-1/2 p-5 flex flex-col justify-between">
+    <div className="flex items-start justify-between">
+      <div className="w-10 h-10 rounded-full bg-blue-500 flex items-center justify-center">
+        <GitBranch className="h-6 w-6 text-black" />
+      </div>
+      <ArrowUpRight className="h-5 w-5 text-gray-500" />
+    </div>
+
+    <div>
+      <h4 className="text-base font-semibold text-foreground mb-1">
+        Mind Rewire
+      </h4>
+      <p className="text-xs text-muted-foreground">
+        Transform your mindset with behavioral psychology
+      </p>
+    </div>
+  </div>
+</Card>
+
+    </div>
+
+    {/* Add more cards here */}
+  </div>
+</div>
+
+
+{/* Add CSS for hiding scrollbar */}
+<style jsx global>{`
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+`}</style>
+
 {/* <WeeklySummaryCard /> */}
 
 {/* Psychology Dashboard Card */}
-<Card className="p-4">
-  <div className="flex items-center justify-between mb-3">
-    <div className="flex items-center gap-3">
-      <div className="w-10 h-10 rounded-xl bg-[#c9fa5f] flex items-center justify-center">
-        <Brain className="h-4 w-4 text-black" />
-      </div>
-      <div>
-        <h3 className="text-md font-semibold text-foreground mt-2">Psychology Tools</h3>
-        <p className="text-sm text-muted-foreground">Understand your patterns</p>
-      </div>
-    </div>
-  </div>
 
-  <div className="grid grid-cols-2 gap-2 rounded-[5px]">
-    <Button
-      variant="outline"
-      size="sm"
-      onClick={() => setShowPsychologyInsights(true)}
-      className="h-auto py-3 flex flex-col items-center gap-1 hover:bg-[#c9fa5f]/10 hover:border-[#c9fa5f]/30 rounded-[5px]"
-    >
-      <BarChart3 className="h-4 w-4 text-[#c9fa5f]" />
-      <span className="text-xs">Insights</span>
-    </Button>
-
-    <Button
-      variant="outline"
-      size="sm"
-      onClick={() => setShowBodyBattery(true)}
-      className="h-auto py-3 flex flex-col items-center gap-1 hover:bg-[#c9fa5f]/10 hover:border-[#c9fa5f]/30 rounded-[5px]"
-    >
-      <Battery className="h-4 w-4 text-[#c9fa5f]" />
-      <span className="text-xs">Body Battery</span>
-    </Button>
-
-    <Button
-      variant="outline"
-      size="sm"
-      onClick={() => setShowPersonalityQuiz(true)}
-      className="h-auto py-3 flex flex-col items-center gap-1 hover:bg-[#c9fa5f]/10 hover:border-[#c9fa5f]/30 rounded-[5px]"
-    >
-      <Users className="h-4 w-4 text-[#c9fa5f]" />
-      <span className="text-xs">Personality</span>
-    </Button>
-
-    {/* <Button
-  variant="outline"
-  size="sm"
-  onClick={() => setShowTriggerHeatmap(true)}
-  className="h-auto py-3 flex flex-col items-center gap-1 hover:bg-[#c9fa5f]/10 hover:border-[#c9fa5f]/30"
->
-  <Clock className="h-4 w-4 text-[#c9fa5f]" />
-  <span className="text-xs">Heatmap</span>
-</Button> */}
-
-{/* <Button
-  variant="outline"
-  size="sm"
-  onClick={() => setShowCravingAnalyzer(true)}
-  className="h-auto py-3 flex flex-col items-center gap-1 hover:bg-[#c9fa5f]/10 hover:border-[#c9fa5f]/30"
->
-  <TrendingUp className="h-4 w-4 text-[#c9fa5f]" />
-  <span className="text-xs">Cravings</span>
-</Button> */}
-
-
-    {/* <Button
-  variant="outline"
-  size="sm"
-  onClick={() => setShowEmotionalWordCloud(true)}
-  className="h-auto py-3 flex flex-col items-center gap-1 hover:bg-[#c9fa5f]/10 hover:border-[#c9fa5f]/30 rounded-[5px]"
->
-  <Cloud className="h-4 w-4 text-[#c9fa5f]" />
-  <span className="text-xs">Emotions</span>
-</Button> */}
-
- <Button
-  variant="outline"
-  size="sm"
-  onClick={() => setShowWordCloud(true)}
-  className="h-auto py-3 flex flex-col items-center gap-1 hover:bg-[#c9fa5f]/10 hover:border-[#c9fa5f]/30 rounded-[5px]"
->
-  <Cloud className="h-4 w-4 text-[#c9fa5f]" />
-  <span className="text-xs">Trigger</span>
-</Button>
-  </div>
-
-
-  <Button
-    variant="ghost"
-    size="sm"
-    onClick={() => setShowConsistencyRadar(true)}
-    className="w-full mt-2 text-xs hover:bg-[#c9fa5f]/10"
-  >
-    <TrendingUp className="h-3 w-3 mr-1" />
-    View Consistency Radar
-  </Button>
-</Card>
 
 
 {/* Mind Rewire Features */}
-<Card className="p-4 mt-8 mb-8">
+{/* <Card className="p-4 mt-8 mb-8">
   <div className="flex items-center justify-between mb-3">
     <div className="flex items-center gap-3">
       <div className="w-10 h-10 rounded-lg bg-[#c9fa5f] flex items-center justify-center">
@@ -1923,7 +2321,7 @@ const areHabitsComplete = totalHabitsToday > 0 && completedHabitsToday === total
     <BarChart3 className="h-3 w-3 mr-1" />
     View Pattern Analytics
   </Button>
-</Card>
+</Card> */}
 
 {/* Micro Wins Tracker */}
 <MicroWinsTracker />
@@ -1933,9 +2331,9 @@ const areHabitsComplete = totalHabitsToday > 0 && completedHabitsToday === total
   <Card className="p-4 shadow-sm border-0 rounded-xl bg-card">
     <div className="flex items-center space-x-2 mb-4">
       <div className="flex items-center justify-center space-x-2">
-              <CheckCircle2 className="h-4 w-3.7 text-primary" />
+              <CheckCircle2 className="h-3.5 w-3.5 text-primary" />
             </div>
-            <h3 className="mt-4 text-md text-foreground">Habits This Week</h3>
+            <h3 className="mt-4 text-base text-foreground">Habits This Week</h3>
     </div>
     <div className="flex justify-between items-end space-x-2">
       {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day, index) => {
@@ -1966,8 +2364,8 @@ const areHabitsComplete = totalHabitsToday > 0 && completedHabitsToday === total
       })}
     </div>
     <div className="mt-1 pt-3 border-t border-border/50 flex justify-between items-center">
-      <span className="text-sm text-muted-foreground">Weekly Average</span>
-      <span className="text-sm font-semibold text-foreground">
+      <span className="text-xs text-muted-foreground">Weekly Average</span>
+      <span className="text-xs font-semibold text-foreground">
         {(weeklyHabitCount.reduce((a, b) => a + b, 0) / 7).toFixed(1)} habits/day
       </span>
     </div>
@@ -1979,9 +2377,9 @@ const areHabitsComplete = totalHabitsToday > 0 && completedHabitsToday === total
   <Card className="p-4 mb-4 shadow-sm border-0 rounded-xl bg-card">
     <div className="flex items-center space-x-2 mb-4">
       <div className="flex items-center justify-center space-x-2">
-              <TrendingUp className="h-4 w-3.7 text-primary" />
+              <TrendingUp className="h-3.5 w-3.5 text-primary" />
             </div>
-            <h3 className="mt-4 text-md text-foreground">Calories This Week</h3>
+            <h3 className="mt-4 text-base text-foreground">Calories This Week</h3>
     </div>
     <div className="flex justify-between items-end space-x-2">
       {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((day, index) => {
@@ -2012,14 +2410,23 @@ const areHabitsComplete = totalHabitsToday > 0 && completedHabitsToday === total
       })}
     </div>
     <div className="mt-1 pt-3 border-t border-border/50 flex justify-between items-center">
-      <span className="text-sm text-muted-foreground">Weekly Average</span>
-      <span className="text-sm font-bold text-foreground">
+      <span className="text-xs text-muted-foreground">Weekly Average</span>
+      <span className="text-xs font-bold text-foreground">
         {Math.round(weeklyConsumption.reduce((a, b) => a + b, 0) / 7).toLocaleString()} cal/day
       </span>
     </div>
   </Card>
 )}
-      <InsightsTracker loggedFoods={loggedFoods} dailyGoal={dailyGoal} />
+      {/* // REPLACE the existing InsightsTracker component call (around line 1550) with: */}
+
+<InsightsTracker 
+  loggedFoods={loggedFoods} 
+  dailyGoal={dailyGoal}
+  habits={habits}
+  habitLogs={habitLogs}
+  weeklyHabitData={weeklyHabitData}
+  monthlyHabitData={monthlyHabitData}
+/>
 
 
 
@@ -2054,6 +2461,10 @@ const areHabitsComplete = totalHabitsToday > 0 && completedHabitsToday === total
           )}
         </div>
       )}
+
+      {/* Mind Rewire Panel */}
+{/* Psychology Tools Panel */}
+
 
       <div className="mt-8 border-t border-border/50 pt-4 pb-20 text-center">
   {loading ? (

@@ -24,13 +24,13 @@ export function ThemeToggle() {
 
   return (
     <Button
-      variant="outline"
+      variant="ghost"
       size="sm"
       onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-      className="w-full"
+      className="w-full border-none"
     >
       {theme === "dark" ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-      <span className="ml-2">{theme === "dark" ? "Light Mode" : "Dark Mode"}</span>
+      {/* <span className="ml-2">{theme === "dark" ? "Light Mode" : "Dark Mode"}</span> */}
     </Button>
   )
 }

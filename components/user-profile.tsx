@@ -127,12 +127,6 @@ export function UserProfile() {
         </p>
       </div>
 
-      {/* <Card className="p-4">
-        <div className="space-y-2">
-          <Label className="text-sm font-medium">Appearance</Label>
-          <ThemeToggle />
-        </div>
-      </Card> */}
 
       <Card className="p-6 space-y-4 border">
         {[
@@ -205,7 +199,7 @@ export function UserProfile() {
           />
         </div>
 
-        <Button onClick={handleSave} className="w-full rounded-[5px] mb-20" disabled={saving}>
+        <Button onClick={handleSave} className="w-full rounded-[5px] mb-0" disabled={saving}>
           {saving ? "Saving..." : "Save Profile"}
         </Button>
       </Card>

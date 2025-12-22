@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { X, TrendingUp } from "lucide-react"
+import { X, TrendingUp, AlertCircle } from "lucide-react"
 import { createClient } from "@/lib/supabase/client"
 import { useUser } from "@/hooks/use-user"
 
@@ -147,155 +147,193 @@ export function FoodConsistencyRadar({ isOpen, onClose }: RadarChartProps) {
 
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
-      <Card className="w-full max-w-2xl bg-card border border-border/50 p-6 max-h-[85vh] overflow-y-auto">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-[#c9fa5f] flex items-center justify-center">
-              <TrendingUp className="h-5 w-5 text-black" />
-            </div>
-            <div>
-              <h3 className="text-md mt-3 font-semibold text-foreground">Consistency Radar</h3>
-              <p className="text-xs text-muted-foreground">Your nutrition balance this week</p>
-            </div>
-          </div>
-          <Button variant="ghost" size="sm" onClick={onClose} className="h-8 w-8 p-0">
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
+      <Card className="w-full max-w-2xl bg-gradient-to-br from-gray-900 to-gray-800 border-gray-700/50 p-6 max-h-[85vh] overflow-y-auto">
+  <div className="flex items-center justify-between mb-6">
+    <div className="flex items-center gap-3">
+      <div className="w-12 h-12 rounded-2xl bg-[#c9fa5f]/20 flex items-center justify-center">
+        <TrendingUp className="h-6 w-6 text-[#c9fa5f]" />
+      </div>
+      <div>
+        <h3 className="text-lg font-semibold text-white">Consistency Radar</h3>
+        <p className="text-xs text-gray-400">Your nutrition balance this week</p>
+      </div>
+    </div>
+    <Button variant="ghost" size="sm" onClick={onClose} className="h-9 w-9 p-0 rounded-xl hover:bg-gray-700/50">
+      <X className="h-4 w-4" />
+    </Button>
+  </div>
 
-        {loading ? (
-          <div className="py-12 text-center">
-            <div className="w-12 h-12 border-4 border-[#c9fa5f]/20 border-t-[#c9fa5f] rounded-full animate-spin mx-auto mb-4" />
-            <p className="text-sm text-muted-foreground">Calculating scores...</p>
-          </div>
-        ) : (
-          <>
-            {/* SVG Radar Chart */}
-            <div className="mb-6 flex justify-center">
-              <svg width="300" height="300" viewBox="0 0 300 300" className="drop-shadow-lg">
-                {/* Background circles */}
-                {[20, 40, 60, 80, 100].map((radius) => (
-                  <circle
-                    key={radius}
-                    cx={centerX}
-                    cy={centerY}
-                    r={radius}
-                    fill="none"
-                    stroke="white"
-                    strokeWidth="1"
-                    className="text-border/30"
-                    strokeDasharray={radius === 100 ? "none" : "2,2"}
-                  />
-                ))}
+  {loading ? (
+    <div className="py-16 text-center">
+      <div className="w-16 h-16 border-4 border-[#c9fa5f]/20 border-t-[#c9fa5f] rounded-full animate-spin mx-auto mb-4" />
+      <p className="text-sm text-gray-400">Calculating scores...</p>
+    </div>
+  ) : (
+    <>
+      {/* SVG Radar Chart with enhanced styling */}
+      <div className="mb-8 flex justify-center p-4 bg-gray-900/50 rounded-2xl">
+        <svg width="320" height="320" viewBox="0 0 300 300" className="drop-shadow-2xl">
+          {/* Background circles with glow */}
+          {[20, 40, 60, 80, 100].map((radius) => (
+            <circle
+              key={radius}
+              cx={centerX}
+              cy={centerY}
+              r={radius}
+              fill="none"
+              stroke={radius === 100 ? "#374151" : "#1f2937"}
+              strokeWidth={radius === 100 ? "2" : "1"}
+              strokeDasharray={radius === 100 ? "none" : "3,3"}
+              opacity={radius === 100 ? "0.6" : "0.3"}
+            />
+          ))}
 
-                {/* Axes */}
-                {dimensions.map((dim, idx) => {
-                  const point = webPoints[idx]
-                  return (
-                    <line
-                      key={dim.key}
-                      x1={centerX}
-                      y1={centerY}
-                      x2={point.x}
-                      y2={point.y}
-                      stroke="currentColor"
-                      strokeWidth="1"
-                      className="text-border/50"
-                    />
-                  )
-                })}
+          {/* Axes */}
+          {dimensions.map((dim, idx) => {
+            const point = webPoints[idx]
+            return (
+              <line
+                key={dim.key}
+                x1={centerX}
+                y1={centerY}
+                x2={point.x}
+                y2={point.y}
+                stroke="#374151"
+                strokeWidth="1.5"
+                opacity="0.5"
+              />
+            )
+          })}
 
-                {/* Data polygon */}
-                <polygon
-                  points={dataPoints.map(p => `${p.x},${p.y}`).join(' ')}
-                  fill="#c9fa5f"
-                  fillOpacity="0.2"
-                  stroke="#c9fa5f"
-                  strokeWidth="2"
-                  className="transition-all duration-1000"
+          {/* Data polygon with gradient */}
+          <defs>
+            <radialGradient id="radarGradient">
+              <stop offset="0%" stopColor="#c9fa5f" stopOpacity="0.4" />
+              <stop offset="100%" stopColor="#c9fa5f" stopOpacity="0.1" />
+            </radialGradient>
+          </defs>
+          <polygon
+            points={dataPoints.map(p => `${p.x},${p.y}`).join(' ')}
+            fill="url(#radarGradient)"
+            stroke="#c9fa5f"
+            strokeWidth="3"
+            strokeLinejoin="round"
+            className="transition-all duration-1000"
+          />
+
+          {/* Data points with glow */}
+          {dataPoints.map((point, idx) => (
+            <g key={idx}>
+              <circle
+                cx={point.x}
+                cy={point.y}
+                r="8"
+                fill="#c9fa5f"
+                opacity="0.3"
+                className="transition-all duration-1000"
+              />
+              <circle
+                cx={point.x}
+                cy={point.y}
+                r="5"
+                fill="#c9fa5f"
+                className="transition-all duration-1000"
+              />
+            </g>
+          ))}
+
+          {/* Labels with background */}
+          {dimensions.map((dim, idx) => {
+            const labelPoint = polarToCartesian(dim.angle, maxRadius + 30)
+            const score = scores[dim.key as keyof typeof scores]
+            return (
+              <g key={dim.key}>
+                <text
+                  x={labelPoint.x}
+                  y={labelPoint.y - 8}
+                  textAnchor="middle"
+                  className="text-xs font-semibold fill-white"
+                >
+                  {dim.label}
+                </text>
+                <text
+                  x={labelPoint.x}
+                  y={labelPoint.y + 6}
+                  textAnchor="middle"
+                  className="text-[10px] font-bold fill-[#c9fa5f]"
+                >
+                  {score.toFixed(1)}
+                </text>
+              </g>
+            )
+          })}
+        </svg>
+      </div>
+
+      {/* Score breakdown with enhanced cards */}
+      <div className="grid grid-cols-2 gap-3 mb-6">
+        {dimensions.map(dim => {
+          const score = scores[dim.key as keyof typeof scores]
+          const isWeakest = dim.key === weakest
+          return (
+            <div
+              key={dim.key}
+              className={`p-4 rounded-xl transition-all relative overflow-hidden ${
+                isWeakest
+                  ? 'bg-gradient-to-br from-orange-500/20 to-orange-600/10 border border-orange-500/30'
+                  : 'bg-gray-800/50 border border-gray-700/50 hover:border-gray-600/50'
+              }`}
+            >
+              {isWeakest && (
+                <div className="absolute top-2 right-2">
+                  <span className="text-xs font-semibold text-orange-500 bg-orange-500/10 px-2 py-0.5 rounded-full">
+                    Focus
+                  </span>
+                </div>
+              )}
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-xs font-semibold text-gray-300">{dim.label}</span>
+                <span className={`text-lg font-bold ${isWeakest ? 'text-orange-500' : 'text-[#c9fa5f]'}`}>
+                  {score.toFixed(1)}
+                </span>
+              </div>
+              <div className="relative h-2 bg-gray-900/50 rounded-full overflow-hidden">
+                <div
+                  className={`absolute top-0 left-0 h-full transition-all duration-1000 rounded-full ${
+                    isWeakest ? 'bg-gradient-to-r from-orange-600 to-orange-500' : 'bg-gradient-to-r from-[#c9fa5f] to-[#b8e84e]'
+                  }`}
+                  style={{ width: `${(score / 5) * 100}%` }}
                 />
-
-                {/* Data points */}
-                {dataPoints.map((point, idx) => (
-                  <circle
-                    key={idx}
-                    cx={point.x}
-                    cy={point.y}
-                    r="4"
-                    fill="#c9fa5f"
-                    className="transition-all duration-1000"
-                  />
-                ))}
-
-                {/* Labels */}
-                {dimensions.map((dim, idx) => {
-                  const labelPoint = polarToCartesian(dim.angle, maxRadius + 25)
-                  return (
-                    <text
-                      key={dim.key}
-                      x={labelPoint.x}
-                      y={labelPoint.y}
-                      textAnchor="middle"
-                      alignmentBaseline="middle"
-                      className="text-xs font-medium fill-current text-foreground"
-                    >
-                      {dim.label}
-                    </text>
-                  )
-                })}
-              </svg>
+              </div>
             </div>
+          )
+        })}
+      </div>
 
-            {/* Score breakdown */}
-            <div className="grid grid-cols-2 gap-3 mb-4">
-              {dimensions.map(dim => {
-                const score = scores[dim.key as keyof typeof scores]
-                const isWeakest = dim.key === weakest
-                return (
-                  <div
-                    key={dim.key}
-                    className={`p-3 rounded-[5px] transition-all ${
-                      isWeakest
-                        ? 'bg-[#c9fa5f]/30'
-                        : 'bg-muted/30'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-2">
-                      <span className="text-xs font-medium text-foreground">{dim.label}</span>
-                      <span className={`text-sm font-bold ${isWeakest ? 'text-white' : 'text-[#c9fa5f]'}`}>
-                        {score.toFixed(1)}/5
-                      </span>
-                    </div>
-                    <div className="relative h-1.5 bg-muted rounded-full overflow-hidden">
-                      <div
-                        className={`absolute top-0 left-0 h-full transition-all duration-1000 rounded-full ${
-                          isWeakest ? 'bg-orange-500' : 'bg-[#c9fa5f]'
-                        }`}
-                        style={{ width: `${(score / 5) * 100}%` }}
-                      />
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-
-            {/* Suggestion for weakest area */}
-            <div className="p-4 bg-[#c9fa5f]/10 border border-[#c9fa5f]/10 rounded-[5px]">
-              <h4 className="text-sm font-semibold text-foreground mb-2">
-                Focus Area: <span className="capitalize text-orange-500">{weakest.replace('_', ' ')}</span>
-              </h4>
-              <p className="text-xs text-muted-foreground leading-relaxed">
-                {weakest === 'protein' && "Aim for 25-30g protein per meal. Try eggs, Greek yogurt, chicken, or legumes."}
-                {weakest === 'fiber' && "Increase fiber with fruits, vegetables, whole grains, and oats. Target 25-30g daily."}
-                {weakest === 'hydration' && "Set hourly water reminders. Aim for 8+ glasses daily. Flavor with lemon if needed."}
-                {weakest === 'mood' && "Notice mood-food connections. Practice stress management and get 7-8 hours of sleep."}
-                {weakest === 'timing' && "Eat at consistent times daily. This stabilizes blood sugar and reduces cravings."}
-                {weakest === 'vitamins' && "Add colorful vegetables and fruits. Consider a multivitamin if diet is limited."}
-              </p>
-            </div>
-          </>
-        )}
-      </Card>
+      {/* Suggestion for weakest area with enhanced styling */}
+      <div className="p-5 bg-gradient-to-br from-[#c9fa5f]/10 to-[#c9fa5f]/5 border border-[#c9fa5f]/20 rounded-2xl">
+        <div className="flex items-start gap-3">
+          <div className="w-10 h-10 rounded-xl bg-orange-500/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+            <AlertCircle className="h-5 w-5 text-orange-500" />
+          </div>
+          <div>
+            <h4 className="text-sm font-semibold text-white mb-1.5">
+              Focus Area: <span className="capitalize text-orange-500">{weakest.replace('_', ' ')}</span>
+            </h4>
+            <p className="text-xs text-gray-400 leading-relaxed">
+              {weakest === 'protein' && "Aim for 25-30g protein per meal. Try eggs, Greek yogurt, chicken, or legumes."}
+              {weakest === 'fiber' && "Increase fiber with fruits, vegetables, whole grains, and oats. Target 25-30g daily."}
+              {weakest === 'hydration' && "Set hourly water reminders. Aim for 8+ glasses daily. Flavor with lemon if needed."}
+              {weakest === 'mood' && "Notice mood-food connections. Practice stress management and get 7-8 hours of sleep."}
+              {weakest === 'timing' && "Eat at consistent times daily. This stabilizes blood sugar and reduces cravings."}
+              {weakest === 'vitamins' && "Add colorful vegetables and fruits. Consider a multivitamin if diet is limited."}
+            </p>
+          </div>
+        </div>
+      </div>
+    </>
+  )}
+</Card>
     </div>
   )
 }

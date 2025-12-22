@@ -7,6 +7,8 @@ import { Card } from "@/components/ui/card"
 import { Camera, Upload, RotateCcw } from "lucide-react"
 import { MealCategorization } from "@/components/meal-categorization"
 import { NutritionResults } from "@/components/nutrition-results"
+import { FoodNameSelector } from "@/components/food-name-selector"
+
 import { MealPlannerEnhanced } from "./meal-planner"
 import { UserProfile } from "@/components/user-profile"
 import { QuickMeals } from "@/components/quick-meals"
@@ -22,6 +24,8 @@ import { StepsTracker } from "@/components/steps-tracker"
 import { WaterTracker } from "./water-tracker"
 import { ExerciseTracker } from "./exercise-tracker"
 import { WeightGoalPlanner } from "./weight-goal-planner"
+import { Label } from "recharts"
+import { ThemeToggle } from "./theme-toggle"
 
 type MealType = "breakfast" | "lunch" | "dinner" | "snacks"
 type ActivePage =
@@ -45,6 +49,9 @@ export default function NutritionApp() {
   const [activePage, setActivePage] = useState<ActivePage>("dashboard")
   const [sideImage, setSideImage] = useState<string | null>(null)
   const [notes, setNotes] = useState<string>("")
+
+  const [showFoodNameSelector, setShowFoodNameSelector] = useState(false)
+const [currentFoodLogId, setCurrentFoodLogId] = useState<string | null>(null)
 
   const fileInputRef = useRef<HTMLInputElement>(null)
   const cameraInputRef = useRef<HTMLInputElement>(null)
@@ -125,47 +132,60 @@ export default function NutritionApp() {
     }
   }
 
-  const handleAnalyze = async () => {
-    if (!selectedImage || !mealType) return
-    if (!canAnalyzeFood) {
-      console.log("You’ve already used this feature today. Try again tomorrow!")
-      return
-    }
 
-    setIsAnalyzing(true)
+  // REPLACE the handleAnalyze function (around line 105) with:
 
-    try {
-      const response = await fetch("/api/analyze-food", {
+const handleAnalyze = async () => {
+  if (!selectedImage || !mealType) return
+  if (!canAnalyzeFood) {
+    console.log("You've already used this feature today. Try again tomorrow!")
+    return
+  }
+
+  setIsAnalyzing(true)
+
+  try {
+    const response = await fetch("/api/analyze-food", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        image: selectedImage,
+        sideImage,
+        mealType,
+        notes: notes?.trim() || undefined,
+      }),
+    })
+
+    if (!response.ok) throw new Error("Analysis failed")
+
+    const data = await response.json()
+
+    if (plan?.plan_name === "Free") {
+      await fetch("/api/mark-feature-used", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          image: selectedImage,
-          sideImage,
-          mealType,
-          notes: notes?.trim() || undefined,
+          feature: "used_analyze_food",
+          lastUsedColumn: "last_used_analyze_food",
         }),
       })
+      await refreshSubscription()
+    }
 
-      if (!response.ok) throw new Error("Analysis failed")
-
-      const data = await response.json()
-
-      if (plan?.plan_name === "Free") {
-        await fetch("/api/mark-feature-used", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            feature: "used_analyze_food",
-            lastUsedColumn: "last_used_analyze_food",
-          }),
-        })
-
-        await refreshSubscription()
-      }
-
-      setNutritionData(data)
-    } catch (error) {
-      console.error("Analysis error:", error)
+    setNutritionData(data)
+    
+    // Store the food log ID for later update
+    if (data.foodLogId) {
+      setCurrentFoodLogId(data.foodLogId)
+    }
+    
+    // Show food name selector if we have suggestions
+    if (data.suggestedNames && data.suggestedNames.length > 0) {
+      setShowFoodNameSelector(true)
+    }
+    
+  } catch (error) {
+    console.error("Analysis error:", error)
       setNutritionData({
         calories: 400,
         protein: 22,
@@ -181,10 +201,37 @@ export default function NutritionApp() {
           "Stay hydrated throughout the day",
         ],
       })
-    } finally {
-      setIsAnalyzing(false)
-    }
+  } finally {
+    setIsAnalyzing(false)
   }
+}
+
+// ADD this new function in NutritionApp component (after handleAnalyze):
+
+const handleFoodNameSelect = async (selectedName: string) => {
+  if (!currentFoodLogId) return
+
+  try {
+    const supabase = createClient()
+    
+    const { error } = await supabase
+      .from("food_logs")
+      .update({ food_name: selectedName })
+      .eq("id", currentFoodLogId)
+
+    if (error) {
+      console.error("Error updating food name:", error)
+    } else {
+      // Update local nutrition data
+      setNutritionData((prev: any) => ({
+        ...prev,
+        selectedFoodName: selectedName
+      }))
+    }
+  } catch (error) {
+    console.error("Error in handleFoodNameSelect:", error)
+  }
+}
 
   const handleReset = () => {
     setSelectedImage(null)
@@ -196,12 +243,8 @@ export default function NutritionApp() {
   }
 
   const handleNavigation = (page: ActivePage) => {
-    setActivePage(page)
-
-    if (page !== "home") {
-      handleReset()
-    }
-  }
+  setActivePage(page)
+}
 
   const handleAddFoodFromDashboard = (mealType: "breakfast" | "lunch" | "dinner" | "snacks") => {
     setActivePage("home")
@@ -210,39 +253,48 @@ export default function NutritionApp() {
 
   return (
     <div className="min-h-screen bg-background px-2">
-      <header className="sticky top-0 z-20 bg-background/80 backdrop-blur-xl">
-        <div className="m-auto w-full px-4 py-3">
-          <div className="flex items-center justify-between px-1">
-            <h1 className="text-xl font-bold text-foreground pt-3">Kalnut.</h1>
+      {/* <header className="sticky top-0 z-20 bg-background/80 backdrop-blur-xl">
+  <div className="m-auto w-full px-4 py-3">
+    <div className="flex items-center justify-between px-1">
+      <h1 className="text-xl font-bold text-foreground pt-3">Kalnut.</h1>
 
-            <div className="flex items-center gap-2">
-              {activePage === "home" && selectedImage && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleReset}
-                  className="rounded-xl text-muted-foreground hover:bg-muted/50 hover:text-foreground"
-                >
-                  <RotateCcw className="mr-2 h-4 w-4" />
-                  <span>Reset</span>
-                </Button>
-              )}
+      <div className="flex items-center gap-4">
 
-              {/* Profile avatar on the top-right */}
-              <button
-                onClick={() => handleNavigation("profile")}
-                className="rounded-full ring-offset-background focus-visible:outline-none focus-visible:ring-ring focus-visible:ring-offset-2"
-                aria-label="Open profile"
-                title="Profile"
-              >
-                <Avatar className="h-8 w-8">
-                  <AvatarFallback className="text-sm">{shortName}</AvatarFallback>
-                </Avatar>
-              </button>
-            </div>
-          </div>
+        Appearance + Theme Toggle
+        <div className="flex items-center gap-2">
+          <Label className="text-sm font-medium">Appearance</Label>
+          <ThemeToggle />
         </div>
-      </header>
+
+      
+        {activePage === "home" && selectedImage && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleReset}
+            className="rounded-xl text-muted-foreground hover:bg-muted/50 hover:text-foreground"
+          >
+            <RotateCcw className="mr-2 h-4 w-4" />
+            <span>Reset</span>
+          </Button>
+        )}
+
+     
+        <button
+          onClick={() => handleNavigation("profile")}
+          className="rounded-full ring-offset-background focus-visible:outline-none focus-visible:ring-ring focus-visible:ring-offset-2"
+          aria-label="Open profile"
+          title="Profile"
+        >
+          <Avatar className="h-8 w-8">
+            <AvatarFallback className="text-sm">{shortName}</AvatarFallback>
+          </Avatar>
+        </button>
+      </div>
+    </div>
+  </div>
+</header> */}
+
 
       <main className="container mx-auto w-full max-w-md px-4 py-4 md:py-6 pb-36">
         {activePage === "profile" && <UserProfile />}
@@ -260,7 +312,7 @@ export default function NutritionApp() {
           <>
             {!selectedImage ? (
               <div className="space-y-6 md:space-y-8 animate-slide-up pb-20">
-                <div className="text-center space-y-2 md:space-y-3 mt-1">
+                <div className="text-center space-y-2 md:space-y-3 mt-12">
                   <h2 className="text-md md:text-2xl font-bold text-foreground">Analyze Your Food</h2>
                   <p className="text-sm md:text-base text-muted-foreground leading-relaxed px-1 md:px-2">
                     Take a photo or upload an image of your meal to get instant nutritional insights and track your
@@ -268,44 +320,54 @@ export default function NutritionApp() {
                   </p>
                 </div>
 
-                <Card className="relative overflow-hidden border-2 border-dashed border-primary/30 hover:border-primary/50 transition-all duration-300 rounded-[5px]">
-                  <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-accent/5" />
-                  <div className="relative p-6 md:p-10">
-                    <div className="flex flex-col items-center space-y-5 md:space-y-6">
-                      <div className="w-12 h-12 md:w-20 md:h-20 rounded-[5px] bg-[#c9fa5f] flex items-center justify-center shadow-xl">
-                        <Camera className="h-5 w-5 md:h-10 md:w-10 text-black" />
-                      </div>
+                <Card className="relative overflow-hidden border-2 border-dashed border-[#c9fa5f]/30 hover:border-[#c9fa5f]/50 transition-all duration-300 rounded-2xl">
+  <div className="absolute inset-0 bg-gradient-to-br from-[#c9fa5f]/5 to-transparent" />
+  <div className="relative p-8 md:p-10">
+    <div className="flex flex-col items-center space-y-6">
+      {/* Camera Icon */}
+      <div className="relative">
+        <div className="w-20 h-20 rounded-2xl bg-[#c9fa5f] flex items-center justify-center shadow-lg">
+          <Camera className="h-10 w-10 text-black" />
+        </div>
+        <div className="absolute -top-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-4 border-background flex items-center justify-center">
+          <span className="text-xs">✓</span>
+        </div>
+      </div>
 
-                      <div className="text-center space-y-1.5 md:space-y-2">
-                        <h3 className="text-md md:text-xl font-semibold text-foreground">Capture or Upload</h3>
-                        <p className="text-sm md:text-base text-muted-foreground">
-                          Get instant nutritional analysis powered by AI
-                        </p>
-                      </div>
+      {/* Text Content */}
+      <div className="text-center space-y-2">
+        <h3 className="text-xl font-bold text-foreground">
+          Capture or Upload
+        </h3>
+        <p className="text-sm text-muted-foreground max-w-xs">
+          Get instant nutritional analysis powered by AI
+        </p>
+      </div>
 
-                      <div className="flex flex-col w-full space-y-3 md:space-y-4 pt-2 md:pt-4">
-                        <Button
-                          onClick={handleCameraCapture}
-                          className="flex mx-auto justify-center w-1/2 h-10 md:h-14 text-base md:text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 rounded-[5px]"
-                          size="lg"
-                        >
-                          <Camera className="h-5 w-5 md:h-6 md:w-6 mr-3" />
-                          Take Photo
-                        </Button>
+      {/* Action Buttons */}
+      <div className="flex flex-col w-full space-y-3 pt-4 max-w-xs">
+        <Button
+          onClick={handleCameraCapture}
+          className="w-full h-12 text-base font-semibold shadow-lg hover:shadow-xl transition-all duration-300 rounded-xl bg-[#c9fa5f] hover:bg-[#b8e954] text-black"
+          size="lg"
+        >
+          <Camera className="h-5 w-5 mr-2" />
+          Take Photo
+        </Button>
 
-                        <Button
-                          onClick={handleFileSelect}
-                          variant="outline"
-                          className="flex mx-auto w-1/2 h-10 md:h-14 text-base md:text-lg font-semibold border-2 hover:bg-primary/5 transition-all duration-300 rounded-[5px] bg-transparent"
-                          size="lg"
-                        >
-                          <Upload className="h-5 w-5 md:h-6 md:w-6 mr-3" />
-                          Upload Image
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </Card>
+        <Button
+          onClick={handleFileSelect}
+          variant="outline"
+          className="w-full h-12 text-base font-semibold border-2 border-[#c9fa5f]/30 hover:bg-[#c9fa5f]/10 hover:border-[#c9fa5f]/50 transition-all duration-300 rounded-xl"
+          size="lg"
+        >
+          <Upload className="h-5 w-5 mr-2" />
+          Upload Image
+        </Button>
+      </div>
+    </div>
+  </div>
+</Card>
 
                 {/* <Card className="p-5 md:p-6 bg-gradient-to-r from-primary/5 to-accent/5 border-primary/10 rounded-[5px]">
                   <div className="space-y-3 md:space-y-4">
@@ -352,22 +414,34 @@ export default function NutritionApp() {
                   </div>
                 </Card> */}
 
-                <Card className="p-5 md:p-6 bg-gradient-to-r from-primary/5 to-accent/5 border-primary/10 rounded-[5px]">
-                  <div className="flex items-start space-x-3 md:space-x-4">
-                    {/* <div className="w-9 h-9 md:w-10 md:h-10 rounded-2xl bg-primary/20 flex items-center justify-center flex-shrink-0">
-                      <span className="text-base md:text-lg">T</span>
-                    </div> */}
-                    <div>
-                      <h4 className="text-sm md:text-base font-semibold text-foreground mb-1.5 md:mb-2">Pro Tips</h4>
-                      <ul className="text-sm md:text-base text-muted-foreground space-y-1 leading-relaxed">
-                        <li>• Ensure good lighting for better analysis</li>
-                        <li>• Include the entire meal in the frame</li>
-                        <li>• Avoid shadows and reflections</li>
-                        <li>• Add a reference object (eg: credit card, watch etc) for better results</li>
-                      </ul>
-                    </div>
-                  </div>
-                </Card>
+                <Card className="p-5 bg-gradient-to-br from-[#c9fa5f]/5 to-transparent border-[#c9fa5f]/10 rounded-2xl">
+  <div className="flex items-start space-x-3">
+    <div className="w-10 h-10 rounded-xl bg-[#c9fa5f]/20 flex items-center justify-center flex-shrink-0">
+      <span className="text-lg">💡</span>
+    </div>
+    <div>
+      <h4 className="text-sm font-semibold text-foreground mb-2">Pro Tips</h4>
+      <ul className="text-sm text-muted-foreground space-y-1.5 leading-relaxed">
+        <li className="flex items-start gap-2">
+          <span className="text-[#c9fa5f] mt-0.5">•</span>
+          <span>Ensure good lighting for better analysis</span>
+        </li>
+        <li className="flex items-start gap-2">
+          <span className="text-[#c9fa5f] mt-0.5">•</span>
+          <span>Include the entire meal in the frame</span>
+        </li>
+        <li className="flex items-start gap-2">
+          <span className="text-[#c9fa5f] mt-0.5">•</span>
+          <span>Avoid shadows and reflections</span>
+        </li>
+        <li className="flex items-start gap-2">
+          <span className="text-[#c9fa5f] mt-0.5">•</span>
+          <span>Add a reference object for better results</span>
+        </li>
+      </ul>
+    </div>
+  </div>
+</Card>
 
                 {/* Hidden file inputs */}
                 <input
@@ -440,6 +514,16 @@ export default function NutritionApp() {
       </main>
 
       <BottomNav activePage={activePage as any} onNavigate={handleNavigation as unknown as (page: any) => void} />
+
+        {/* Food Name Selector Modal */}
+{nutritionData && (
+  <FoodNameSelector
+    suggestedNames={nutritionData.suggestedNames || []}
+    onSelect={handleFoodNameSelect}
+    isOpen={showFoodNameSelector}
+    onClose={() => setShowFoodNameSelector(false)}
+  />
+)}
     </div>
   )
 }

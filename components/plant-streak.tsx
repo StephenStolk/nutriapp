@@ -248,7 +248,7 @@ export function PlantStreak({ habitsCompleted, caloriesOnTarget, totalHabits, co
   const PlantIcon = currentPlant.icon
 
   return (
-    <Card className="border border-[#c9fa5f]/30 rounded-[5px] bg-gradient-to-br from-card via-[#c9fa5f]/5 to-card overflow-hidden transition-all duration-300">
+    <Card className="rounded-sm bg-[#161616] overflow-hidden transition-all duration-300 mx-1">
       {/* Collapsed Header */}
       <div 
         className="p-4 cursor-pointer hover:bg-muted/20 transition-colors"

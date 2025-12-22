@@ -48,49 +48,68 @@ const mealOptions = [
 
 export function MealCategorization({ selectedMeal, onMealSelect }: MealCategorizationProps) {
   return (
-    <Card className="p-6 shadow-lg border-0 bg-gradient-to-br from-background to-muted/20">
-      <div className="space-y-6">
-        <div className="text-center space-y-2">
-          <h3 className="text-lg font-bold text-foreground">What meal is this?</h3>
-          <p className="text-sm text-muted-foreground leading-relaxed">
-            Choose the meal type to get personalized nutritional insights
-          </p>
-        </div>
+    // UPDATE the MealCategorization component styling to match the theme.
+// In components/meal-categorization.tsx, update the Card styles:
 
-        <div className="grid grid-cols-2 gap-3">
-          {mealOptions.map((meal) => {
-            const Icon = meal.icon
-            const isSelected = selectedMeal === meal.type
+<Card className="p-5 bg-card border-[#c9fa5f]/10 rounded-2xl">
+  <h3 className="text-base font-bold text-foreground mb-4 flex items-center gap-2">
+    <span className="text-xl">🍽️</span>
+    Select Meal Type
+  </h3>
+  
+  <div className="grid grid-cols-2 gap-3">
+    {/* Breakfast Button */}
+    <button
+      onClick={() => onMealSelect("breakfast")}
+      className={`p-4 rounded-xl transition-all duration-300 ${
+        selectedMeal === "breakfast"
+          ? "bg-[#c9fa5f] text-black border-2 border-[#c9fa5f] shadow-lg"
+          : "bg-muted/20 hover:bg-muted/40 border-2 border-transparent"
+      }`}
+    >
+      <div className="text-3xl mb-2">☕</div>
+      <div className="text-sm font-semibold">Breakfast</div>
+    </button>
 
-            return (
-              <Button
-                key={meal.type}
-                variant="ghost"
-                onClick={() => onMealSelect(meal.type)}
-                className={`h-auto p-4 flex flex-col items-center space-y-3 rounded-xl transition-all duration-300 hover:scale-105 ${
-                  isSelected
-                    ? "bg-primary/10 border-2 border-primary shadow-lg ring-2 ring-primary/20"
-                    : "hover:bg-muted/50 border-2 border-transparent"
-                }`}
-              >
-                <div
-                  className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                    isSelected ? "bg-gradient-to-br " + meal.color : meal.bgColor
-                  }`}
-                >
-                  <Icon className={`h-6 w-6 ${isSelected ? "text-white" : "text-primary"}`} />
-                </div>
-                <div className="text-center space-y-1">
-                  <div className={`text-sm font-semibold ${isSelected ? "text-primary" : "text-foreground"}`}>
-                    {meal.label}
-                  </div>
-                  <div className="text-xs text-muted-foreground">{meal.description}</div>
-                </div>
-              </Button>
-            )
-          })}
-        </div>
-      </div>
-    </Card>
+    {/* Lunch Button */}
+    <button
+      onClick={() => onMealSelect("lunch")}
+      className={`p-4 rounded-xl transition-all duration-300 ${
+        selectedMeal === "lunch"
+          ? "bg-[#c9fa5f] text-black border-2 border-[#c9fa5f] shadow-lg"
+          : "bg-muted/20 hover:bg-muted/40 border-2 border-transparent"
+      }`}
+    >
+      <div className="text-3xl mb-2">🍱</div>
+      <div className="text-sm font-semibold">Lunch</div>
+    </button>
+
+    {/* Dinner Button */}
+    <button
+      onClick={() => onMealSelect("dinner")}
+      className={`p-4 rounded-xl transition-all duration-300 ${
+        selectedMeal === "dinner"
+          ? "bg-[#c9fa5f] text-black border-2 border-[#c9fa5f] shadow-lg"
+          : "bg-muted/20 hover:bg-muted/40 border-2 border-transparent"
+      }`}
+    >
+      <div className="text-3xl mb-2">🍽️</div>
+      <div className="text-sm font-semibold">Dinner</div>
+    </button>
+
+    {/* Snacks Button */}
+    <button
+      onClick={() => onMealSelect("snacks")}
+      className={`p-4 rounded-xl transition-all duration-300 ${
+        selectedMeal === "snacks"
+          ? "bg-[#c9fa5f] text-black border-2 border-[#c9fa5f] shadow-lg"
+          : "bg-muted/20 hover:bg-muted/40 border-2 border-transparent"
+      }`}
+    >
+      <div className="text-3xl mb-2">🍪</div>
+      <div className="text-sm font-semibold">Snacks</div>
+    </button>
+  </div>
+</Card>
   )
 }

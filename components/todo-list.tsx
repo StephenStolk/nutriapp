@@ -46,6 +46,8 @@ export function TodoList({ onOpenJournal }: { onOpenJournal?: () => void }) {
   const [showCompleted, setShowCompleted] = useState<boolean>(true)
   const [user, setUser] = useState<User | null>(null);
   const supabase = createClient();
+  const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0])
+const [filterStatus, setFilterStatus] = useState<"in-progress" | "completed">("in-progress")
 
   useEffect(() => {
     async function loadUser() {
@@ -244,11 +246,27 @@ export function TodoList({ onOpenJournal }: { onOpenJournal?: () => void }) {
     return today.toLocaleDateString("en-US", options)
   }
 
-  const completedTodos = todos.filter((todo) => todo.completed)
-  const pendingTodos = todos.filter((todo) => !todo.completed)
+  const allPendingTodos = todos.filter((todo) => !todo.completed)
+const allCompletedTodos = todos.filter((todo) => todo.completed)
+
+// Filter by selected date
+const todosForSelectedDate = todos.filter((todo) => {
+  if (!todo.due_date) return selectedDate === new Date().toISOString().split('T')[0]
+  return todo.due_date === selectedDate
+})
+
+const pendingTodos = filterStatus === "in-progress" 
+  ? todosForSelectedDate.filter(t => !t.completed)
+  : []
+const completedTodos = filterStatus === "completed"
+  ? todosForSelectedDate.filter(t => t.completed)
+  : []
+
+const displayTodos = filterStatus === "in-progress" ? pendingTodos : completedTodos
+
 
   return (
-    <div className="min-h-screen bg-background text-foreground pb-28">
+    <div className="min-h-screen bg-background text-foreground pb-28 mt-8">
       <div className="px-3 pt-3 pb-2">
         <h1 className="text-md font-light mb-1 text-balance">My Day</h1>
         <p className="text-muted-foreground text-sm">{getCurrentDate()}</p>
@@ -266,19 +284,94 @@ export function TodoList({ onOpenJournal }: { onOpenJournal?: () => void }) {
         )}
       </div>
 
+      {/* Date Selector */}
+<div className="px-3 mb-4">
+  <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+    {Array.from({ length: 7 }).map((_, i) => {
+      const date = new Date()
+      date.setDate(date.getDate() - 3 + i)
+      const dateStr = date.toISOString().split('T')[0]
+      const dayNum = date.getDate()
+      const isSelected = selectedDate === dateStr
+      const isToday = dateStr === new Date().toISOString().split('T')[0]
+      
+      return (
+        <button
+          key={i}
+          onClick={() => setSelectedDate(dateStr)}
+          className={`flex-shrink-0 w-14 h-22 rounded-sm flex flex-col items-center justify-center text-sm font-medium transition-all mt-2 ${
+            isSelected
+              ? "bg-[#c9fa5f] text-black"
+              : "bg-[#161616]"
+          }`}
+        >
+          <span className={`text-xs ${isSelected ? "text-black" : "text-muted-foreground"}`}>
+            {date.toLocaleDateString("en-US", { weekday: "short" })}
+          </span>
+          <span className={`text-base font-semibold ${isToday && !isSelected ? "text-[#c9fa5f]" : ""}`}>
+            {dayNum}
+          </span>
+        </button>
+      )
+    })}
+  </div>
+</div>
+
+{/* Filter Tabs */}
+<div className="px-3 mb-4">
+  <div className="flex gap-2 p-1 bg-muted rounded-sm">
+    <button
+      onClick={() => setFilterStatus("in-progress")}
+      className={`flex-1 py-2 px-4 rounded-sm text-sm font-medium transition-all ${
+        filterStatus === "in-progress"
+          ? "bg-[#c9fa5f] shadow-sm text-black"
+          : "text-muted-foreground hover:text-foreground"
+      }`}
+    >
+      In Progress
+      <span className={`ml-2 px-2 rounded-full text-md ${
+        filterStatus === "in-progress" 
+          ? "text-black" 
+          : "text-white"
+      }`}>
+        {allPendingTodos.length}
+      </span>
+    </button>
+    <button
+      onClick={() => setFilterStatus("completed")}
+      className={`flex-1 py-2 px-4 rounded-sm text-sm font-medium transition-all ${
+        filterStatus === "completed"
+          ? "bg-[#c9fa5f] shadow-sm text-black"
+          : "text-muted-foreground hover:text-foreground"
+      }`}
+    >
+      Completed
+      <span className={`ml-2 px-2 rounded-full text-md ${
+        filterStatus === "completed"
+          ? "text-black" 
+          : "text-white"
+      }`}>
+        {allCompletedTodos.length}
+      </span>
+    </button>
+  </div>
+</div>
+
       <div className="px-3 space-y-2">
-        {pendingTodos.map((todo) => (
+  {displayTodos.length > 0 ? (
+    displayTodos.map((todo) => (
          <Card
   key={todo.id}
-  className="
+  className={`
     mt-1 flex h-24 items-center gap-2 p-3
-    rounded-[5px]
-    bg-gradient-to-br from-[#c9fa5f]/10 via-[#c9fa5f]/5 to-transparent
-    border-2 border-[#c9fa5f]/10
+    rounded-sm
     backdrop-blur-sm
     transition-all
-    hover:border-[#c9fa5f]/60
-  "
+    ${todo.completed 
+      ? "bg-muted/50 border-2 border-muted bg-[#c9fa5f]" 
+      : "bg-[#161616]"
+    }
+  `}
 >
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-2.5 flex-1">
@@ -389,53 +482,24 @@ export function TodoList({ onOpenJournal }: { onOpenJournal?: () => void }) {
               </div>
             </div>
           </Card>
-        ))}
+         ))
+  ) : (
+    <div className="flex flex-col items-center justify-center py-16 px-4">
+      <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center mb-4">
+        <span className="text-xl">📅</span>
+      </div>
+      <p className="text-muted-foreground text-sm text-center">
+        {filterStatus === "in-progress" 
+          ? "No pending tasks for this date" 
+          : "No completed tasks for this date"}
+      </p>
+      <p className="text-muted-foreground text-xs text-center mt-1">
+        {filterStatus === "in-progress" && "Add a new task to get started"}
+      </p>
+    </div>
+  )}
       </div>
 
-      {completedTodos.length > 0 && (
-        <div className="pt-3">
-          <button
-            onClick={() => setShowCompleted(!showCompleted)}
-            className="flex items-center gap-2 text-muted-foreground mb-2 hover:text-foreground transition-colors"
-          >
-            {showCompleted ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
-            <span className="text-sm">Completed {completedTodos.length}</span>
-          </button>
-
-          {showCompleted && (
-            <div className="space-y-2">
-              {completedTodos.map((todo) => (
-                <Card key={todo.id} className="bg-muted/50 border p-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2.5 flex-1">
-                      <button
-                        onClick={() => toggleTodo(todo.id)}
-                        className="w-5 h-5 rounded-full bg-muted flex items-center justify-center flex-shrink-0"
-                      >
-                        <div className="w-2.5 h-2.5 bg-muted-foreground rounded-full"></div>
-                      </button>
-                      <div className="flex-1 min-w-0">
-                        <h3 className="text-sm font-medium line-through text-muted-foreground">{todo.title}</h3>
-                        <p className="text-muted-foreground/60 text-xs">
-                          {todo.project || "Tasks"}
-                          {todo.due_date ? ` • Due ${todo.due_date}` : ""}
-                          {todo.priority ? ` • ${todo.priority}` : ""}
-                        </p>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => toggleStar(todo.id)}
-                      className={`p-1 flex-shrink-0 ${todo.starred ? "text-yellow-500/60" : "text-muted-foreground/60"} hover:text-yellow-500/60 transition-colors`}
-                    >
-                      <Star className="h-4 w-4" fill={todo.starred ? "currentColor" : "none"} />
-                    </button>
-                  </div>
-                </Card>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
 
       <div className="fixed inset-x-3 bottom-24 mx-auto max-w-md bg-background border-t p-3 rounded-[5px] shadow-sm">
         {!isAddingTodo ? (
