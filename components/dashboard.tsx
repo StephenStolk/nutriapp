@@ -166,8 +166,8 @@ const [choiceForkFood, setChoiceForkFood] = useState<any>(null)
 const [activePage, setActivePage] = useState<ActivePage>("landing")
 const [activeStatView, setActiveStatView] = useState<'calories' | 'habits'>('calories')
 
-
-// Add these state variables near your existing state declarations (around line 100):
+const [sleepHours, setSleepHours] = useState<null | number>(null);
+const [glasses, setGlasses] = useState<null | number>(null);
 
 const [weeklyHabitData, setWeeklyHabitData] = useState<{
   date: string
@@ -187,6 +187,47 @@ const [monthlyHabitData, setMonthlyHabitData] = useState<{
   const router = useRouter()
   const { user, userId, loading } = useUser()
   const { hasSubscription, plan } = useSubscription()
+
+  
+   const checkGlasses = async () => {
+  if(!userId) return;
+
+  const supabase = createClient();
+  try {
+    const {data, error} = await supabase.from('hydration_logs').select('*')
+    .eq('user_id', userId)
+    
+
+    if (error) {
+      console.error('Error fetching sleep logs:', error)
+    } else {
+      setGlasses(data && data.length > 0 ? data[0].glasses : null)
+    }
+
+  } catch (error) {
+    console.error('Error fetching sleep logs:', error)
+  }
+}
+
+  const checkSleepHours = async () => {
+  if(!userId) return;
+
+  const supabase = createClient();
+  try {
+    const {data, error} = await supabase.from('sleep_logs').select('*')
+    .eq('user_id', userId)
+    
+
+    if (error) {
+      console.error('Error fetching sleep logs:', error)
+    } else {
+      setSleepHours(data && data.length > 0 ? data[0].hours : null)
+    }
+
+  } catch (error) {
+    console.error('Error fetching sleep logs:', error)
+  }
+}
 
   
 // useEffect(() => {
@@ -221,6 +262,8 @@ const [monthlyHabitData, setMonthlyHabitData] = useState<{
     console.error('Error adding micro-win:', error)
   }
 }
+
+
 
 
 const checkMicroChoiceFork = (mealType: string, calories: number) => {
@@ -412,6 +455,8 @@ const addDisciplineDebt = async (reason: string, amount: number) => {
     }
 
     fetchData()
+    checkSleepHours();
+    checkGlasses();
   }, [userId, loading])
 
   useEffect(() => {
@@ -1470,11 +1515,11 @@ const handleNavigation = (page: ActivePage) => {
       </div>
     </div>
     <div className="text-2xl font-bold text-white">
-      7.5
+      {sleepHours || "Not Set"}
     </div>
     <div className="text-xs text-gray-400 font-medium">Sleep Hours</div>
     <div className="flex items-center justify-between">
-      <span className="text-xs text-gray-400">Goal: 8h</span>
+      <span className="text-xs text-gray-400">Goal: 7-8h</span>
       <span className="text-xs font-semibold text-white">94%</span>
     </div>
   </Card>
@@ -1487,7 +1532,7 @@ const handleNavigation = (page: ActivePage) => {
       </div>
     </div>
     <div className="text-2xl font-bold text-white">
-      3/8
+      {glasses || "Not Set"}
     </div>
     <div className="text-xs text-gray-400 font-medium">Water Glasses</div>
     <div className="flex items-center justify-between">
