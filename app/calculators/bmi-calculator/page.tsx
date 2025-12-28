@@ -14,6 +14,9 @@ export const metadata: Metadata = {
     url: 'https://kalnut.com/calculators/bmi-calculator/',
     type: 'website',
   },
+  verification: {
+    google: 'IIKn1bgHSp1-C0vkoGdBM_ocG9GUtPnUv91LbEsuoqg',
+  },
 };
 
 export default function Page() {
