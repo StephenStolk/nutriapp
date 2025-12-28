@@ -44,12 +44,13 @@ const calculators = [
     available: false
   },
   {
-    name: 'Body Fat Calculator',
-    description: 'Estimate your body fat percentage using proven formulas.',
-    url: '/calculators/body-fat-calculator/',
-    icon: Scale,
-    available: false
-  },
+      name: 'Height Predictor Calculator',
+      description: 'Predict a child\'s future adult height based on parental heights and current growth patterns.',
+      url: '/calculators/height-predictor/',
+      icon: Ruler,
+      color: 'bg-indigo-500',
+      available: true
+    },
   {
     name: 'Ideal Weight Calculator',
     description: 'Find a healthy weight range based on height and gender.',
