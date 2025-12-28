@@ -7,6 +7,7 @@ import HowItWorks from "@/components/landing-temporary/how-it-works"
 import About from "@/components/landing-temporary/about"
 // import TrustSection from "@/components/landing-temporary/trust-section"
 import Footer from "@/components/landing-temporary/footer"
+import CalculatorsHub from "@/components/CalculatorsHub"
 
 export default function Home() {
   return (
@@ -14,6 +15,7 @@ export default function Home() {
       {/* <Header /> */}
       <Hero />
       <Features />
+      <CalculatorsHub />
       <HowItWorks />
       <About />
       {/* <TrustSection /> */}
