@@ -4,7 +4,7 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'BMI Calculator – Body Mass Index Calculator | Kalnut',
   description:
-    "Calculate your Body Mass Index (BMI) to assess if you're at a healthy weight. Free, accurate BMI calculator with health interpretations.",
+    "Calculate your Body Mass Index (BMI) to assess if you're at a healthy weight. Free, accurate BMI calculator with health interpretations and multiple standards.",
   alternates: {
     canonical: 'https://kalnut.com/calculators/bmi-calculator/',
   },
@@ -14,11 +14,14 @@ export const metadata: Metadata = {
     url: 'https://kalnut.com/calculators/bmi-calculator/',
     type: 'website',
   },
-  verification: {
-    google: 'IIKn1bgHSp1-C0vkoGdBM_ocG9GUtPnUv91LbEsuoqg',
-  },
 };
 
 export default function Page() {
-  return <BMICalculatorClient />;
+  return (
+    <BMICalculatorClient
+      variant="default"
+      showCountrySelector={true}
+      showGenderSelector={true}
+    />
+  );
 }
