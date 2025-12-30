@@ -404,21 +404,28 @@ export default function BMICalculatorClient({
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
                       <div>
                         <span className="text-blue-600 font-medium">Underweight:</span>{' '}
-                        &lt;{countryStandards[country].bmi_ranges.underweight.max}
+                        <span className='text-black'>
+                            &lt;{countryStandards[country].bmi_ranges.underweight.max}
+                        </span>
                       </div>
                       <div>
-                        <span className="text-green-600 font-medium">Normal:</span>{' '}
+                        <span className="text-green-600 font-medium">Normal:</span>
+                        <span className='text-black'>{' '}
                         {countryStandards[country].bmi_ranges.normal.min}-
-                        {countryStandards[country].bmi_ranges.normal.max}
+                        {countryStandards[country].bmi_ranges.normal.max}</span>
                       </div>
                       <div>
-                        <span className="text-yellow-600 font-medium">Overweight:</span>{' '}
+                        <span className="text-yellow-600 font-medium">Overweight:</span>
+                        <span className='text-black'>
+                            {' '}
                         {countryStandards[country].bmi_ranges.overweight.min}-
                         {countryStandards[country].bmi_ranges.overweight.max}
+                        </span>
                       </div>
                       <div>
-                        <span className="text-red-600 font-medium">Obese:</span>{' '}
-                        ≥{countryStandards[country].bmi_ranges.obese.min}
+                        <span className="text-red-600 font-medium">Obese:</span>
+                        <span className='text-black'>{' '}
+                        ≥{countryStandards[country].bmi_ranges.obese.min}</span>
                       </div>
                     </div>
                   </div>
@@ -454,7 +461,7 @@ export default function BMICalculatorClient({
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">BMI Comparison</h3>
                   <div className="space-y-3">
                     <div>
-                      <div className="flex justify-between text-sm mb-1">
+                      <div className="flex justify-between text-black text-sm mb-1">
                         <span>Your BMI</span>
                         <span className="font-semibold">{bmi}</span>
                       </div>
@@ -467,8 +474,8 @@ export default function BMICalculatorClient({
                     </div>
                     <div>
                       <div className="flex justify-between text-sm mb-1">
-                        <span>Healthy BMI Average</span>
-                        <span className="font-semibold">{getHealthyMidpoint().toFixed(1)}</span>
+                        <span className='text-black'>Healthy BMI Average</span>
+                        <span className="font-semibold text-black">{getHealthyMidpoint().toFixed(1)}</span>
                       </div>
                       <div className="h-6 bg-green-200 rounded-sm relative overflow-hidden">
                         <div
